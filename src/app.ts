@@ -1,18 +1,23 @@
 import express from 'express';
+import routesAPI from './routes/api'
+import bodyParser from 'body-parser';
+import cors from 'cors'
+import helmet from 'helmet'
+
 const app = express();
 const port = 3000;
-import { AppDataSource } from "./dataSource"
-import { User } from './entity/User'
+
+app.use(helmet())
+app.use(cors());
+app.use(bodyParser.json());
 
 app.get('/', async (req, res) => {
-
-  const userRepository = AppDataSource.getRepository(User);
-  const users = await userRepository.find()
-  
   res.json({
-    data: users
+    data: 'Test server'
   })
 });
+
+routesAPI(app)
 
 app.listen(port, () => {
   return console.log(`Express is listening at http://localhost:${port}`);
