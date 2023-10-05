@@ -10,11 +10,15 @@ const login = async (username: string, password: string) => {
     try {
         const user = await userRepository.findOne({ where: { username: username } })
         if (user && user.checkPassword(password)) {
-
-            const token = jwt.sign({
+            const accessToken = jwt.sign({
                 id: user.id,
                 role: user.role,
-            }, config.jwtSecret, { expiresIn: 60 * 60 * 24 * 7 });
+            }, config.accessKey, { expiresIn: config.expiryAccessToken });
+            const refreshToken = jwt.sign({
+                id: user.id,
+                role: user.role,
+            }, config.accessKey, { expiresIn: config.expiryRefreshToken });
+
             return {
                 messge: 'Login successes.',
                 data: {
@@ -22,11 +26,12 @@ const login = async (username: string, password: string) => {
                     username: user.username,
                     role: user.role
                 },
-                token
+                accessToken,
+                refreshToken
             }
         }
         return {
-            errorMessage: 'Login failed, wrong username or password.'
+            errorMessage: 'Login failed. Wrong username or password.'
         }
     } catch (error: unknown) {
         return {
