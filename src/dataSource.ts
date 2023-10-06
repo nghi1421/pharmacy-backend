@@ -6,6 +6,7 @@ import { Staff } from './entity/Staff'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
 import { Position } from './entity/Position'
 import { Customer } from './entity/Customer'
+import { DrugCategory } from './entity/DrugCategory'
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -16,7 +17,7 @@ const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE_NAME,
   synchronize: true,
   logging: true,
-  entities: [User, Staff, Position, Customer],
+  entities: [User, Staff, Position, Customer, DrugCategory],
   namingStrategy: new SnakeNamingStrategy(),
 })
 
