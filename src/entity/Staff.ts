@@ -7,13 +7,15 @@ import {
     OneToOne,
     Index,
     JoinColumn,
+    ManyToOne,
 } from 'typeorm';
 import {
     IsNotEmpty,
-    Max,
+    Length,
     IsDate
 } from 'class-validator';
 import { User } from './User';
+import { Position } from './Position'
 
 @Entity('staffs')
 export class Staff {
@@ -22,29 +24,31 @@ export class Staff {
 
     @Column()
     @IsNotEmpty()
-    @Max(100)
+    @Length(1, 100)
     name: string
 
     @Column()
+    @Index({ unique: true })
     @IsNotEmpty()
-    @Max(255)
+    @Length(1, 255)
     email: string
 
     @Column({ name: 'phone_number' })
     @Index({ unique: true })
     @IsNotEmpty()
-    @Max(15)
+    @Length(1, 15)
     phoneNumber: string
 
     @Column()
     @IsNotEmpty()
-    @Max(20)
+    @Index({ unique: true })
+    @Length(1, 20)
     identification: string
 
     @Column()
-    @Max(255)
+    @Length(1, 255)
     address: string
-
+ 
     @Column()
     @IsDate()
     dob: Date
@@ -53,6 +57,14 @@ export class Staff {
     @IsNotEmpty()
     gender: number
 
+    @OneToOne(() => User)
+    @JoinColumn()
+    user: User
+
+    @ManyToOne(() => Position)
+    @JoinColumn()
+    position: Position
+
     @Column()
     @CreateDateColumn()
     createdAt: Date
@@ -60,8 +72,4 @@ export class Staff {
     @Column()
     @UpdateDateColumn()
     updatedAt: Date
-
-    @OneToOne(() => User)
-    @JoinColumn()
-    user: User
 }

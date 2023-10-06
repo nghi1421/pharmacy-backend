@@ -3,7 +3,7 @@ import { AppDataSource } from '../dataSource'
 import { Repository } from 'typeorm'
 import jwt from 'jsonwebtoken'
 import config from '../config/config'
-import { LoginResponse } from '../contracts/LoginResponse'
+import { LoginResponse } from '../global/interfaces/LoginResponse'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 
