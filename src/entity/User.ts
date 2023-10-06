@@ -3,7 +3,8 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    Index
 } from 'typeorm';
 import {
     IsNotEmpty,
@@ -18,6 +19,7 @@ export class User {
     id: number
 
     @Column()
+    @Index({ unique: true })
     @IsNotEmpty()
     @Length(8, 255)
     username: string
@@ -32,12 +34,12 @@ export class User {
     @Max(20)
     role: string
 
-    @Column('created_at')
-    @CreateDateColumn()
+    @Column()
+    @CreateDateColumn({ name: 'created_at'})
     createdAt: Date
 
-    @Column('updated_at')
-    @UpdateDateColumn()
+    @Column()
+    @UpdateDateColumn({ name: 'updated_at'})
     updatedAt: Date
 
     public hashPasswrod(): void {

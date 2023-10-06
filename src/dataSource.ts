@@ -2,6 +2,8 @@ import 'reflect-metadata'
 import { DataSource } from 'typeorm'
 import {User} from './entity/User'
 import 'dotenv/config'
+import { Staff } from './entity/Staff'
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -12,7 +14,8 @@ const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE_NAME,
   synchronize: true,
   logging: true,
-  entities: [User],
+  entities: [User, Staff],
+  namingStrategy: new SnakeNamingStrategy(),
 })
 
 AppDataSource.initialize()

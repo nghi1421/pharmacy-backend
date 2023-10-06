@@ -14,6 +14,10 @@ export const checkAccessToken = (req: Request, res: Response, next: NextFunction
         jwt.verify(accessToken, config.accessKey, (error: VerifyErrors, payload: JwtPayload) => {
             if (error) {
                 res.status(401).send()
+                return;
+            }
+            else {
+                res.locals.userId = payload.userId
             }
         })
     } catch (error) {

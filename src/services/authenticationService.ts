@@ -3,11 +3,12 @@ import { AppDataSource } from '../dataSource'
 import { Repository } from 'typeorm'
 import jwt from 'jsonwebtoken'
 import config from '../config/config'
+import { LoginResponse } from '../contracts/LoginResponse'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 
 const login = async (username: string, password: string) => {
-    try {
+    return new Promise<LoginResponse>(async (resolve, reject) => {
         const user = await userRepository.findOne({ where: { username: username } })
         if (user && user.checkPassword(password)) {
             const accessToken = jwt.sign({
@@ -19,8 +20,8 @@ const login = async (username: string, password: string) => {
                 role: user.role,
             }, config.accessKey, { expiresIn: config.expiryRefreshToken });
 
-            return {
-                messge: 'Login successes.',
+            resolve({
+                message: 'Login successes.',
                 data: {
                     id: user.id,
                     username: user.username,
@@ -28,16 +29,13 @@ const login = async (username: string, password: string) => {
                 },
                 accessToken,
                 refreshToken
-            }
+            }) 
         }
-        return {
+
+        reject({
             errorMessage: 'Login failed. Wrong username or password.'
-        }
-    } catch (error: unknown) {
-        return {
-            errorMessage: error
-        }
-    }
+        })
+    })
 }
 
 export default{
