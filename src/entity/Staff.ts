@@ -5,16 +5,15 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToOne,
-    Index,
     JoinColumn,
     ManyToOne,
 } from 'typeorm';
 import {
     IsNotEmpty,
     Length,
-    IsDate
+    IsEmail
 } from 'class-validator';
-import { User } from './User';
+import { User } from './User'; 
 import { Position } from './Position'
 
 @Entity('staffs')
@@ -27,21 +26,19 @@ export class Staff {
     @Length(1, 100)
     name: string
 
-    @Column()
-    @Index({ unique: true })
+    @Column({ unique: true })
     @IsNotEmpty()
+    @IsEmail()
     @Length(1, 255)
     email: string
 
-    @Column({ name: 'phone_number' })
-    @Index({ unique: true })
+    @Column({ name: 'phone_number',  unique: true })
     @IsNotEmpty()
     @Length(1, 15)
     phoneNumber: string
 
-    @Column()
+    @Column({ unique: true })
     @IsNotEmpty()
-    @Index({ unique: true })
     @Length(1, 20)
     identification: string
 
@@ -49,8 +46,7 @@ export class Staff {
     @Length(1, 255)
     address: string
  
-    @Column()
-    @IsDate()
+    @Column({ nullable: true })
     dob: Date
 
     @Column()

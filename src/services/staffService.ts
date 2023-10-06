@@ -3,9 +3,9 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Position } from '../entity/Position';
+import { StaffData } from '../global/interfaces/StaffData';
 
 const staffRepository = AppDataSource.getRepository(Staff);
-const manager = AppDataSource.manager;
 const positionRepository = AppDataSource.getRepository(Position);
 
 const getStaffs = () => {
@@ -36,20 +36,20 @@ const searchStaff = (query: Object) => {
     })
 }
 
-const storeStaff = (data: any, positionId: number) => {
+const storeStaff = (data: StaffData, positionId: number) => {
     return new Promise(async (resolve, reject) => {
         try {
             const position = await positionRepository.findOneByOrFail({ id: positionId });
   
             let newStaff = new Staff();
-            console.log(data);
-            newStaff.name = data?.name;
-            newStaff.email = data?.email;
-            newStaff.phoneNumber = data?.phone_number;
-            newStaff.gender = data?.gender;
-            newStaff.address = data?.address ? data.address : '';
-            newStaff.identification = data?.identification;
-            newStaff.dob = data?.dob ? new Date(data.dob) : new Date();
+
+            newStaff.name = data.name;
+            newStaff.email = data.email;
+            newStaff.phoneNumber = data.phoneNumber;
+            newStaff.gender = data.gender;
+            newStaff.address = data.address ? data.address : '';
+            newStaff.identification = data.identification;
+            newStaff.dob = data.dob ? new Date(data.dob) : new Date();
 
             newStaff.position = position;
 
@@ -59,7 +59,7 @@ const storeStaff = (data: any, positionId: number) => {
                 reject({ errorMessage: 'Invalid information.'})
             }
 
-            manager.save(newStaff)
+            await staffRepository.save(newStaff)
             resolve({
                 message: 'Insert staff successfully',
                 data: newStaff
@@ -70,8 +70,62 @@ const storeStaff = (data: any, positionId: number) => {
     })
 }
 
+const updateStaff = (staffId: number, data: StaffData, positionId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const position = await positionRepository.findOneByOrFail({ id: positionId });
+  
+            let staff = await staffRepository.findOneByOrFail({ id: staffId });
+
+            staff.name = data.name;
+            staff.phoneNumber = data.phoneNumber;
+            staff.gender = data.gender;
+            staff.email = data.email;
+            staff.address = data.address ? data.address : '';
+            staff.identification = data.identification;
+            if (data.dob) {
+                staff.dob = new Date(data.dob)
+            }
+
+            staff.position = position;
+
+            const errors = await validate(staff)
+            if (errors.length > 0) {
+                reject({ errorMessage: 'Invalid information.'})
+            }
+
+            await staffRepository.save(staff)
+            resolve({
+                message: 'Update staff successfully',
+                data: staff
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const deleteStaff = (staffId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let staff: Staff = await staffRepository.findOneByOrFail({ id: staffId });
+
+            await staffRepository.delete(staffId);
+
+            resolve({
+                message: 'Staff deleted successfully',
+                data: staff
+            })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
 export default {
     getStaffs,
     searchStaff,
-    storeStaff
+    storeStaff,
+    updateStaff,
+    deleteStaff
 }

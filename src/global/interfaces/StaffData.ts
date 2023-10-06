@@ -1,7 +1,7 @@
 export interface StaffData {
     name: string;
     email: string;
-    phone_number: string;
+    phoneNumber: string;
     identification: string;
     address?: string;
     dob?: Date;

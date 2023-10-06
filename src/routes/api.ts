@@ -12,8 +12,8 @@ const routesAPI = (app: Application) => {
     router.get('/staffs', staffController.getStaffs)
     router.get('/staffs/search', staffController.searchStaff)
     router.post('/staffs', staffController.storeStaff)
-    router.put('/staffs', staffController.updateStaff)
-    router.delete('/staffs', staffController.deleteStaff)
+    router.put('/staffs/:staffId', staffController.updateStaff)
+    router.delete('/staffs/:staffId', staffController.deleteStaff)
 
     return app.use("/api", router);
 }
