@@ -5,6 +5,7 @@ import 'dotenv/config'
 import { Staff } from './entity/Staff'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
 import { Position } from './entity/Position'
+import { Customer } from './entity/Customer'
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -15,7 +16,7 @@ const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE_NAME,
   synchronize: true,
   logging: true,
-  entities: [User, Staff, Position],
+  entities: [User, Staff, Position, Customer],
   namingStrategy: new SnakeNamingStrategy(),
 })
 
