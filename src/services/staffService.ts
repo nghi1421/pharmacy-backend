@@ -4,12 +4,14 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Position } from '../entity/Position';
 import { StaffData } from '../global/interfaces/StaffData';
+import { Repository } from 'typeorm';
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 
-const staffRepository = AppDataSource.getRepository(Staff);
-const positionRepository = AppDataSource.getRepository(Position);
+const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
+const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
-const getStaffs = () => {
-    return new Promise<DataResponse<Staff>>(async (resolve, reject) => {
+const getStaffs = (): Promise<DataResponse<Staff>> => {
+    return new Promise(async (resolve, reject) => {
         try {
             const staffs = await staffRepository.find();
             resolve({
@@ -22,8 +24,8 @@ const getStaffs = () => {
     })
 }
 
-const searchStaff = (query: Object) => {
-    return new Promise<DataResponse<Staff>>(async (resolve, reject) => {
+const searchStaff = (query: Object): Promise<DataResponse<Staff>> => {
+    return new Promise(async (resolve, reject) => {
         try {
             const staff = await staffRepository.find({ where: query});
             resolve({
@@ -36,7 +38,8 @@ const searchStaff = (query: Object) => {
     })
 }
 
-const storeStaff = (data: StaffData, positionId: number) => {
+const storeStaff =
+    (data: StaffData, positionId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
             const position = await positionRepository.findOneByOrFail({ id: positionId });
@@ -70,7 +73,8 @@ const storeStaff = (data: StaffData, positionId: number) => {
     })
 }
 
-const updateStaff = (staffId: number, data: StaffData, positionId: number) => {
+const updateStaff =
+    (staffId: number, data: StaffData, positionId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
             const position = await positionRepository.findOneByOrFail({ id: positionId });
@@ -105,7 +109,7 @@ const updateStaff = (staffId: number, data: StaffData, positionId: number) => {
     })
 }
 
-const deleteStaff = (staffId: number) => {
+const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let staff: Staff = await staffRepository.findOneByOrFail({ id: staffId });

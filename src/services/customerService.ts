@@ -3,11 +3,13 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { CustomerData } from '../global/interfaces/CustomerData';
+import { Repository } from 'typeorm';
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 
-const customerRepository = AppDataSource.getRepository(Customer);
+const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
 
-const getCustomers = () => {
-    return new Promise<DataResponse<Customer>>(async (resolve, reject) => {
+const getCustomers = (): Promise<DataResponse<Customer>> => {
+    return new Promise(async (resolve, reject) => {
         try {
             const staffs = await customerRepository.find();
             resolve({
@@ -20,8 +22,8 @@ const getCustomers = () => {
     })
 }
 
-const searchCustomer = (query: Object) => {
-    return new Promise<DataResponse<Customer>>(async (resolve, reject) => {
+const searchCustomer = (query: Object): Promise<DataResponse<Customer>> => {
+    return new Promise(async (resolve, reject) => {
         try {
             const staff = await customerRepository.find({ where: query});
             resolve({
@@ -34,7 +36,7 @@ const searchCustomer = (query: Object) => {
     })
 }
 
-const storeCustomer = (data: CustomerData) => {
+const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let newCustomer = new Customer();
@@ -66,7 +68,7 @@ const storeCustomer = (data: CustomerData) => {
     })
 }
 
-const updateCustomer = (customerId: number, data: CustomerData) => {
+const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOptionResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let customer = await customerRepository.findOneByOrFail({ id: customerId });
@@ -97,7 +99,7 @@ const updateCustomer = (customerId: number, data: CustomerData) => {
     })
 }
 
-const deleteCustomer = (customerId: number) => {
+const deleteCustomer = (customerId: number): Promise<DataOptionResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let customer: Customer = await customerRepository.findOneByOrFail({ id: customerId });

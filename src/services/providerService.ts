@@ -3,16 +3,18 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
+import { Repository } from 'typeorm';
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 
-const providerRepository = AppDataSource.getRepository(Provider);
+const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 
-const getProviders = () => {
-    return new Promise<DataResponse<Provider>>(async (resolve, reject) => {
+const getProviders = (): Promise<DataResponse<Provider>> => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const staffs = await providerRepository.find();
+            const providers = await providerRepository.find();
             resolve({
                 message: 'Get providers successfully',
-                data: staffs
+                data: providers
             })
         } catch (error) {
             reject(error);
@@ -20,13 +22,13 @@ const getProviders = () => {
     })
 }
 
-const searchProvider = (query: Object) => {
-    return new Promise<DataResponse<Provider>>(async (resolve, reject) => {
+const searchProvider = (query: Object): Promise<DataResponse<Provider>> => {
+    return new Promise(async (resolve, reject) => {
         try {
-            const staff = await providerRepository.find({ where: query});
+            const providers = await providerRepository.find({ where: query});
             resolve({
-                message: 'Search Providers successfully',
-                data: staff
+                message: 'Search providers successfully',
+                data: providers
             })
         } catch (error) {
             reject(error);
@@ -34,7 +36,7 @@ const searchProvider = (query: Object) => {
     })
 }
 
-const storeProvider = (data: ProviderData) => {
+const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let newProvider = new Provider();
@@ -61,7 +63,8 @@ const storeProvider = (data: ProviderData) => {
     })
 }
 
-const updateProvider = (providerId: number, data: ProviderData) => {
+const updateProvider =
+    (providerId: number, data: ProviderData): Promise<DataOptionResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let provider = await providerRepository.findOneByOrFail({ id: providerId });
@@ -87,7 +90,7 @@ const updateProvider = (providerId: number, data: ProviderData) => {
     })
 }
 
-const deleteProvider = (providerId: number) => {
+const deleteProvider = (providerId: number): Promise<DataOptionResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let provider: Provider = await providerRepository.findOneByOrFail({ id: providerId });

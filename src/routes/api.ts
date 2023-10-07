@@ -4,6 +4,7 @@ import staffController from '../controllers/staffController';
 import customerController from '../controllers/customerController';
 import drugCategoryController from '../controllers/drugCategoryController';
 import providerController from '../controllers/providerController';
+import importController from '../controllers/importController';
 
 const router = express.Router();
 
@@ -38,6 +39,13 @@ const routesAPI = (app: Application) => {
     router.post('/providers', providerController.storeProvider)
     router.put('/providers/:providerId', providerController.updateProvider)
     router.delete('/providers/:providerId', providerController.deleteProvider)
+
+    //Import
+    router.get('/imports', importController.getImports)
+    router.get('/imports/search', importController.searchImport)
+    router.post('/imports', importController.storeImport)
+    router.put('/imports/:importId', importController.updateImport)
+    router.delete('/imports/:importId', importController.deleteImport)
 
     return app.use("/api", router);
 }

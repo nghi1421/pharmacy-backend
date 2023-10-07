@@ -3,11 +3,13 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { DrugCategoryData } from '../global/interfaces/DrugCategoryData';
+import { Repository } from 'typeorm';
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 
-const drugCategoryRepository = AppDataSource.getRepository(DrugCategory);
+const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 
-const getDrugCategories = () => {
-    return new Promise<DataResponse<DrugCategory>>(async (resolve, reject) => {
+const getDrugCategories = (): Promise<DataResponse<DrugCategory>> => {
+    return new Promise(async (resolve, reject) => {
         try {
             const drugCategories = await drugCategoryRepository.find();
             resolve({
@@ -20,7 +22,7 @@ const getDrugCategories = () => {
     })
 }
 
-const searchDrugCategory = (query: Object) => {
+const searchDrugCategory = (query: Object): Promise<DataResponse<DrugCategory>> => {
     return new Promise<DataResponse<DrugCategory>>(async (resolve, reject) => {
         try {
             const staff = await drugCategoryRepository.find({ where: query});
@@ -34,7 +36,7 @@ const searchDrugCategory = (query: Object) => {
     })
 }
 
-const storeDrugCategory = (data: DrugCategoryData) => {
+const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let newDrugCategory = new DrugCategory();
@@ -65,7 +67,8 @@ const storeDrugCategory = (data: DrugCategoryData) => {
     })
 }
 
-const updateDrugCategory = (drugCategoryId: number, data: DrugCategoryData) => {
+const updateDrugCategory =
+    (drugCategoryId: number, data: DrugCategoryData): Promise<DataOptionResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let drugCategory = await drugCategoryRepository.findOneByOrFail({ id: drugCategoryId });
@@ -95,7 +98,7 @@ const updateDrugCategory = (drugCategoryId: number, data: DrugCategoryData) => {
     })
 }
 
-const deleteDrugCategory = (drugCategoryId: number) => {
+const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let drugCategory: DrugCategory = await drugCategoryRepository.findOneByOrFail({ id: drugCategoryId });
