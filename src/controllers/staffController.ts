@@ -21,7 +21,6 @@ const searchStaff = async (req: Request, res: Response) => {
     }
 }
 
-///////////////////////////////////////////////////////////
 const storeStaff = async (req: Request, res: Response) => {
     try {
         const { 

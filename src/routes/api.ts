@@ -3,6 +3,7 @@ import authenticateController from '../controllers/authenticateController';
 import staffController from '../controllers/staffController';
 import customerController from '../controllers/customerController';
 import drugCategoryController from '../controllers/drugCategoryController';
+import providerController from '../controllers/providerController';
 
 const router = express.Router();
 
@@ -30,6 +31,13 @@ const routesAPI = (app: Application) => {
     router.post('/drug-categories', drugCategoryController.storeDrugCategory)
     router.put('/drug-categories/:drugCategoryId', drugCategoryController.updateDrugCategory)
     router.delete('/drug-categories/:drugCategoryId', drugCategoryController.deleteDrugCategory)
+
+    //Provider
+    router.get('/providers', providerController.getProviders)
+    router.get('/providers/search', providerController.searchProvider)
+    router.post('/providers', providerController.storeProvider)
+    router.put('/providers/:providerId', providerController.updateProvider)
+    router.delete('/providers/:providerId', providerController.deleteProvider)
 
     return app.use("/api", router);
 }
