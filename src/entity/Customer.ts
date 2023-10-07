@@ -39,7 +39,7 @@ export class Customer {
     @Length(1, 255)
     address: string
  
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: 'date' })
     dob: Date
 
     @Column()

@@ -4,7 +4,9 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
-    Index
+    Index,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import {
     IsNotEmpty,
@@ -12,6 +14,7 @@ import {
     Max
 } from 'class-validator';
 import bcrypt from 'bcrypt';
+import { Role } from './Role';
 
 @Entity('users')
 export class User {
@@ -29,10 +32,9 @@ export class User {
     @Max(1000)
     password: string
 
-    @Column()
-    @IsNotEmpty()
-    @Max(20)
-    role: string
+    @ManyToOne(() => Role)
+    @JoinColumn()
+    role: Role
 
     @Column()
     @CreateDateColumn({ name: 'created_at'})

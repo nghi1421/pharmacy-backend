@@ -27,12 +27,12 @@ export class Provider {
     @Length(1, 255)
     email: string
 
-    @Column({ name: 'phone_number',  unique: true })
+    @Column({ unique: true })
     @IsNotEmpty()
     @Length(1, 15)
     phoneNumber: string
 
-    @Column()
+    @Column({ nullable: true })
     @Length(1, 255)
     address: string
  

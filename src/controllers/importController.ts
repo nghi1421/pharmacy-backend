@@ -32,14 +32,12 @@ const storeImport = async (req: Request, res: Response) => {
         const maturityDate = new Date(req.body.maturity_date)
         const staffId = parseInt(res.locals.staffId);
         const providerId = parseInt(req.body.provider_id)
-        const totalPrice = parseInt(req.body.total_price)
 
         const data: ImportData = {
             note,
             paid,
             importDate,
             maturityDate,
-            totalPrice,
             staffId,
             providerId,
         }
@@ -61,14 +59,12 @@ const updateImport = async (req: Request, res: Response) => {
         const maturityDate = new Date(req.body.maturity_date)
         const staffId = parseInt(res.locals.staffId);
         const providerId = parseInt(req.body.provider_id)
-        const totalPrice = parseInt(req.body.total_price)
 
         const data: ImportData = {
             note,
             paid,
             importDate,
             maturityDate,
-            totalPrice,
             staffId,
             providerId,
         }

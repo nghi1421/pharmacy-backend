@@ -1,7 +1,7 @@
 import { Import } from '../entity/Import'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validateOrReject } from "class-validator"
 import { ImportData } from '../global/interfaces/ImportData';
 import { Staff } from '../entity/Staff';
 import { Provider } from '../entity/Provider';
@@ -58,7 +58,6 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             newImport.importDate = data.importDate;
             newImport.note = data.note;
             newImport.paid = data.paid;
-            newImport.totalPrice = data.totalPrice;
             newImport.maturityDate = data.maturityDate;
             
             newImport.staff = staff;
@@ -90,7 +89,6 @@ const updateImport = (importId: number, data: ImportData): Promise<DataOptionRes
             myImport.importDate = data.importDate;
             myImport.note = data.note;
             myImport.paid = data.paid;
-            myImport.totalPrice = data.totalPrice;
             myImport.maturityDate = data.maturityDate;
             
             myImport.provider = provider;

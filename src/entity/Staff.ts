@@ -11,7 +11,8 @@ import {
 import {
     IsNotEmpty,
     Length,
-    IsEmail
+    IsEmail,
+    Max,
 } from 'class-validator';
 import { User } from './User'; 
 import { Position } from './Position'
@@ -46,12 +47,16 @@ export class Staff {
     @Length(1, 255)
     address: string
  
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: 'date' })
     dob: Date
 
-    @Column()
+    @Column({ type: 'tinyint' })
+    @Max(2)
     @IsNotEmpty()
     gender: number
+
+    @Column({ type: 'bit', default: true})
+    isWorking: boolean
 
     @OneToOne(() => User)
     @JoinColumn()

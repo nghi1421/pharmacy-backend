@@ -8,6 +8,12 @@ import { Position } from './entity/Position'
 import { Customer } from './entity/Customer'
 import { DrugCategory } from './entity/DrugCategory'
 import { Provider } from './entity/Provider'
+import { Import } from './entity/Import'
+import { ImportDetail } from './entity/ImportDetail'
+import { Export } from './entity/Export'
+import { ExportDetail } from './entity/ExportDetail'
+import { Role } from './entity/Role'
+import { TypeByUse } from './entity/TypeByUse'
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -24,7 +30,13 @@ const AppDataSource = new DataSource({
     Position,
     Customer,
     DrugCategory,
-    Provider
+    Provider,
+    Import,
+    ImportDetail,
+    Export,
+    ExportDetail,
+    Role,
+    TypeByUse
   ],
   namingStrategy: new SnakeNamingStrategy(),
 })

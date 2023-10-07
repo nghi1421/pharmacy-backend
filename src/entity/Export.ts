@@ -12,35 +12,31 @@ import {
     IsNotEmpty,
 } from 'class-validator';
 import { Staff } from './Staff';
-import { Provider } from './Provider';
+import { Customer } from './Customer';
 
-@Entity('imports')
-export class Import {
+@Entity('exports')
+export class Export {
     @PrimaryGeneratedColumn()
     id: number
 
     @Column({ type: 'date'})
     @IsDate()
-    importDate: Date
+    exportDate: Date
 
     @ManyToOne(() => Staff)
     @JoinColumn()
     staff: Staff
 
-    @ManyToOne(() => Provider)
+    @ManyToOne(() => Customer)
     @JoinColumn()
-    provider: Provider
+    customer: Customer
 
     @Column({ type: 'text', nullable: true })
     note: string
-
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
-    @IsNotEmpty()
-    paid: number
  
-    @Column({ name: 'maturity_date', nullable: true, type: 'date' })
-    @IsDate()
-    maturityDate: Date
+    @Column({ type: 'varchar', length: 20 })
+    @IsNotEmpty()
+    prescriptionId: string
 
     @Column()
     @CreateDateColumn()

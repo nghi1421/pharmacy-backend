@@ -7,16 +7,23 @@ import {
 } from 'typeorm';
 import {
     IsNotEmpty,
+    Length,
 } from 'class-validator';
 
-@Entity('positions')
-export class Position {
+@Entity('roles')
+export class Role {
     @PrimaryGeneratedColumn()
     id: number
  
-    @Column({ length: 100 })
+    @Column({ unique: true })
+    @Length(1, 100)
     @IsNotEmpty()
     name: string
+
+    @Column()
+    @Length(1, 255)
+    @IsNotEmpty()
+    detail: string
 
     @Column()
     @CreateDateColumn({ name: 'created_at'})

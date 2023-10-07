@@ -61,6 +61,7 @@ const updateStaff = async (req: Request, res: Response) => {
             identification,
             gender,
         } = req.body
+        
         const data: StaffData = {
             name,
             email,

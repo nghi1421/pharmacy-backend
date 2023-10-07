@@ -43,11 +43,8 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
 
             newDrugCategory.name = data.name
             newDrugCategory.unit = data.unit
-            newDrugCategory.price = data.price
-            newDrugCategory.quantity = data.quantity
             newDrugCategory.quantityConversion = data.quantityConversion
             newDrugCategory.type = data.type
-            newDrugCategory.uses = data.uses
             newDrugCategory.instruction = data.instruction
 
             const errors = await validate(newDrugCategory)
@@ -75,11 +72,8 @@ const updateDrugCategory =
 
             drugCategory.name = data.name
             drugCategory.unit = data.unit
-            drugCategory.price = data.price
-            drugCategory.quantity = data.quantity
             drugCategory.quantityConversion = data.quantityConversion
             drugCategory.type = data.type
-            drugCategory.uses = data.uses
             drugCategory.instruction = data.instruction
 
             const errors = await validate(drugCategory)

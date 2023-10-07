@@ -4,13 +4,17 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm';
 import {
     IsNotEmpty,
     Length,
+    Min,
 } from 'class-validator';
+import { TypeByUse } from './TypeByUse';
 
-@Entity('drug-categories')
+@Entity('drug_categories')
 export class DrugCategory {
     @PrimaryGeneratedColumn()
     id: number
@@ -25,38 +29,35 @@ export class DrugCategory {
     @Length(1, 20)
     unit: string
 
-    @Column({ type: 'decimal', precision: 15, scale: 2})
+    @Column({ unique: true })
     @IsNotEmpty()
-    price: number
+    @Length(1, 20)
+    minimalUnit: string
 
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
+    @Column({ type: 'decimal', precision: 4, scale: 2 })
+    @Min(0)
     @IsNotEmpty()
-    quantity: number
+    vat: number
 
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
     @IsNotEmpty()
     @Length(1, 255)
     quantityConversion: number
  
-    @Column({ type: 'varchar', length: 255 })
-    @Length(1, 255)
-    @IsNotEmpty()
+    @ManyToOne(() => TypeByUse)
+    @JoinColumn()
     type: string
-
-    @Column({ type: 'varchar', length: 255 })
-    @Length(1, 255)
-    @IsNotEmpty()
-    uses: string
 
     @Column({ type: 'varchar', length: 255 })
     @Length(1, 255)
     @IsNotEmpty()
     instruction: string
 
-    @Column({ type: 'varchar', length: 1000 })
+    @Column({ type: 'varchar', length: 255 })
     @Length(1, 1000)
     @IsNotEmpty()
     preserved: string
+    
     @Column()
     @CreateDateColumn()
     createdAt: Date
