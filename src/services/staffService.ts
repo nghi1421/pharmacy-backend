@@ -52,6 +52,7 @@ const storeStaff =
             newStaff.gender = data.gender;
             newStaff.address = data.address ? data.address : '';
             newStaff.identification = data.identification;
+            newStaff.isWorking = data.isWorking;
             newStaff.dob = data.dob ? new Date(data.dob) : new Date();
 
             newStaff.position = position;
@@ -86,6 +87,7 @@ const updateStaff =
             staff.gender = data.gender;
             staff.email = data.email;
             staff.address = data.address ? data.address : '';
+            staff.isWorking = data.isWorking;
             staff.identification = data.identification;
             if (data.dob) {
                 staff.dob = new Date(data.dob)

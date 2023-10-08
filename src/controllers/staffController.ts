@@ -32,7 +32,10 @@ const storeStaff = async (req: Request, res: Response) => {
             identification,
             gender,
         } = req.body
-
+        let isWorking = req.body.is_working
+        if (!isWorking) {
+            isWorking = true;
+        }
         const data: StaffData = {
             name,
             email,
@@ -41,6 +44,7 @@ const storeStaff = async (req: Request, res: Response) => {
             identification,
             gender,
             phoneNumber: phone_number,
+            isWorking,
         }
         const positionId: number = parseInt(req.body.position_id);
         const result = await staffService.storeStaff(data, positionId);
@@ -59,6 +63,7 @@ const updateStaff = async (req: Request, res: Response) => {
             dob,
             address,
             identification,
+            is_working,
             gender,
         } = req.body
         
@@ -70,6 +75,7 @@ const updateStaff = async (req: Request, res: Response) => {
             identification,
             gender,
             phoneNumber: phone_number,
+            isWorking:  is_working,
         }
 
         const positionId: number = parseInt(req.body.position_id);

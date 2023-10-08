@@ -6,4 +6,5 @@ export interface StaffData {
     address?: string;
     dob?: Date;
     gender: number;
+    isWorking: boolean;
 }
