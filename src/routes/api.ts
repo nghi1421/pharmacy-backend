@@ -5,12 +5,16 @@ import customerController from '../controllers/customerController';
 import drugCategoryController from '../controllers/drugCategoryController';
 import providerController from '../controllers/providerController';
 import importController from '../controllers/importController';
+import roleController from '../controllers/roleController';
 
 const router = express.Router();
 
 const routesAPI = (app: Application) => {
     router.post('/login', authenticateController.login)
     router.post('/refresh-token', authenticateController.refreshToken)
+
+    //Role
+    router.get('/roles', roleController.getRoles)
 
     //Staff
     router.get('/staffs', staffController.getStaffs)
