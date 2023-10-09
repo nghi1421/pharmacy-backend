@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import authenticateController from '../controllers/authenticateController';
 import staffController from '../controllers/staffController';
+import userController from '../controllers/userController';
 import customerController from '../controllers/customerController';
 import drugCategoryController from '../controllers/drugCategoryController';
 import providerController from '../controllers/providerController';
@@ -17,6 +18,13 @@ const routesAPI = (app: Application) => {
 
     //Role
     router.get('/roles', roleController.getRoles)
+
+    //User
+    router.get('/users', userController.getUsers)
+    router.get('/users/search', userController.searchUser)
+    router.post('/users', userController.storeUser)
+    router.put('/users/:userId', userController.updateUser)
+    router.delete('/users/:userId', userController.deleteUser)
 
     //Staff
     router.get('/staffs', staffController.getStaffs)
