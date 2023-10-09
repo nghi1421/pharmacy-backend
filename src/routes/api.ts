@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import authenticateController from '../controllers/authenticateController';
 import staffController from '../controllers/staffController';
 import userController from '../controllers/userController';
@@ -9,6 +9,7 @@ import importController from '../controllers/importController';
 import roleController from '../controllers/roleController';
 import positionController from '../controllers/positionController';
 import { checkAccessToken } from '../middlewares/checkAccessToken';
+import { checkAdmin } from '../middlewares/checkAdmin';
 
 const router = express.Router();
 
@@ -68,7 +69,7 @@ const routesAPI = (app: Application) => {
     router.put('/imports/:importId', importController.updateImport)
     router.delete('/imports/:importId', importController.deleteImport)
 
-    router.get('/check-middleware', checkAccessToken, (req, res) => {
+    router.get('/check-middleware', [checkAccessToken, checkAdmin], (req: Request, res: Response) => {
         res.status(200).json({
             message: 'Your access is accepted!'
         })
