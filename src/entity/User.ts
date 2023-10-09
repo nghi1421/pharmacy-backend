@@ -11,7 +11,6 @@ import {
 import {
     IsNotEmpty,
     Length,
-    Max
 } from 'class-validator';
 import bcrypt from 'bcrypt';
 import { Role } from './Role';
@@ -29,11 +28,12 @@ export class User {
 
     @Column()
     @IsNotEmpty()
-    @Max(1000)
+    @Length(1, 1000)
     password: string
 
-    @ManyToOne(() => Role)
+    @ManyToOne(() => Role, { eager: true })
     @JoinColumn()
+    @IsNotEmpty()
     role: Role
 
     @Column()

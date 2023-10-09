@@ -11,23 +11,25 @@ const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
 
 const login = async (username: string, password: string): Promise<LoginResponse> => {
     return new Promise(async (resolve, reject) => {
-        const user = await userRepository.findOneBy({ username: username })
+        const user: User|null = await userRepository.findOneBy({ username: username })
         if (user !== null && user.checkPassword(password)) {
-            const staff = await staffRepository.find({where: { user: { id: user.id }}});
-            if (staff.length == 0) {
+            const staff: Staff|null = await staffRepository.findOneBy({ user: { id: user.id }});
+            if (!staff) {
                 reject({errorMessage: 'Account does not match staff information.'})
                 return
             }
+            console.log(user);
+            console.log(staff);
             const accessToken = jwt.sign({
                 userId: user.id,
                 roleId: user.role.id,
-                staffId: staff[0].id
+                staffId: staff.id
             }, config.accessKey, { expiresIn: config.expiryAccessToken });
             const refreshToken = jwt.sign({
                 userId: user.id,
                 roleId: user.role.id,
-                staffId: staff[0].id
-            }, config.accessKey, { expiresIn: config.expiryRefreshToken });
+                staffId: staff.id
+            }, config.refreshKey, { expiresIn: config.expiryRefreshToken });
 
             resolve({
                 message: 'Login successes.',

@@ -8,7 +8,7 @@ export const checkAccessToken = (req: Request, res: Response, next: NextFunction
         return
     }
     
-    const accessToken = req.headers.authorization.split(' ')[1] as string
+    const accessToken: string = req.headers.authorization.split(' ')[1] as string
 
     try {
         jwt.verify(accessToken, config.accessKey, (error: VerifyErrors, payload: JwtPayload) => {

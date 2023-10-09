@@ -64,6 +64,7 @@ export class Staff {
 
     @ManyToOne(() => Position)
     @JoinColumn()
+    @IsNotEmpty()
     position: Position
 
     @Column()

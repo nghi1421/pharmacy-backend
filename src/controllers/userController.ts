@@ -26,7 +26,7 @@ const searchUser = async (req: Request, res: Response) => {
 
 const storeUser = async (req: Request, res: Response) => {
     try {
-        const { 
+        let { 
             username,
             password,
         } = req.body
@@ -52,9 +52,11 @@ const updateUser = async (req: Request, res: Response) => {
         
         const roleId = parseInt(req.body.role_id)
         const isResetPassword: boolean = req.body.reset_password === 1
+        const password = ''
 
         const data: UserData = {
             username,
+            password,
             roleId,
         }
 

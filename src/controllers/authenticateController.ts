@@ -16,7 +16,7 @@ const login = async (req: Request, res: Response) => {
 
 const refreshToken = (req: Request, res: Response) => {
     if (req.cookies?.jwt) {
-        const refreshToken = req.cookies.jwt;
+        const refreshToken: string = req.cookies.jwt;
         jwt.verify(refreshToken, config.refreshKey, (error: VerifyErrors, decoded: JwtPayload) => {
             if (error) {
                 return res.status(406).json({message: "Unauthorized"})
