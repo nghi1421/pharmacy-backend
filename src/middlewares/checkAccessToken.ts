@@ -17,7 +17,8 @@ export const checkAccessToken = (req: Request, res: Response, next: NextFunction
                 return;
             }
             else {
-                res.locals.userId = payload.userId
+                res.locals.staffId = payload.staffId
+                res.locals.roleId = payload.roleId
             }
         })
     } catch (error) {

@@ -20,12 +20,12 @@ const login = async (username: string, password: string): Promise<LoginResponse>
             }
             const accessToken = jwt.sign({
                 userId: user.id,
-                role: user.role,
+                roleId: user.role.id,
                 staffId: staff[0].id
             }, config.accessKey, { expiresIn: config.expiryAccessToken });
             const refreshToken = jwt.sign({
                 userId: user.id,
-                role: user.role,
+                roleId: user.role.id,
                 staffId: staff[0].id
             }, config.accessKey, { expiresIn: config.expiryRefreshToken });
 

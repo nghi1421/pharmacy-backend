@@ -7,6 +7,7 @@ import providerController from '../controllers/providerController';
 import importController from '../controllers/importController';
 import roleController from '../controllers/roleController';
 import positionController from '../controllers/positionController';
+import { checkAccessToken } from '../middlewares/checkAccessToken';
 
 const router = express.Router();
 
@@ -58,6 +59,12 @@ const routesAPI = (app: Application) => {
     router.post('/imports', importController.storeImport)
     router.put('/imports/:importId', importController.updateImport)
     router.delete('/imports/:importId', importController.deleteImport)
+
+    router.get('/check-middleware', checkAccessToken, (req, res) => {
+        res.status(200).json({
+            message: 'Your access is accepted!'
+        })
+    })
 
     return app.use("/api", router);
 }

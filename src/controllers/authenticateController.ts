@@ -10,9 +10,7 @@ const login = async (req: Request, res: Response) => {
 
         res.json(result)
     } catch (error: unknown) {
-        res.json({
-            erorrMessage: 'Server not response.'
-        })
+        res.json(error)
     }
 }
 
