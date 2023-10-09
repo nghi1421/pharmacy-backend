@@ -5,8 +5,10 @@ import { validate } from "class-validator"
 import { DrugCategoryData } from '../global/interfaces/DrugCategoryData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { TypeByUse } from '../entity/TypeByUse';
 
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
+const typeRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
 const getDrugCategories = (): Promise<DataResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
@@ -25,10 +27,10 @@ const getDrugCategories = (): Promise<DataResponse<DrugCategory>> => {
 const searchDrugCategory = (query: Object): Promise<DataResponse<DrugCategory>> => {
     return new Promise<DataResponse<DrugCategory>>(async (resolve, reject) => {
         try {
-            const staff = await drugCategoryRepository.find({ where: query});
+            const drugCategories = await drugCategoryRepository.find({ where: query});
             resolve({
-                message: 'Search DrugCategorys successfully',
-                data: staff
+                message: 'Search drug categories successfully',
+                data: drugCategories
             })
         } catch (error) {
             reject(error);
@@ -40,17 +42,29 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
     return new Promise(async (resolve, reject) => {
         try {
             let newDrugCategory = new DrugCategory();
+            const type = typeRepository.findOneBy({ id: data.typeId })
+            
+            if (type === null) {
+                return reject({
+                    errorMessge: 'Type by use not found'
+                })
+            }
 
             newDrugCategory.name = data.name
+            newDrugCategory.price = data.price
             newDrugCategory.unit = data.unit
+            newDrugCategory.minimalUnit = data.minimalUnit
+            newDrugCategory.quantity = 0
+            newDrugCategory.form = data.form
+            newDrugCategory.vat = data.vat
             newDrugCategory.quantityConversion = data.quantityConversion
-            newDrugCategory.type = data.type
             newDrugCategory.instruction = data.instruction
+            newDrugCategory.preserved = data.preserved
 
             const errors = await validate(newDrugCategory)
             
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                return reject({ errorMessage: 'Invalid information.'})
             }
 
             await drugCategoryRepository.save(newDrugCategory)
@@ -68,17 +82,35 @@ const updateDrugCategory =
     (drugCategoryId: number, data: DrugCategoryData): Promise<DataOptionResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let drugCategory = await drugCategoryRepository.findOneByOrFail({ id: drugCategoryId });
+            let drugCategory: DrugCategory|null = await drugCategoryRepository.findOneBy({ id: drugCategoryId });
+
+            if (drugCategory === null) {
+                return reject({
+                    errorMessage: 'Drug category not found'
+                })
+            }
+
+            const type = typeRepository.findOneBy({ id: data.typeId })
+            
+            if (type === null) {
+                return reject({
+                    errorMessge: 'Type by use not found'
+                })
+            }
 
             drugCategory.name = data.name
+            drugCategory.price = data.price
             drugCategory.unit = data.unit
+            drugCategory.minimalUnit = data.minimalUnit
+            drugCategory.vat = data.vat
+            drugCategory.form = data.form
             drugCategory.quantityConversion = data.quantityConversion
-            drugCategory.type = data.type
             drugCategory.instruction = data.instruction
+            drugCategory.preserved = data.preserved
 
             const errors = await validate(drugCategory)
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                return reject({ errorMessage: 'Invalid information.'})
             }
 
             await drugCategoryRepository.save(drugCategory)
@@ -95,7 +127,13 @@ const updateDrugCategory =
 const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let drugCategory: DrugCategory = await drugCategoryRepository.findOneByOrFail({ id: drugCategoryId });
+            let drugCategory: DrugCategory|null = await drugCategoryRepository.findOneBy({ id: drugCategoryId });
+
+            if (drugCategory === null) {
+                return reject({
+                    errorMessage: 'Drug category not found'
+                })
+            }
 
             await drugCategoryRepository.delete(drugCategoryId);
 

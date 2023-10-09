@@ -28,6 +28,7 @@ const storePosition = async (req: Request, res: Response) => {
             res.status(400).json({
                 errorMessage: 'Missing parameters'
             })
+            return;
         }
 
         const result = await positionService.storePosition(name);
@@ -40,13 +41,14 @@ const storePosition = async (req: Request, res: Response) => {
 const updatePosition = async (req: Request, res: Response) => {
     try {
         const name: string = req.body.name;
+        const positionId: number = parseInt(req.params.positionId);
 
-        if (!name) {
+        if (!name || !positionId) {
             res.status(400).json({
                 errorMessage: 'Missing parameters'
             })
+            return;
         }
-        const positionId: number = parseInt(req.params.positionId);
         const result = await positionService.updatePosition(name, positionId);
         res.status(200).json(result);
     } catch (error) {
@@ -57,6 +59,14 @@ const updatePosition = async (req: Request, res: Response) => {
 const deletePosition = async (req: Request, res: Response) => {
     try {
         const positionId = parseInt(req.params.positionId)
+
+        if (!positionId) {
+            res.status(400).json({
+                errorMessage: 'Missing parameters'
+            })
+            return;
+        }
+
         const result = await positionService.deletePosition(positionId);
         res.status(200).json(result);
     } catch (error) {

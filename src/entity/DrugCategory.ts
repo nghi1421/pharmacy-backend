@@ -24,12 +24,25 @@ export class DrugCategory {
     @Length(1, 255)
     name: string
 
-    @Column({ unique: true })
+    @Column({ type: 'decimal', precision: 15, scale: 2 })
+    @IsNotEmpty()
+    price: number
+
+    @Column({ type: 'decimal', precision: 19, scale: 2, default: 0 })
+    @IsNotEmpty()
+    quantity: number
+
+    @Column()
+    @IsNotEmpty()
+    @Length(1, 20)
+    form: string
+
+    @Column()
     @IsNotEmpty()
     @Length(1, 20)
     unit: string
 
-    @Column({ unique: true })
+    @Column()
     @IsNotEmpty()
     @Length(1, 20)
     minimalUnit: string
@@ -41,7 +54,6 @@ export class DrugCategory {
 
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
     @IsNotEmpty()
-    @Length(1, 255)
     quantityConversion: number
  
     @ManyToOne(() => TypeByUse)

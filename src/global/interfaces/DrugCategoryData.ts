@@ -1,7 +1,12 @@
 export interface DrugCategoryData {
     name: string;
+    price: number;
     unit: string;
+    form: string;
+    minimalUnit: string;
+    vat: number;
     quantityConversion: number;
-    type: string;
+    typeId: number;
     instruction: string;
+    preserved: string;
 }

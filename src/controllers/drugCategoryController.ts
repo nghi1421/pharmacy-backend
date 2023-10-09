@@ -23,28 +23,48 @@ const searchDrugCategory = async (req: Request, res: Response) => {
 
 const storeDrugCategory = async (req: Request, res: Response) => {
     try {
-        const { 
+        let { 
             name,
+            price,
             unit,
-            type,
+            vat,
             instruction,
+            preserved,
+            form
         } = req.body
-        const quantityConversion = req.body.quantity_conversion
-        if (
+
+        const quantityConversion: number = req.body.quantity_conversion
+        const minimalUnit: string = req.body.minimal_unit
+        const typeId: number = req.body.type_id
+        price = parseInt(price)
+        vat = parseFloat(vat)
+
+        if (!typeId ||
             !name ||
+            !price ||
             !unit ||
+            !vat ||
+            !form ||
+            !instruction ||
+            !preserved ||
             !quantityConversion ||
-            !type ||
-            !instruction
+            !minimalUnit
         ) {
-            res.status(400).json({ errorMessage: 'Missing parameters' })
+            res.status(400).json({ errorMessage: 'Missing parameter' })
+            return;
         }
+
         const data: DrugCategoryData = {
+            typeId,
             name,
+            price,
             unit,
-            quantityConversion,
-            type,
+            vat,
+            form,
             instruction,
+            preserved,
+            quantityConversion,
+            minimalUnit,
         }
         const result = await drugCategoryService.storeDrugCategory(data);
 
@@ -56,21 +76,52 @@ const storeDrugCategory = async (req: Request, res: Response) => {
 
 const updateDrugCategory = async (req: Request, res: Response) => {
     try {
-        const { 
+        let {
             name,
+            price,
             unit,
-            type,
+            vat,
+            form,
             instruction,
+            preserved,
         } = req.body
-        const quantityConversion = req.body.quantity_conversion
-        const data: DrugCategoryData = {
-            name,
-            unit,
-            quantityConversion,
-            type,
-            instruction,
-        }
+
+        const quantityConversion: number = req.body.quantity_conversion
+        const minimalUnit: string = req.body.minimal_unit
+        const typeId: number = req.body.type_id
+        price = parseInt(price)
+        vat = parseFloat(vat)
+
         const drugCategoryId: number = parseInt(req.params.drugCategoryId);
+
+        if (!typeId ||
+            !name ||
+            !price ||
+            !unit ||
+            !vat ||
+            !instruction ||
+            !form ||
+            !preserved ||
+            !quantityConversion ||
+            !minimalUnit ||
+            !drugCategoryId
+        ) {
+            res.status(400).json({ errorMessage: 'Missing parameter' })
+            return;
+        }
+
+        const data: DrugCategoryData = {
+            typeId,
+            name,
+            price,
+            form,
+            unit,
+            vat,
+            instruction,
+            preserved,
+            quantityConversion,
+            minimalUnit,
+        }
         const result = await drugCategoryService.updateDrugCategory(drugCategoryId, data);
 
         res.status(200).json(result);
@@ -82,6 +133,12 @@ const updateDrugCategory = async (req: Request, res: Response) => {
 const deleteDrugCategory = async (req: Request, res: Response) => {
     try {
         const drugCategoryId = parseInt(req.params.drugCategoryId)
+        
+        if (!drugCategoryId) {
+            res.status(400).json({ errorMessage: 'Missing parameter' })
+            return;
+        }
+
         const result = await drugCategoryService.deleteDrugCategory(drugCategoryId);
         res.status(200).json(result);
     } catch (error) {
