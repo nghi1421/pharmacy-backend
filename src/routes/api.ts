@@ -3,6 +3,7 @@ import authenticateController from '../controllers/authenticateController';
 import staffController from '../controllers/staffController';
 import userController from '../controllers/userController';
 import customerController from '../controllers/customerController';
+import typeByUseController from '../controllers/typeByUseController';
 import drugCategoryController from '../controllers/drugCategoryController';
 import providerController from '../controllers/providerController';
 import importController from '../controllers/importController';
@@ -49,6 +50,13 @@ const routesAPI = (app: Application) => {
     router.post('/customers', customerController.storeCustomer)
     router.put('/customers/:customerId', customerController.updateCustomer)
     router.delete('/customers/:customerId', customerController.deleteCustomer)
+
+    //Type by use
+    router.get('/type-by-uses', typeByUseController.getTypeByUses)
+    router.get('/type-by-uses/search', typeByUseController.searchTypeByUse)
+    router.post('/type-by-uses', typeByUseController.storeTypeByUse)
+    router.put('/type-by-uses/:typeId', typeByUseController.updateTypeByUse)
+    router.delete('/type-by-uses/:typeId', typeByUseController.deleteTypeByUse)
 
     //Drug category
     router.get('/drug-categories', drugCategoryController.getDrugCategories)
