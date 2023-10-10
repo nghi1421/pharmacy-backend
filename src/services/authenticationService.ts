@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken'
 import config from '../config/config'
 import { LoginResponse } from '../global/interfaces/LoginResponse'
 import { Staff } from '../entity/Staff'
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse'
+import { validateOrReject } from 'class-validator'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
@@ -50,6 +52,38 @@ const login = async (username: string, password: string): Promise<LoginResponse>
     })
 }
 
+const changePassword =
+    (username: string, newPassword: string, oldPassword: string): Promise<DataOptionResponse<User>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user: User | null = await userRepository.findOneBy({ username: username });
+            
+            if (!user) {
+                reject({ errorMessage: 'User not found.' });
+            } else {
+                if (user.checkPassword(oldPassword)) {
+                    user.password = newPassword;
+                    user.hashPasswrod();
+
+                    await validateOrReject(user);
+                    await userRepository.save(user);
+
+                    resolve({
+                        message: 'Password changed successfully.',
+                        data: user,
+                    })
+                }
+                else {
+                    reject({ errorMessage: 'Wrong password.' });
+                }
+            }
+        } catch (error) {
+            reject({errorMessage: error})
+        }
+    })
+}
+
 export default{
-    login
+    login,
+    changePassword
 }

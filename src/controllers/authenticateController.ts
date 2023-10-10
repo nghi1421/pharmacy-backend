@@ -37,7 +37,37 @@ const refreshToken = (req: Request, res: Response) => {
     } 
 }
 
+const changePassword = async (req: Request, res: Response) => {
+    try {
+        const username: string = req.body.username;
+        const oldPassword: string = req.body.old_password;
+        const newPassword: string = req.body.new_password;
+        const newPasswordConfirmation: string = req.body.new_password_confirmation;
+        
+        if (!username || !oldPassword || !newPassword || !newPasswordConfirmation) {
+            res.status(401).json({
+                errorMessage: 'Missing parameters.'
+            })
+        }
+        else {
+            if (newPassword !== newPasswordConfirmation) {
+                res.status(401).json({
+                    errorMessage: 'New password is not the same as the new password confirmation.'
+                })
+            }
+            else {
+                const result = await authenticateService.changePassword(username, newPassword, oldPassword);
+                res.status(200).json(result);
+            }
+        }
+    }
+    catch (error) {
+
+    }
+}
+
 export default {
     login,
-    refreshToken
+    refreshToken,
+    changePassword
 }

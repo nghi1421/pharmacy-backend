@@ -14,8 +14,10 @@ import { checkAdmin } from '../middlewares/checkAdmin';
 const router = express.Router();
 
 const routesAPI = (app: Application) => {
+    //Authentication
     router.post('/login', authenticateController.login)
     router.post('/refresh-token', authenticateController.refreshToken)
+    router.post('/change-password', authenticateController.changePassword)
 
     //Role
     router.get('/roles', roleController.getRoles)
