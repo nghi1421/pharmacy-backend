@@ -82,38 +82,37 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                     }
                 );
 
-                let importDetail = data.importDetails.map((importDetail: ImportDetailData) => {
+                if (drugs.length === 0) {
+                    return;
+                }
+
+                let handledImportDetail = []
+
+                for (let importDetail of data.importDetails) {
                     let drug: DrugCategory | undefined = drugs.find(
                         (drug: DrugCategory) => drug.id === importDetail.drugId
                     );
                     if (!drug) {
-                        reject({ errorMessage: 'Drug category not found' });
-                        return;
+                        return; 
                     }
                     drug.price = calculateUnitPrice(importDetail.unitPrice);
 
-                    transactionalEntityManager.save(drug);
+                    await transactionalEntityManager.save(drug);
 
-                    return {
+                    handledImportDetail.push({
                         ...importDetail,
                         importId: newImport.id,
                         vat: drug.vat,
                         quantity: drug.quantityConversion * importDetail.amountImport,
-                    };
-                })
-                
-                console.log(importDetail);
-                throw new Error('123');
-                // if (!importDetail) {
-                //     throw new Error('Missing import detail.')
-                // }
+                    })
+                }
 
-                // await transactionalEntityManager
-                //     .createQueryBuilder()
-                //     .insert()
-                //     .into(ImportDetail)
-                //     .values(importDetail)
-                //add detail
+                await transactionalEntityManager
+                    .createQueryBuilder()
+                    .insert()
+                    .into(ImportDetail)
+                    .values(handledImportDetail)
+                    .execute()
             })
             
             resolve({

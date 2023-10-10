@@ -33,7 +33,8 @@ const storeImport = async (req: Request, res: Response) => {
 
         const importDate: Date = new Date(req.body.import_date)
         const maturityDate: Date = new Date(req.body.maturity_date)
-        const staffId: number = parseInt(res.locals.staffId);
+        /////////////////////////////////////res.locals.staffId
+        const staffId: number = parseInt(req.body.staff_id);
         const providerId: number = parseInt(req.body.provider_id)
 
         const importDetails: ImportDetailData[] = req.body.import_details
