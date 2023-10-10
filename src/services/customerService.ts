@@ -11,10 +11,10 @@ const customerRepository: Repository<Customer> = AppDataSource.getRepository(Cus
 const getCustomers = (): Promise<DataResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const staffs = await customerRepository.find();
+            const customers: Customer[] = await customerRepository.find();
             resolve({
                 message: 'Get customers successfully',
-                data: staffs
+                data: customers
             })
         } catch (error) {
             reject(error);
@@ -25,10 +25,10 @@ const getCustomers = (): Promise<DataResponse<Customer>> => {
 const searchCustomer = (query: Object): Promise<DataResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const staff = await customerRepository.find({ where: query});
+            const customers: Customer[] = await customerRepository.find({ where: query});
             resolve({
                 message: 'Search customers successfully',
-                data: staff
+                data: customers
             })
         } catch (error) {
             reject(error);

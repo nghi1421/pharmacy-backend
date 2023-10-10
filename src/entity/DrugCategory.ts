@@ -36,7 +36,7 @@ export class DrugCategory {
     @IsNotEmpty()
     @Length(1, 20)
     form: string
-
+ 
     @Column()
     @IsNotEmpty()
     @Length(1, 20)

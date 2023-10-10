@@ -5,12 +5,17 @@ import { validateOrReject } from "class-validator"
 import { ImportData } from '../global/interfaces/ImportData';
 import { Staff } from '../entity/Staff';
 import { Provider } from '../entity/Provider';
-import { Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { ImportDetail } from '../entity/ImportDetail';
+import { ImportDetailData } from '../global/interfaces/ImportDetailData';
+import { DrugCategory } from '../entity/DrugCategory';
+import { calculateUnitPrice } from './calculationService'
 
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
+const drugRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 
 const getImports = (): Promise<DataResponse<Import>> => {
     return new Promise(async (resolve, reject) => {
@@ -45,12 +50,12 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
         try {
             const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
             if (staff === null) {
-                return reject({ errorMessage: 'Staff not found' });
+                return reject({ errorMessage: 'Staff not found.' });
             }
 
             const provider: Provider|null = await providerRepository.findOneBy({ id: data.providerId });
             if (provider === null) {
-                return reject({ errorMessage: 'Provider not found' });
+                return reject({ errorMessage: 'Provider not found.' });
             }
 
             let newImport = new Import();
@@ -63,9 +68,54 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             newImport.staff = staff;
             newImport.provider = provider;
 
-            await validateOrReject(newImport)
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                await validateOrReject(newImport)
+                await transactionalEntityManager.save(newImport)
 
-            await importRepository.save(newImport)
+                let drugIds: number[] = data.importDetails.map((importDetail: ImportDetailData) => {
+                    return importDetail.drugId
+                })
+
+                const drugs: DrugCategory[] = await drugRepository.find(
+                    {
+                        where: { id: In(drugIds) }
+                    }
+                );
+
+                let importDetail = data.importDetails.map((importDetail: ImportDetailData) => {
+                    let drug: DrugCategory | undefined = drugs.find(
+                        (drug: DrugCategory) => drug.id === importDetail.drugId
+                    );
+                    if (!drug) {
+                        reject({ errorMessage: 'Drug category not found' });
+                        return;
+                    }
+                    drug.price = calculateUnitPrice(importDetail.unitPrice);
+
+                    transactionalEntityManager.save(drug);
+
+                    return {
+                        ...importDetail,
+                        importId: newImport.id,
+                        vat: drug.vat,
+                        quantity: drug.quantityConversion * importDetail.amountImport,
+                    };
+                })
+                
+                console.log(importDetail);
+                throw new Error('123');
+                // if (!importDetail) {
+                //     throw new Error('Missing import detail.')
+                // }
+
+                // await transactionalEntityManager
+                //     .createQueryBuilder()
+                //     .insert()
+                //     .into(ImportDetail)
+                //     .values(importDetail)
+                //add detail
+            })
+            
             resolve({
                 message: 'Insert Import successfully',
                 data: newImport

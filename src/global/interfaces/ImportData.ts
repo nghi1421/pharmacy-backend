@@ -1,8 +1,11 @@
+import { ImportDetailData } from "./ImportDetailData";
+
 export interface ImportData {
     importDate: Date;
     note: string;
     paid: number;
     maturityDate: Date;
     providerId: number;
-    staffId: number;
+    staffId: number; 
+    importDetails: ImportDetailData[];
 }

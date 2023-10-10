@@ -1,6 +1,9 @@
 import { Request, Response } from 'express'
 import importService from '../services/importService'
 import { ImportData } from '../global/interfaces/ImportData';
+import { ImportDetailData } from '../global/interfaces/ImportDetailData';
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { Import } from '../entity/Import';
 
 const getImports = async (req: Request, res: Response) => {
     try {
@@ -28,20 +31,38 @@ const storeImport = async (req: Request, res: Response) => {
             paid,
         } = req.body
 
-        const importDate = new Date(req.body.import_date)
-        const maturityDate = new Date(req.body.maturity_date)
-        const staffId = parseInt(res.locals.staffId);
-        const providerId = parseInt(req.body.provider_id)
+        const importDate: Date = new Date(req.body.import_date)
+        const maturityDate: Date = new Date(req.body.maturity_date)
+        const staffId: number = parseInt(res.locals.staffId);
+        const providerId: number = parseInt(req.body.provider_id)
+
+        const importDetails: ImportDetailData[] = req.body.import_details
+
+
+        if (importDetails.length === 0) {
+            res.status(401).json({
+                errorMessage: 'Import requires import detail.',
+            })
+            return;
+        }
+        if (!importDate || !staffId || !providerId) {
+            res.status(401).json({
+                errorMessage: 'Missing parameters.',
+            })
+            return;
+        }
 
         const data: ImportData = {
             note,
             paid,
             importDate,
+            importDetails,
             maturityDate,
             staffId,
             providerId,
         }
-        const result = await importService.storeImport(data);
+
+        const result: DataOptionResponse<Import> = await importService.storeImport(data);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -55,10 +76,19 @@ const updateImport = async (req: Request, res: Response) => {
             paid,
         } = req.body
 
-        const importDate = new Date(req.body.import_date)
-        const maturityDate = new Date(req.body.maturity_date)
-        const staffId = parseInt(res.locals.staffId);
-        const providerId = parseInt(req.body.provider_id)
+        const importDate: Date = new Date(req.body.import_date)
+        const maturityDate: Date = new Date(req.body.maturity_date)
+        const staffId: number = parseInt(res.locals.staffId);
+        const providerId: number = parseInt(req.body.provider_id)
+
+        const importDetails: ImportDetailData[] = req.body.import_details
+
+        if (importDetails.length === 0) {
+            res.status(401).json({
+                errorMessage: 'Import requires import detail.',
+            })
+            return;
+        }
 
         const data: ImportData = {
             note,
@@ -67,9 +97,10 @@ const updateImport = async (req: Request, res: Response) => {
             maturityDate,
             staffId,
             providerId,
+            importDetails,
         }
         const importId: number = parseInt(req.params.importId);
-        const result = await importService.updateImport(importId, data);
+        const result: DataOptionResponse<Import> = await importService.updateImport(importId, data);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
