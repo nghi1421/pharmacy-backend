@@ -13,6 +13,7 @@ import {
     Min,
 } from 'class-validator';
 import { TypeByUse } from './TypeByUse';
+import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
 
 @Entity('drug_categories')
 export class DrugCategory {
@@ -28,7 +29,7 @@ export class DrugCategory {
     @IsNotEmpty()
     price: number
 
-    @Column({ type: 'decimal', precision: 19, scale: 2, default: 0 })
+    @Column({ type: 'decimal', precision: 19, scale: 2, transformer: new ColumnNumericTransformer(), })
     @IsNotEmpty()
     quantity: number
 
@@ -77,4 +78,8 @@ export class DrugCategory {
     @Column()
     @UpdateDateColumn()
     updatedAt: Date
+
+    public addQuantityFromImport(quantity: number): void {
+        this.quantity = this.quantity + quantity
+    }
 }

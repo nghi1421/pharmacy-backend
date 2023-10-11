@@ -30,7 +30,7 @@ export class ExportDetail {
 
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
     @IsNotEmpty()
-    amount: number
+    quantity: number
 
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
     @IsNotEmpty()

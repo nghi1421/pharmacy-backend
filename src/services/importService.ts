@@ -95,15 +95,17 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                     if (!drug) {
                         return; 
                     }
-                    drug.price = calculateUnitPrice(importDetail.unitPrice);
-
+                    const quantity: number = drug.quantityConversion * importDetail.quantityImport
+                    drug.price = calculateUnitPrice(importDetail.unitPrice, drug.quantityConversion);
+                    drug.addQuantityFromImport(quantity);
                     await transactionalEntityManager.save(drug);
 
                     handledImportDetail.push({
                         ...importDetail,
-                        importId: newImport.id,
+                        drug: drug,
+                        import: newImport,
                         vat: drug.vat,
-                        quantity: drug.quantityConversion * importDetail.amountImport,
+                        quantity: quantity,
                     })
                 }
 
