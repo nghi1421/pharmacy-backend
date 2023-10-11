@@ -1,4 +1,4 @@
-import { ImportDetailData } from "./ImportDetailData";
+import { NewImportDetailData } from "./ImportDetailData";
 
 export interface ImportData {
     importDate: Date;
@@ -7,5 +7,5 @@ export interface ImportData {
     maturityDate: Date;
     providerId: number;
     staffId: number; 
-    importDetails: ImportDetailData[];
+    importDetails: NewImportDetailData[];
 }

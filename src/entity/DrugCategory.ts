@@ -25,11 +25,11 @@ export class DrugCategory {
     @Length(1, 255)
     name: string
 
-    @Column({ type: 'decimal', precision: 15, scale: 2 })
+    @Column({ type: 'decimal', precision: 15, scale: 2, transformer: new ColumnNumericTransformer() })
     @IsNotEmpty()
     price: number
 
-    @Column({ type: 'decimal', precision: 19, scale: 2, transformer: new ColumnNumericTransformer(), })
+    @Column({ type: 'decimal', precision: 19, scale: 2, transformer: new ColumnNumericTransformer() })
     @IsNotEmpty()
     quantity: number
 
@@ -81,5 +81,15 @@ export class DrugCategory {
 
     public addQuantityFromImport(quantity: number): void {
         this.quantity = this.quantity + quantity
+    }
+
+    public updateQuantityFromImportModify(oldQuantity: number, newQuantity: number): boolean {
+        if (this.quantity - (oldQuantity * this.quantityConversion) < 0) {
+            return false;
+        }
+        else {
+            this.quantity = this.quantity + (newQuantity - oldQuantity) * this.quantityConversion;
+            return true;
+        }
     }
 }

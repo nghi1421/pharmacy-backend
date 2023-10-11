@@ -2,15 +2,16 @@ import { Import } from '../entity/Import'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validateOrReject } from "class-validator"
-import { ImportData } from '../global/interfaces/ImportData';
+import { UpdateImportData } from '../global/interfaces/UpdateImportData';
 import { Staff } from '../entity/Staff';
 import { Provider } from '../entity/Provider';
 import { EntityManager, In, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { ImportDetail } from '../entity/ImportDetail';
-import { ImportDetailData } from '../global/interfaces/ImportDetailData';
+import { NewImportDetailData, ExistsImportDetailData } from '../global/interfaces/ImportDetailData';
 import { DrugCategory } from '../entity/DrugCategory';
 import { calculateUnitPrice } from './calculationService'
+import { ImportData } from '../global/interfaces/ImportData';
 
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
@@ -68,11 +69,13 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             newImport.staff = staff;
             newImport.provider = provider;
 
+            await validateOrReject(newImport)
+
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                await validateOrReject(newImport)
+                
                 await transactionalEntityManager.save(newImport)
 
-                let drugIds: number[] = data.importDetails.map((importDetail: ImportDetailData) => {
+                let drugIds: number[] = data.importDetails.map((importDetail: NewImportDetailData) => {
                     return importDetail.drugId
                 })
 
@@ -93,6 +96,9 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                         (drug: DrugCategory) => drug.id === importDetail.drugId
                     );
                     if (!drug) {
+                        reject({
+                            errorMessage: 'Drug category not found',
+                        })
                         return; 
                     }
                     const quantity: number = drug.quantityConversion * importDetail.quantityImport
@@ -127,7 +133,13 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
     })
 }
 
-const updateImport = (importId: number, data: ImportData): Promise<DataOptionResponse<Import>> => {
+const updateImport = (
+    importId: number,
+    data: UpdateImportData,
+    newImportDetail: NewImportDetailData[],
+    existsImportDetail: ExistsImportDetailData[],
+)
+    : Promise<DataOptionResponse<Import>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let myImport = await importRepository.findOneByOrFail({ id: importId });
@@ -141,10 +153,119 @@ const updateImport = (importId: number, data: ImportData): Promise<DataOptionRes
             myImport.note = data.note;
             myImport.paid = data.paid;
             myImport.maturityDate = data.maturityDate;
-            
-            myImport.provider = provider;
 
             await validateOrReject(myImport)
+
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                
+                await transactionalEntityManager.save(myImport)
+
+                const importDetailIds: number[] =
+                    existsImportDetail.map(
+                        (existsImportDetail: ExistsImportDetailData) => existsImportDetail.id
+                    )
+                
+                await transactionalEntityManager
+                    .createQueryBuilder()
+                    .delete()
+                    .from(ImportDetail)
+                    .where('id NOT IN(:id)', {
+                        id: importDetailIds,
+                    })
+                    .execute();
+                
+                let drugIds: number[] = newImportDetail.map((importDetail: NewImportDetailData) => {
+                    return importDetail.drugId
+                })
+
+                drugIds = drugIds.concat(existsImportDetail.map((importDetail: NewImportDetailData) => {
+                    return importDetail.drugId
+                }))
+
+                const drugs: DrugCategory[] = await drugRepository.find(
+                    {
+                        where: { id: In(drugIds) }
+                    }
+                );
+
+                if (drugs.length === 0) {
+                    reject({
+                        errorMessage: 'Import requires import details'
+                    })
+                    return;
+                }
+
+                for (let importDetail of existsImportDetail) {
+                    let drug: DrugCategory | undefined = drugs.find(
+                        (drug: DrugCategory) => drug.id === importDetail.drugId
+                    );
+                    if (!drug) {
+                        reject({
+                            errorMessage: 'Drug category not found',
+                        })
+                        return; 
+                    }
+                    const quantity: number = drug.quantityConversion * importDetail.quantityImport
+                    drug.price = calculateUnitPrice(importDetail.unitPrice, drug.quantityConversion);
+                    const result: boolean =
+                        drug.updateQuantityFromImportModify(
+                            importDetail.oldQuantityImport,
+                            importDetail.quantityImport
+                        )
+                    if (!result) {
+                        reject({
+                            errorMessage: 'Drug category imported, that was been sold more than new update.',
+                        })
+                        return; 
+                    }
+                    await transactionalEntityManager.save(drug);
+
+                    await transactionalEntityManager
+                        .createQueryBuilder()
+                        .update(ImportDetail)
+                        .set({
+                            quantity: quantity,
+                            expiryDate: importDetail.expiryDate,
+                            batchId: importDetail.batchId,
+                            quantityImport: importDetail.quantityImport,
+                        })
+                        .where("id = :id", {id: importDetail.id})
+                        .execute()
+                }
+
+                const handledNewImportDetail = []
+                for (let importDetail of newImportDetail) {
+                    let drug: DrugCategory | undefined = drugs.find(
+                        (drug: DrugCategory) => drug.id === importDetail.drugId
+                    );
+                    if (!drug) {
+                        reject({
+                            errorMessage: 'Drug category not found',
+                        })
+                        return; 
+                    }
+                    const quantity: number = drug.quantityConversion * importDetail.quantityImport
+                    drug.price = calculateUnitPrice(importDetail.unitPrice, drug.quantityConversion);
+                    drug.addQuantityFromImport(quantity);
+                    await transactionalEntityManager.save(drug);
+
+                    handledNewImportDetail.push({
+                        ...importDetail,
+                        drug: drug,
+                        import: myImport,
+                        vat: drug.vat,
+                        quantity: quantity,
+                    })
+                }
+
+                await transactionalEntityManager
+                    .createQueryBuilder()
+                    .insert()
+                    .into(ImportDetail)
+                    .values(handledNewImportDetail)
+                    .execute()
+            
+            })
 
             await importRepository.save(myImport)
             resolve({

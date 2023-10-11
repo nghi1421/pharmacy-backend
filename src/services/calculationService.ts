@@ -1,6 +1,6 @@
 
-const calculateUnitPrice = (importPrice: number, quantityImport: number): number => {
-    const unitPrice = importPrice / quantityImport
+const calculateUnitPrice = (importUnitPrice: number, quantityConversion: number): number => {
+    const unitPrice = importUnitPrice / quantityConversion
     if (unitPrice < 1000) {
         return unitPrice * 1.15;
     }
