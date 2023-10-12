@@ -164,6 +164,9 @@ const updateImport = (
                     existsImportDetail.map(
                         (existsImportDetail) => existsImportDetail.id
                     )
+                
+                //Update remove method here
+                
                 await transactionalEntityManager
                     .createQueryBuilder()
                     .delete()
@@ -291,14 +294,6 @@ const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => 
                 })
             
                 await transactionalEntityManager.getRepository(ImportDetail).remove(importDetail);
-
-                // const importDetailIds = importDetail.map(importDetail => importDetail.id);
-                // await transactionalEntityManager
-                //     .createQueryBuilder()
-                //     .delete()
-                //     .from(ImportDetail)
-                //     .where('id IN (:ids)', { ids: importDetailIds })
-                //     .execute()
 
                 await transactionalEntityManager.getRepository(Import).delete(importId);
             })

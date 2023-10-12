@@ -13,9 +13,10 @@ import {
 } from 'class-validator';
 import { DrugCategory } from './DrugCategory';
 import { Export } from './Export';
+import { Import } from './Import';
+import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
 
 @Entity('export_details')
-@Unique(['export.id', 'drug.id'])
 export class ExportDetail {
     @PrimaryGeneratedColumn()
     id: number
@@ -24,23 +25,23 @@ export class ExportDetail {
     @JoinColumn()
     export: Export
 
+    @ManyToOne(() => Import)
+    @JoinColumn()
+    import: Import
+
     @ManyToOne(() => DrugCategory)
     @JoinColumn()
     drug: DrugCategory
 
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
+    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, transformer: new ColumnNumericTransformer()})
     @IsNotEmpty()
     quantity: number
 
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
+    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, transformer: new ColumnNumericTransformer()})
     @IsNotEmpty()
     unitPrice: number
 
-    @Column({ type: 'int'})
-    @IsNotEmpty()
-    importDetailId: number
-
-    @Column({ type: 'decimal', precision: 4, scale: 2 })
+    @Column({ type: 'decimal', precision: 4, scale: 2, transformer: new ColumnNumericTransformer() })
     @Min(0)
     @IsNotEmpty()
     vat: number

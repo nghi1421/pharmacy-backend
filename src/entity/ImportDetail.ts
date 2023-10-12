@@ -7,7 +7,6 @@ import {
     Unique,
     BeforeRemove,
     MoreThan,
-    BeforeSoftRemove,
 } from 'typeorm';
 import {
     IsDate,
