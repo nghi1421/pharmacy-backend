@@ -14,6 +14,7 @@ import { calculateUnitPrice } from './calculationService'
 import { ImportData } from '../global/interfaces/ImportData';
 
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import);
+const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 const drugRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
@@ -280,7 +281,25 @@ const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => 
         try {
             let myImport: Import = await importRepository.findOneByOrFail({ id: importId });
 
-            await importRepository.delete(importId);
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                const importDetailIds = await importDetailRepository.find({
+                    where: {
+                        import: { 
+                            id: myImport.id,
+                        },
+                    },
+                    select: {id: true}
+                })
+
+                await transactionalEntityManager
+                    .createQueryBuilder()
+                    .delete()
+                    .from(ImportDetail)
+                    .where('id IN (:ids)', importDetailIds)
+                    .execute()
+
+                await transactionalEntityManager.getRepository(Import).delete(importId);
+            })
 
             resolve({
                 message: 'Import deleted successfully',
