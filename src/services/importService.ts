@@ -142,7 +142,7 @@ const updateImport = (
     : Promise<DataOptionResponse<Import>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let myImport = await importRepository.findOneByOrFail({ id: importId });
+            let myImport: Import = await importRepository.findOneByOrFail({ id: importId });
 
             const provider: Provider|null = await providerRepository.findOneBy({ id: data.providerId });
             if (provider === null) {
@@ -157,14 +157,12 @@ const updateImport = (
             await validateOrReject(myImport)
 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                
                 await transactionalEntityManager.save(myImport)
 
                 const importDetailIds: number[] =
                     existsImportDetail.map(
-                        (existsImportDetail: ExistsImportDetailData) => existsImportDetail.id
+                        (existsImportDetail) => existsImportDetail.id
                     )
-                
                 await transactionalEntityManager
                     .createQueryBuilder()
                     .delete()
@@ -178,7 +176,7 @@ const updateImport = (
                     return importDetail.drugId
                 })
 
-                drugIds = drugIds.concat(existsImportDetail.map((importDetail: NewImportDetailData) => {
+                drugIds = drugIds.concat(existsImportDetail.map((importDetail: ExistsImportDetailData) => {
                     return importDetail.drugId
                 }))
 
@@ -233,7 +231,7 @@ const updateImport = (
                         .execute()
                 }
 
-                const handledNewImportDetail = []
+                let handledNewImportDetail = []
                 for (let importDetail of newImportDetail) {
                     let drug: DrugCategory | undefined = drugs.find(
                         (drug: DrugCategory) => drug.id === importDetail.drugId
@@ -264,7 +262,6 @@ const updateImport = (
                     .into(ImportDetail)
                     .values(handledNewImportDetail)
                     .execute()
-            
             })
 
             await importRepository.save(myImport)

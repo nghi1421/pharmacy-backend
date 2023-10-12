@@ -48,12 +48,12 @@ export class DrugCategory {
     @Length(1, 20)
     minimalUnit: string
 
-    @Column({ type: 'decimal', precision: 4, scale: 2 })
+    @Column({ type: 'decimal', precision: 4, scale: 2, transformer: new ColumnNumericTransformer()})
     @Min(0)
     @IsNotEmpty()
     vat: number
 
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, transformer: new ColumnNumericTransformer() })
     @IsNotEmpty()
     quantityConversion: number
  
@@ -89,6 +89,7 @@ export class DrugCategory {
         }
         else {
             this.quantity = this.quantity + (newQuantity - oldQuantity) * this.quantityConversion;
+            console.log(this.quantity)
             return true;
         }
     }
