@@ -7,6 +7,7 @@ import {
     Unique,
     BeforeRemove,
     MoreThan,
+    BeforeSoftRemove,
 } from 'typeorm';
 import {
     IsDate,
@@ -25,11 +26,11 @@ export class ImportDetail {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => Import)
+    @ManyToOne(() => Import, { eager: true })
     @JoinColumn()
     import: Import
 
-    @ManyToOne(() => DrugCategory)
+    @ManyToOne(() => DrugCategory, { eager: true })
     @JoinColumn()
     drug: DrugCategory
 
@@ -64,7 +65,6 @@ export class ImportDetail {
             const drugRepository = AppDataSource.getRepository(DrugCategory)
             const importRepository = AppDataSource.getRepository(Import)
             const importDetailRepository = AppDataSource.getRepository(ImportDetail)
-
             const imports = await importRepository.find({
                 where: { importDate: MoreThan(this.import.importDate) },
                 order: {

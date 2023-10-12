@@ -282,21 +282,23 @@ const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => 
             let myImport: Import = await importRepository.findOneByOrFail({ id: importId });
 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                const importDetailIds = await importDetailRepository.find({
+                const importDetail = await importDetailRepository.find({
                     where: {
                         import: { 
                             id: myImport.id,
                         },
                     },
-                    select: {id: true}
                 })
+            
+                await transactionalEntityManager.getRepository(ImportDetail).remove(importDetail);
 
-                await transactionalEntityManager
-                    .createQueryBuilder()
-                    .delete()
-                    .from(ImportDetail)
-                    .where('id IN (:ids)', importDetailIds)
-                    .execute()
+                // const importDetailIds = importDetail.map(importDetail => importDetail.id);
+                // await transactionalEntityManager
+                //     .createQueryBuilder()
+                //     .delete()
+                //     .from(ImportDetail)
+                //     .where('id IN (:ids)', { ids: importDetailIds })
+                //     .execute()
 
                 await transactionalEntityManager.getRepository(Import).delete(importId);
             })
