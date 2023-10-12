@@ -3,20 +3,14 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validateOrReject } from "class-validator"
 import { Staff } from '../entity/Staff';
-import { Provider } from '../entity/Provider';
 import { EntityManager, In, MoreThan, Repository } from 'typeorm';
-import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { ImportDetail } from '../entity/ImportDetail';
-import { NewImportDetailData, ExistsImportDetailData } from '../global/interfaces/ImportDetailData';
 import { DrugCategory } from '../entity/DrugCategory';
-import { calculateUnitPrice } from './calculationService'
 import { ExportData } from '../global/interfaces/ExportData';
 import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
-import { Import } from '../entity/Import';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
-const importRepository: Repository<Import> = AppDataSource.getRepository(Import);
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);

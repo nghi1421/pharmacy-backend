@@ -4,7 +4,6 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     JoinColumn,
-    Unique,
 } from 'typeorm';
 import {
     IsDate,
