@@ -4,6 +4,8 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     JoinColumn,
+    BeforeRemove,
+    EntityManager,
 } from 'typeorm';
 import {
     IsDate,
@@ -14,21 +16,23 @@ import { DrugCategory } from './DrugCategory';
 import { Export } from './Export';
 import { Import } from './Import';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
+import { AppDataSource } from '../dataSource';
+import { ImportDetail } from './ImportDetail';
 
 @Entity('export_details')
 export class ExportDetail {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => Export)
+    @ManyToOne(() => Export, { eager: true})
     @JoinColumn()
     export: Export
 
-    @ManyToOne(() => Import)
+    @ManyToOne(() => Import, { eager: true})
     @JoinColumn()
     import: Import
 
-    @ManyToOne(() => DrugCategory)
+    @ManyToOne(() => DrugCategory, { eager: true})
     @JoinColumn()
     drug: DrugCategory
 
@@ -48,4 +52,26 @@ export class ExportDetail {
     @Column({ type: 'date'})
     @IsDate()
     expiryDate: Date
+
+    @BeforeRemove()
+    async handleRemoveExportDetail() {
+        try {   
+            const importDetailRepository = AppDataSource.getRepository(ImportDetail)
+            const importDetail = await importDetailRepository.findOneByOrFail({
+                import: { id: this.import.id },
+                drug: { id: this.drug.id}
+            })
+
+            this.drug.quantity = this.drug.quantity + this.quantity
+
+            importDetail.quantity = importDetail.quantity + this.quantity
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                await transactionalEntityManager.getRepository(DrugCategory).save(this.drug)
+                await transactionalEntityManager.getRepository(ImportDetail).save(importDetail)
+            })
+        }
+        catch (error) {
+            console.log(`Error: ${error}`)
+        }
+    }
 }

@@ -3,12 +3,15 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validateOrReject } from "class-validator"
 import { Staff } from '../entity/Staff';
-import { EntityManager, In, MoreThan, Repository } from 'typeorm';
+import { EntityManager, In, MoreThan, Not, Repository } from 'typeorm';
 import { ImportDetail } from '../entity/ImportDetail';
 import { DrugCategory } from '../entity/DrugCategory';
 import { ExportData } from '../global/interfaces/ExportData';
 import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
+import { UpdateExportData } from '../global/interfaces/UpdateExportData';
+import { ExistsExportDetailData, NewExportDetailData } from '../global/interfaces/ExportDetailData';
+import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
@@ -92,7 +95,7 @@ const storeExport = (data: ExportData) => {
                 
                 await transactionalEntityManager.save(myExport)
 
-                let handledImportDetail = []
+                let handledExportDetail = []
 
                 for (let exportDetail of data.exportDetails) {
                     let drug: DrugCategory | undefined = drugs.find(
@@ -119,44 +122,52 @@ const storeExport = (data: ExportData) => {
                         importDetail[0].quantity = importDetail[0].quantity - exportDetail.quantity
                         await transactionalEntityManager.save(importDetail[0])
 
-                        handledImportDetail.push({
+                        handledExportDetail.push({
                             ...exportDetail,
                             drug: drug,
                             export: myExport,
-                            import: importDetail[0],
+                            import: importDetail[0].import,
+                            expiryDate: importDetail[0].expiryDate,
                             vat: drug.vat,
+                            unitPrice: drug.price,
                         })
                     }
                     else {
                         
-                        handledImportDetail.push({
+                        handledExportDetail.push({
                             ...exportDetail,
                             drug: drug,
                             export: myExport,
-                            import: importDetail[0],
+                            import: importDetail[0].import,
+                            expiryDate: importDetail[0].expiryDate,
                             vat: drug.vat,
+                            unitPrice: drug.price,
                             quantity: importDetail[0].quantity
                         })
-                        handledImportDetail.push({
+                        handledExportDetail.push({
                             ...exportDetail,
                             drug: drug,
                             export: myExport,
-                            import: importDetail[1],
+                            import: importDetail[1].import,
+                            expiryDate: importDetail[1].expiryDate,
                             vat: drug.vat,
+                            unitPrice: drug.price,
                             quantity: -quantity
                         })
                         importDetail[0].quantity = 0
                         await transactionalEntityManager.save(importDetail[0])
                         importDetail[1].quantity = importDetail[1].quantity + quantity
                         await transactionalEntityManager.save(importDetail[1])
-                    }        
+                    }   
+                    drug.quantity = drug.quantity - exportDetail.quantity
+                    await transactionalEntityManager.save(drug)
                 }
 
                 await transactionalEntityManager
                     .createQueryBuilder()
                     .insert()
-                    .into(ImportDetail)
-                    .values(handledImportDetail)
+                    .into(ExportDetail)
+                    .values(handledExportDetail)
                     .execute()
             })
             const exportDetailData = await exportDetailRepository.find({ where: { export: { id: myExport.id } } })
@@ -190,184 +201,341 @@ const storeExport = (data: ExportData) => {
     })
 }
 
-// const updateImport = (
-//     importId: number,
-//     data: UpdateExportData,
-//     newImportDetail: NewImportDetailData[],
-//     existsImportDetail: ExistsImportDetailData[],
-// )
-//     : Promise<DataOptionResponse<Import>> => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             let myImport: Import = await exportRepository.findOneByOrFail({ id: importId });
+const updateExport = (
+    exportId: number,
+    data: UpdateExportData,
+    newExportDetail: NewExportDetailData[],
+    existsExportDetail: ExistsExportDetailData[],
+) => {
+    return new Promise(async (resolve, reject) => {
+        try {
 
-//             const provider: Provider|null = await customerRepository.findOneBy({ id: data.providerId });
-//             if (provider === null) {
-//                 return reject({ errorMessage: 'Provider not found' });
-//             }
+            let myExport: Export = await exportRepository.findOneByOrFail({ id: exportId });
+            const customer: Customer|null = await customerRepository.findOneBy({ id: data.customerId });
+            if (customer === null) {
+                return reject({ errorMessage: 'Customer not found.' });
+            }
 
-//             myImport.importDate = data.importDate;
-//             myImport.note = data.note;
-//             myImport.paid = data.paid;
-//             myImport.maturityDate = data.maturityDate;
+            myExport.note = data.note;
+            myExport.exportDate = data.exportDate;
+            myExport.prescriptionId = data.prescriptionId
 
-//             await validateOrReject(myImport)
+            myExport.customer = customer;
 
-//             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-//                 await transactionalEntityManager.save(myImport)
+            await validateOrReject(myExport)
 
-//                 const importDetailIds: number[] =
-//                     existsImportDetail.map(
-//                         (existsImportDetail) => existsImportDetail.id
-//                     )
+            let newDrugIds: number[] = newExportDetail.map((exportDetail) => {
+                return exportDetail.drugId
+            })
+            let oldDrugIds: number[] = existsExportDetail.map((exportDetail) => {
+                return exportDetail.drugId
+            })
+            const newDrugs: DrugCategory[] = await drugRepository.find(
+                {
+                    where: { id: In(newDrugIds) }
+                }
+            );
+            const oldDrugs: DrugCategory[] = await drugRepository.find(
+                {
+                    where: { id: In(oldDrugIds) }
+                }
+            );
+
+            if (newDrugs.length === 0 && oldDrugs.length === 0) {
+                return reject({ errorMessage: 'Drug category not found.' });
+            }
+
+            for (let i = 0; i < newDrugs.length; i++) {
+                if (newDrugs[i].quantity < newExportDetail[i].quantity) {
+                    return reject({ errorMessage: 'Quantity in stock is not enough.' });
+                }
+            }
+            for (let i = 0; i < oldDrugs.length; i++) {
+                let quantity = existsExportDetail[i].quantity - existsExportDetail[i].oldQuantity
+                if (quantity >= 0) {
+                    if (oldDrugs[i].quantity < quantity) {
+                        return reject({ errorMessage: 'Quantity in stock is not enough.' });
+                    }
+                }
+            }
+
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                await transactionalEntityManager.save(myExport)
+
+                const existsExportDetailIds: number[] = existsExportDetail.map( (existsExportDetail) => existsExportDetail.id )
+                const exportDetailEliminated = await exportDetailRepository.find({
+                    where: { id: Not(In(existsExportDetailIds)) }
+                })
+                await transactionalEntityManager.getRepository(ExportDetail).remove(exportDetailEliminated)
                 
-//                 //Update remove method here
+                let drugIds: number[] = newExportDetail.map((ExportDetail: NewExportDetailData) => {
+                    return ExportDetail.drugId
+                })
+
+                drugIds = drugIds.concat(existsExportDetail.map((ExportDetail: ExistsExportDetailData) => {
+                    return ExportDetail.drugId
+                }))
+
+                const drugs: DrugCategory[] = await drugRepository.find(
+                    {
+                        where: { id: In(drugIds) }
+                    }
+                );
+
+                if (drugs.length === 0) {
+                    reject({
+                        errorMessage: 'Export requires export details'
+                    })
+                    return;
+                }
                 
-//                 await transactionalEntityManager
-//                     .createQueryBuilder()
-//                     .delete()
-//                     .from(ImportDetail)
-//                     .where('id NOT IN(:id)', {
-//                         id: importDetailIds,
-//                     })
-//                     .execute();
+                let drugUpdate = []
+                let existExportDetailEntity = await exportDetailRepository.find({
+                    where: { id: In(existsExportDetailIds)}
+                })
+
+                let handledExportDetail = []
+                let handledImportDetail = []
+                for (let exportDetail of existsExportDetail) {
+                    let updateExportDetail = existExportDetailEntity.find((e) => e.id === exportDetail.id)
+
+                    if (!updateExportDetail) {
+                        return reject({ errorMessage: 'Export detail not found' })
+                    }
+                    let drug: DrugCategory | undefined = drugs.find(
+                        (drug: DrugCategory) => drug.id === exportDetail.drugId
+                    );
+                    if (!drug) {
+                        return reject({ errorMessage: 'Drug category not found.'})
+                    }
+                    let differentQuantity = exportDetail.quantity - exportDetail.oldQuantity
+                    drug.quantity = drug.quantity + differentQuantity;   
+                    drugUpdate.push(drug); 
+
+                    const importDetail = await importDetailRepository.find({
+                        where: {
+                            drug: { id: exportDetail.drugId },
+                            quantity: MoreThan(0)
+                        },
+                        order: {
+                            import: {
+                                importDate: 'ASC'
+                            }
+                        }
+                    })
+                    if (differentQuantity >= 0) {
+                        console.log('herererererere', importDetail[0].quantity, differentQuantity)
+                        console.log('herererererere', importDetail[0].quantity >= differentQuantity)
+                        if (importDetail[0].quantity >= differentQuantity) {
+                            console.log('herererererere', importDetail[0], updateExportDetail)
+                            if (importDetail[0].import.id === updateExportDetail.import.id) {
+                                console.log('herererererere')
+
+                                updateExportDetail.quantity = exportDetail.quantity;
+                                updateExportDetail.unitPrice = drug.price;
+                                updateExportDetail.vat = drug.vat;
+                                importDetail[0].quantity = importDetail[0].quantity - differentQuantity
+
+                                handledImportDetail.push(importDetail[0])
+                                handledExportDetail.push(updateExportDetail)  
+                            }
+                            else {
+                                let newExportDetail = new ExportDetail()
+                                newExportDetail.quantity = importDetail[0].quantity - differentQuantity;
+                                newExportDetail.unitPrice = drug.price;
+                                newExportDetail.vat = drug.vat;
+                                newExportDetail.drug = drug;
+                                newExportDetail.export = myExport;
+                                newExportDetail.import = importDetail[0].import;
+                                importDetail[0].quantity = importDetail[0].quantity - differentQuantity
+
+                                handledImportDetail.push(importDetail[0])
+                                handledExportDetail.push(newExportDetail)
+                            }
+                        } else {
+                            const left: number = exportDetail.quantity - importDetail[0].quantity
+
+                            if (importDetail[0].import.id === updateExportDetail.import.id) {
+                                updateExportDetail.quantity = importDetail[0].quantity;
+                                updateExportDetail.unitPrice = drug.price;
+                                updateExportDetail.vat = drug.vat;
+                                importDetail[0].quantity = 0
+
+                                handledImportDetail.push(importDetail[0])
+                                handledExportDetail.push(updateExportDetail)
+                            }
+                            else {
+                                let newExportDetail = new ExportDetail()
+                                newExportDetail.export = myExport;
+                                newExportDetail.quantity = importDetail[0].quantity;
+                                newExportDetail.unitPrice = drug.price;
+                                newExportDetail.vat = drug.vat;
+                                newExportDetail.drug = drug;
+                                newExportDetail.import = importDetail[0].import;
+                                importDetail[0].quantity = importDetail[0].quantity - differentQuantity
+
+                                handledImportDetail.push(importDetail[0])
+                                handledExportDetail.push(newExportDetail)
+                            }
+                            
+                            let newExportDetail = new ExportDetail()
+                            newExportDetail.export = myExport;
+                            newExportDetail.quantity = left;
+                            newExportDetail.unitPrice = drug.price;
+                            newExportDetail.vat = drug.vat;
+                            newExportDetail.drug = drug;
+                            newExportDetail.import = importDetail[1].import;
+                            importDetail[1].quantity = importDetail[1].quantity - left;
+
+                            handledImportDetail.push(importDetail[1])
+                            handledExportDetail.push(newExportDetail)
+                        }
+                    } else {
+                        if (importDetail[0].import.id === updateExportDetail.import.id) {
+                            updateExportDetail.quantity = exportDetail.quantity;
+                            updateExportDetail.unitPrice = drug.price;
+                            updateExportDetail.vat = drug.vat;
+                            importDetail[0].quantity = importDetail[0].quantity + differentQuantity
+
+                            handledImportDetail.push(importDetail[0])
+                            handledExportDetail.push(updateExportDetail)
+                        }
+                        else {
+                            let newExportDetail = new ExportDetail()
+                            newExportDetail.export = myExport;
+                            newExportDetail.quantity = +differentQuantity;
+                            newExportDetail.unitPrice = drug.price;
+                            newExportDetail.vat = drug.vat;
+                            newExportDetail.drug = drug;
+                            newExportDetail.import = importDetail[0].import;
+                            importDetail[0].quantity = importDetail[0].quantity + differentQuantity
+
+                            handledImportDetail.push(importDetail[0])
+                            handledExportDetail.push(newExportDetail)
+                        }
+                    }
+                }
+                for (let exportDetail of newExportDetail) {
+                    let drug: DrugCategory | undefined = drugs.find(
+                        (drug: DrugCategory) => drug.id === exportDetail.drugId
+                    );
+                    const importDetail = await importDetailRepository.find({
+                        where: {
+                            drug: { id: exportDetail.drugId },
+                            quantity: MoreThan(0)
+                        },
+                        order: {
+                            import: {
+                                importDate: 'ASC'
+                            }
+                        }
+                    }) 
+                    if (!drug) {
+                        return reject({ errorMessage: 'Drug category not found' })
+                    }
+                    drug.quantity = drug.quantity - exportDetail.quantity;   
+                    drugUpdate.push(drug); 
+
+                    let left = importDetail[0].quantity - exportDetail.quantity
+
+                    if (left >= 0) {
+                        let newExportDetail = new ExportDetail();
+                        newExportDetail.drug = drug
+                        newExportDetail.export = myExport
+                        newExportDetail.import = importDetail[0].import
+                        newExportDetail.expiryDate = importDetail[0].expiryDate
+                        newExportDetail.vat = drug.vat
+                        newExportDetail.unitPrice = drug.price
+                        importDetail[0].quantity = importDetail[0].quantity - exportDetail.quantity
+
+                        handledImportDetail.push(importDetail[0])
+                        handledExportDetail.push(newExportDetail)
+                    }
+                    else {
+                        let index: number = 0;
+
+                        while (left < 0) {
+                            let newExportDetail = new ExportDetail();
+                            newExportDetail.drug = drug
+                            newExportDetail.export = myExport
+                            newExportDetail.import = importDetail[index].import
+                            newExportDetail.expiryDate = importDetail[index].expiryDate
+                            newExportDetail.quantity = importDetail[index].quantity
+                            newExportDetail.vat = drug.vat
+                            newExportDetail.unitPrice = drug.price
+                            importDetail[index].quantity = 0
+
+                            handledImportDetail.push(importDetail[index])
+                            handledExportDetail.push(newExportDetail)
+
+                            if (index + 1 < importDetail.length) break;
+                            left = importDetail[++index].quantity + left
+                        }
+
+                        let newExportDetail = new ExportDetail();
+                        newExportDetail.drug = drug
+                        newExportDetail.export = myExport
+                        newExportDetail.import = importDetail[0].import
+                        newExportDetail.expiryDate = importDetail[0].expiryDate
+                        newExportDetail.vat = drug.vat
+                        newExportDetail.unitPrice = drug.price
+                        newExportDetail.quantity = importDetail[0].quantity + left;
+                        importDetail[index].quantity = left
+
+                        handledImportDetail.push(importDetail[index])
+                        handledExportDetail.push(newExportDetail)
+                    }   
+                }
                 
-//                 let drugIds: number[] = newImportDetail.map((importDetail: NewImportDetailData) => {
-//                     return importDetail.drugId
-//                 })
+                await transactionalEntityManager.getRepository(DrugCategory).save(drugUpdate)
+                await transactionalEntityManager.getRepository(ImportDetail).save(handledImportDetail)
+                await transactionalEntityManager.getRepository(ExportDetail).save(handledExportDetail)
+                await exportRepository.save(myExport)
+            })
 
-//                 drugIds = drugIds.concat(existsImportDetail.map((importDetail: ExistsImportDetailData) => {
-//                     return importDetail.drugId
-//                 }))
+            resolve({
+                message: 'Update Export successfully',
+                data: myExport
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
-//                 const drugs: DrugCategory[] = await drugRepository.find(
-//                     {
-//                         where: { id: In(drugIds) }
-//                     }
-//                 );
+const deleteExport = (exportId: number): Promise<DataOptionResponse<Export>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let myExport: Export = await exportRepository.findOneByOrFail({ id: exportId });
 
-//                 if (drugs.length === 0) {
-//                     reject({
-//                         errorMessage: 'Import requires import details'
-//                     })
-//                     return;
-//                 }
-
-//                 for (let importDetail of existsImportDetail) {
-//                     let drug: DrugCategory | undefined = drugs.find(
-//                         (drug: DrugCategory) => drug.id === importDetail.drugId
-//                     );
-//                     if (!drug) {
-//                         reject({
-//                             errorMessage: 'Drug category not found',
-//                         })
-//                         return; 
-//                     }
-//                     const quantity: number = drug.quantityConversion * importDetail.quantityImport
-//                     drug.price = calculateUnitPrice(importDetail.unitPrice, drug.quantityConversion);
-//                     const result: boolean =
-//                         drug.updateQuantityFromImportModify(
-//                             importDetail.oldQuantityImport,
-//                             importDetail.quantityImport
-//                         )
-//                     if (!result) {
-//                         reject({
-//                             errorMessage: 'Drug category imported, that was been sold more than new update.',
-//                         })
-//                         return; 
-//                     }
-//                     await transactionalEntityManager.save(drug);
-
-//                     await transactionalEntityManager
-//                         .createQueryBuilder()
-//                         .update(ImportDetail)
-//                         .set({
-//                             quantity: quantity,
-//                             expiryDate: importDetail.expiryDate,
-//                             batchId: importDetail.batchId,
-//                             quantityImport: importDetail.quantityImport,
-//                         })
-//                         .where("id = :id", {id: importDetail.id})
-//                         .execute()
-//                 }
-
-//                 let handledNewImportDetail = []
-//                 for (let importDetail of newImportDetail) {
-//                     let drug: DrugCategory | undefined = drugs.find(
-//                         (drug: DrugCategory) => drug.id === importDetail.drugId
-//                     );
-//                     if (!drug) {
-//                         reject({
-//                             errorMessage: 'Drug category not found',
-//                         })
-//                         return; 
-//                     }
-//                     const quantity: number = drug.quantityConversion * importDetail.quantityImport
-//                     drug.price = calculateUnitPrice(importDetail.unitPrice, drug.quantityConversion);
-//                     drug.addQuantityFromImport(quantity);
-//                     await transactionalEntityManager.save(drug);
-
-//                     handledNewImportDetail.push({
-//                         ...importDetail,
-//                         drug: drug,
-//                         import: myImport,
-//                         vat: drug.vat,
-//                         quantity: quantity,
-//                     })
-//                 }
-
-//                 await transactionalEntityManager
-//                     .createQueryBuilder()
-//                     .insert()
-//                     .into(ImportDetail)
-//                     .values(handledNewImportDetail)
-//                     .execute()
-//             })
-
-//             await exportRepository.save(myImport)
-//             resolve({
-//                 message: 'Update Import successfully',
-//                 data: myImport
-//             })
-//         } catch (error) {
-//             reject(error)
-//         }
-//     })
-// }
-
-// const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             let myImport: Import = await exportRepository.findOneByOrFail({ id: importId });
-
-//             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-//                 const importDetail = await exportDetailRepository.find({
-//                     where: {
-//                         import: { 
-//                             id: myImport.id,
-//                         },
-//                     },
-//                 })
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                const exportDetail = await exportDetailRepository.find({
+                    where: {
+                        export: { 
+                            id: myExport.id,
+                        },
+                    },
+                })
             
-//                 await transactionalEntityManager.getRepository(ImportDetail).remove(importDetail);
+                await transactionalEntityManager.getRepository(ExportDetail).remove(exportDetail);
 
-//                 await transactionalEntityManager.getRepository(Import).delete(importId);
-//             })
+                await transactionalEntityManager.getRepository(Export).delete(exportId);
+            })
 
-//             resolve({
-//                 message: 'Import deleted successfully',
-//                 data: myImport
-//             })
-//         } catch (error) {
-//             reject(error);
-//         }
-//     })
-// }
+            resolve({
+                message: 'Export deleted successfully',
+                data: myExport
+            })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
 
 export default {
     getExports,
     searchExport,
     storeExport,
-    // updateImport,
-    // deleteImport
+    updateExport,
+    deleteExport
 }

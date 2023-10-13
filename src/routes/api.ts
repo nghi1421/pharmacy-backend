@@ -7,6 +7,7 @@ import typeByUseController from '../controllers/typeByUseController';
 import drugCategoryController from '../controllers/drugCategoryController';
 import providerController from '../controllers/providerController';
 import importController from '../controllers/importController';
+import exportController from '../controllers/exportController';
 import roleController from '../controllers/roleController';
 import positionController from '../controllers/positionController';
 import { checkAccessToken } from '../middlewares/checkAccessToken';
@@ -78,6 +79,13 @@ const routesAPI = (app: Application) => {
     router.post('/imports', importController.storeImport)
     router.put('/imports/:importId', importController.updateImport)
     router.delete('/imports/:importId', importController.deleteImport)
+
+    //Export
+    router.get('/exports', exportController.getExports) 
+    router.get('/exports/search', exportController.searchExport)
+    router.post('/exports', exportController.storeExport)
+    router.put('/exports/:exportId', exportController.updateExport)
+    router.delete('/exports/:exportId', exportController.deleteExport)
 
     router.get('/check-middleware', [checkAccessToken, checkAdmin], (req: Request, res: Response) => {
         res.status(200).json({
