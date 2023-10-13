@@ -309,7 +309,7 @@ const updateExport = (
                         return reject({ errorMessage: 'Drug category not found.'})
                     }
                     let differentQuantity = exportDetail.quantity - exportDetail.oldQuantity
-                    drug.quantity = drug.quantity + differentQuantity;   
+                    drug.quantity = drug.quantity - differentQuantity;   
                     drugUpdate.push(drug); 
 
                     const importDetail = await importDetailRepository.find({
@@ -445,6 +445,7 @@ const updateExport = (
                         newExportDetail.import = importDetail[0].import
                         newExportDetail.expiryDate = importDetail[0].expiryDate
                         newExportDetail.vat = drug.vat
+                        newExportDetail.quantity = exportDetail.quantity
                         newExportDetail.unitPrice = drug.price
                         importDetail[0].quantity = importDetail[0].quantity - exportDetail.quantity
 
