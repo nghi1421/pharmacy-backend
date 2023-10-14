@@ -211,7 +211,7 @@ const updateExport = (
         try {
 
             let myExport: Export = await exportRepository.findOneByOrFail({ id: exportId });
-            const customer: Customer|null = await customerRepository.findOneBy({ id: data.customerId });
+            const customer: Customer | null = await customerRepository.findOneBy({ id: data.customerId });
             if (customer === null) {
                 return reject({ errorMessage: 'Customer not found.' });
             }
@@ -262,20 +262,23 @@ const updateExport = (
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                 await transactionalEntityManager.save(myExport)
 
-                const existsExportDetailIds: number[] = existsExportDetail.map( (existsExportDetail) => existsExportDetail.id )
+                const existsExportDetailIds: number[] = existsExportDetail.map((existsExportDetail) => {
+                    return existsExportDetail.id
+                })
                 const exportDetailEliminated = await exportDetailRepository.find({
                     where: { id: Not(In(existsExportDetailIds)) }
                 })
                 await transactionalEntityManager.getRepository(ExportDetail).remove(exportDetailEliminated)
                 
+                existsExportDetail = existsExportDetail.filter(
+                    exportDetail => exportDetail.quantity !== exportDetail.oldQuantity
+                )
                 let drugIds: number[] = newExportDetail.map((ExportDetail: NewExportDetailData) => {
                     return ExportDetail.drugId
                 })
-
                 drugIds = drugIds.concat(existsExportDetail.map((ExportDetail: ExistsExportDetailData) => {
                     return ExportDetail.drugId
                 }))
-
                 const drugs: DrugCategory[] = await drugRepository.find(
                     {
                         where: { id: In(drugIds) }
@@ -283,9 +286,7 @@ const updateExport = (
                 );
 
                 if (drugs.length === 0) {
-                    reject({
-                        errorMessage: 'Export requires export details'
-                    })
+                    reject({ errorMessage: 'Export requires export details' })
                     return;
                 }
                 
@@ -324,13 +325,8 @@ const updateExport = (
                         }
                     })
                     if (differentQuantity >= 0) {
-                        console.log('herererererere', importDetail[0].quantity, differentQuantity)
-                        console.log('herererererere', importDetail[0].quantity >= differentQuantity)
                         if (importDetail[0].quantity >= differentQuantity) {
-                            console.log('herererererere', importDetail[0], updateExportDetail)
                             if (importDetail[0].import.id === updateExportDetail.import.id) {
-                                console.log('herererererere')
-
                                 updateExportDetail.quantity = exportDetail.quantity;
                                 updateExportDetail.unitPrice = drug.price;
                                 updateExportDetail.vat = drug.vat;
