@@ -57,7 +57,7 @@ export class DrugCategory {
     @IsNotEmpty()
     quantityConversion: number
  
-    @ManyToOne(() => TypeByUse)
+    @ManyToOne(() => TypeByUse, { eager: true })
     @JoinColumn()
     type: string
 
