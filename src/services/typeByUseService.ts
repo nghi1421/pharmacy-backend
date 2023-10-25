@@ -4,6 +4,7 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validateOrReject } from "class-validator"
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const TypeByUseRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
@@ -15,6 +16,27 @@ const getTypeByUses = (): Promise<DataResponse<TypeByUse>> => {
                 message: 'Get type by uses successfully',
                 data: types
             })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getTypeByUse = (typeId: number): Promise<GetDataResponse<TypeByUse>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: TypeByUse|null = await TypeByUseRepository.findOneBy({ id: typeId });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin phân loại công dụng thành công.',
+                    data: result
+                })
+            }
+            else {
+                reject({
+                    errorMessage: 'Phân loại công dụng không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
         } catch (error) {
             reject(error);
         }
@@ -96,6 +118,7 @@ const deleteTypeByUse = (typeId: number): Promise<DataOptionResponse<TypeByUse>>
 
 export default {
     getTypeByUses,
+    getTypeByUse,
     searchTypeByUse,
     storeTypeByUse,
     updateTypeByUse,

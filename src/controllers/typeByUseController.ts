@@ -3,12 +3,24 @@ import typeByUseService from '../services/typeByUseService'
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
 import { DataResponse } from '../global/interfaces/DataResponse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const getTypeByUses = async (req: Request, res: Response) => {
     try {
         const result: DataResponse<TypeByUse> = await typeByUseService.getTypeByUses();
         res.status(200).json(result);
     } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+const getTypeByUse = async (req: Request, res: Response) => {
+    try {
+        const typeId: number = parseInt(req.params.tyepId)
+        const result: GetDataResponse<TypeByUse> = await typeByUseService.getTypeByUse(typeId); 
+         res.status(200).json(result);
+    }
+    catch (error) {
         res.status(500).send(error)
     }
 }
@@ -75,6 +87,7 @@ const deleteTypeByUse = async (req: Request, res: Response) => {
 
 export default {
     getTypeByUses,
+    getTypeByUse,
     searchTypeByUse,
     storeTypeByUse,
     updateTypeByUse,

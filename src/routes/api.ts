@@ -54,6 +54,7 @@ const routesAPI = (app: Application) => {
 
     //Type by use
     router.get('/type-by-uses', typeByUseController.getTypeByUses)
+    router.get('/type-by-uses/:typeId', typeByUseController.getTypeByUse)
     router.get('/type-by-uses/search', typeByUseController.searchTypeByUse)
     router.post('/type-by-uses', typeByUseController.storeTypeByUse)
     router.put('/type-by-uses/:typeId', typeByUseController.updateTypeByUse)
