@@ -8,8 +8,13 @@ import config from './config/config'
 
 const app = express();
 
+let corsOptions = {
+  origin: 'http://localhost:5173',
+  credentials: true,
+}
+
 app.use(helmet())
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(cookieParser()); 
 app.use(bodyParser.json());
 

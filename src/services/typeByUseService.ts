@@ -33,7 +33,7 @@ const getTypeByUse = (typeId: number): Promise<GetDataResponse<TypeByUse>> => {
                 })
             }
             else {
-                reject({
+                resolve({
                     errorMessage: 'Phân loại công dụng không tồn tại. Vui lòng làm mới trang.'
                 });
             }

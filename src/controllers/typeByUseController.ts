@@ -16,7 +16,7 @@ const getTypeByUses = async (req: Request, res: Response) => {
 
 const getTypeByUse = async (req: Request, res: Response) => {
     try {
-        const typeId: number = parseInt(req.params.tyepId)
+        const typeId: number = parseInt(req.params.typeId)
         const result: GetDataResponse<TypeByUse> = await typeByUseService.getTypeByUse(typeId); 
          res.status(200).json(result);
     }

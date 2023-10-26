@@ -7,8 +7,12 @@ const login = async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const result = await authenticateService.login(username, password)
-
-        res.json(result)
+        res.cookie("refresh-token", result.refreshToken , {
+                httpOnly: true,
+                maxAge: parseInt(config.expiryRefreshTokenCookie),
+                domain: "localhost",
+            })
+        res.json(result.response)
     } catch (error: unknown) {
         res.json(error)
     }

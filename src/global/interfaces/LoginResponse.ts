@@ -1,12 +1,16 @@
 import { Role } from "../../entity/Role";
+import { Staff } from "../../entity/Staff";
 
 export interface LoginResponse {
-    message: string;
+    response: {
+        message: string;
     data: {
         id: number;
         username: string;
+        staff: Staff;
         role: Role;
     };
-    accessToken: string;
+        accessToken: string;
+    }
     refreshToken: string;
 }

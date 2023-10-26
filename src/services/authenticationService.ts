@@ -20,8 +20,6 @@ const login = async (username: string, password: string): Promise<LoginResponse>
                 reject({errorMessage: 'Account does not match staff information.'})
                 return
             }
-            console.log(user);
-            console.log(staff);
             const accessToken = jwt.sign({
                 userId: user.id,
                 roleId: user.role.id,
@@ -34,14 +32,17 @@ const login = async (username: string, password: string): Promise<LoginResponse>
             }, config.refreshKey, { expiresIn: config.expiryRefreshToken });
 
             resolve({
-                message: 'Login successes.',
-                data: {
-                    id: user.id,
-                    username: user.username,
-                    role: user.role
+                response: {
+                    message: 'Đăng nhập thành công..',
+                    data: {
+                        id: user.id,
+                        username: user.username,
+                        staff: staff,
+                        role: user.role
+                    },
+                    accessToken,
                 },
-                accessToken,
-                refreshToken
+                refreshToken 
             })
         }
         else {
