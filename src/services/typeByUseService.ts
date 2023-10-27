@@ -13,7 +13,7 @@ const getTypeByUses = (): Promise<DataResponse<TypeByUse>> => {
         try {
             const types: TypeByUse[] = await TypeByUseRepository.find();
             resolve({
-                message: 'Get type by uses successfully',
+                message: 'Lấy thông tin phân loại công dụng thành công.',
                 data: types
             })
         } catch (error) {
@@ -48,7 +48,7 @@ const searchTypeByUse = (query: Object): Promise<DataResponse<TypeByUse>> => {
         try {
             const types: TypeByUse[] = await TypeByUseRepository.find({ where: query});
             resolve({
-                message: 'type by uses successfully',
+                message: 'Tìm kiếm phân loại công dụng thuốc thành công.',
                 data: types
             })
         } catch (error) {
@@ -69,7 +69,7 @@ const storeTypeByUse = (name: string, detail: string): Promise<DataOptionRespons
             
             await TypeByUseRepository.save(newTypeByUse)
             resolve({
-                message: 'Insert type by use successfully',
+                message: 'Thêm phân loại công dụng thuốc thành công.',
                 data: newTypeByUse
             })
         } catch (error) {
@@ -90,7 +90,7 @@ const updateTypeByUse = (typeId: number, name: string, detail: string): Promise<
 
             await TypeByUseRepository.save(typeByUse)
             resolve({
-                message: 'Update type by use successfully',
+                message: 'Cập nhật phân loại công dụng thuốc thành công.',
                 data: typeByUse
             })
         } catch (error) {
@@ -107,7 +107,7 @@ const deleteTypeByUse = (typeId: number): Promise<DataOptionResponse<TypeByUse>>
             await TypeByUseRepository.delete(typeId);
 
             resolve({
-                message: 'Type by use deleted successfully',
+                message: 'Xóa phân loại công dụng thuốc thành công.',
                 data: TypeByUse
             })
         } catch (error) {

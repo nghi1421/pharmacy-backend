@@ -4,6 +4,7 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validateOrReject } from "class-validator"
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
@@ -12,9 +13,30 @@ const getPositions = (): Promise<DataResponse<Position>> => {
         try {
             const positions = await positionRepository.find();
             resolve({
-                message: 'Get positions successfully',
+                message: 'Lấy thông tin chức vụ thành công.',
                 data: positions
             })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getPosition = (positionId: number): Promise<GetDataResponse<Position>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: Position|null = await positionRepository.findOneBy({ id: positionId });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin chức vụ thành công.',
+                    data: result
+                })
+            }
+            else {
+                resolve({
+                    errorMessage: 'Phân loại chức vụ không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
         } catch (error) {
             reject(error);
         }
@@ -26,7 +48,7 @@ const searchPosition = (query: Object): Promise<DataResponse<Position>> => {
         try {
             const positions = await positionRepository.find({ where: query});
             resolve({
-                message: 'Search positions successfully',
+                message: 'Tìm kiếm thông tin chức vụ thành công.',
                 data: positions
             })
         } catch (error) {
@@ -47,7 +69,7 @@ const storePosition =
 
             await positionRepository.save(newPosition)
             resolve({
-                message: 'Insert position successfully',
+                message: 'Thêm thông tin chức vụ thành công.',
                 data: newPosition
             })
         } catch (error) {
@@ -68,7 +90,7 @@ const updatePosition =
 
             await positionRepository.save(position)
             resolve({
-                message: 'Update position successfully',
+                message: 'Cập nhật thông tin chức vụ thành công.',
                 data: position
             })
         } catch (error) {
@@ -85,7 +107,7 @@ const deletePosition = (positionId: number): Promise<DataOptionResponse<Position
             await positionRepository.delete(positionId);
 
             resolve({
-                message: 'Position deleted successfully',
+                message: 'Xóa thông tin chức vụ thành công.',
                 data: position
             })
         } catch (error) {
@@ -96,6 +118,7 @@ const deletePosition = (positionId: number): Promise<DataOptionResponse<Position
 
 export default {
     getPositions,
+    getPosition,
     searchPosition,
     storePosition,
     updatePosition,

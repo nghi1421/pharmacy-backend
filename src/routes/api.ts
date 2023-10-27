@@ -40,6 +40,7 @@ const routesAPI = (app: Application) => {
 
     //Position
     router.get('/positions', positionController.getPositions)
+    router.get('/positions/:positionId', positionController.getPosition)
     router.get('/positions/search', positionController.searchPosition)
     router.post('/positions', positionController.storePosition)
     router.put('/positions/:positionId', positionController.updatePosition)

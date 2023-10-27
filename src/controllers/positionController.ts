@@ -10,6 +10,22 @@ const getPositions = async (req: Request, res: Response) => {
     }
 }
 
+const getPosition = async (req: Request, res: Response) => {
+    try {
+        const positionId: number = parseInt(req.params.positionId)
+        if (!positionId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+        const result = await positionService.getPosition(positionId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const searchPosition = async (req: Request, res: Response) => { 
     try {
         const query = req.body
@@ -26,7 +42,7 @@ const storePosition = async (req: Request, res: Response) => {
 
         if (!name) {
             res.status(400).json({
-                errorMessage: 'Missing parameters'
+                errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
         }
@@ -45,7 +61,7 @@ const updatePosition = async (req: Request, res: Response) => {
 
         if (!name || !positionId) {
             res.status(400).json({
-                errorMessage: 'Missing parameters'
+                errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
         }
@@ -62,7 +78,7 @@ const deletePosition = async (req: Request, res: Response) => {
 
         if (!positionId) {
             res.status(400).json({
-                errorMessage: 'Missing parameters'
+                errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
         }
@@ -76,6 +92,7 @@ const deletePosition = async (req: Request, res: Response) => {
 
 export default {
     getPositions,
+    getPosition,
     searchPosition,
     storePosition,
     updatePosition,
