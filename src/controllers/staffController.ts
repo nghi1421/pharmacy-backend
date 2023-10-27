@@ -11,9 +11,31 @@ const getStaffs = async (req: Request, res: Response) => {
     }
 }
 
+const getStaff = async (req: Request, res: Response) => {
+    try {
+        const staffId: number = parseInt(req.params.staffId)
+        if (!staffId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+        const result = await staffService.getStaff(staffId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const searchStaff = async (req: Request, res: Response) => { 
     try {
         const query = req.body
+        if (!query) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await staffService.searchStaff(query);
         res.status(200).json(result);
     } catch (error) {
@@ -47,6 +69,12 @@ const storeStaff = async (req: Request, res: Response) => {
             isWorking,
         }
         const positionId: number = parseInt(req.body.position_id);
+        if (!positionId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await staffService.storeStaff(data, positionId);
         res.status(200).json(result);
     } catch (error) {
@@ -80,6 +108,12 @@ const updateStaff = async (req: Request, res: Response) => {
 
         const positionId: number = parseInt(req.body.position_id);
         const staffId: number = parseInt(req.params.staffId);
+        if (!positionId || !staffId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await staffService.updateStaff(staffId, data, positionId);
         res.status(200).json(result);
     } catch (error) {
@@ -89,7 +123,13 @@ const updateStaff = async (req: Request, res: Response) => {
 
 const deleteStaff = async (req: Request, res: Response) => {
     try {
-        const staffId = parseInt(req.params.staffId)
+        const staffId: number = parseInt(req.params.staffId);
+        if (!staffId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await staffService.deleteStaff(staffId);
         res.status(200).json(result);
     } catch (error) {
@@ -99,6 +139,7 @@ const deleteStaff = async (req: Request, res: Response) => {
 
 export default {
     getStaffs,
+    getStaff,
     searchStaff,
     storeStaff,
     updateStaff,

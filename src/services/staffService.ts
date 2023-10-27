@@ -6,6 +6,7 @@ import { Position } from '../entity/Position';
 import { StaffData } from '../global/interfaces/StaffData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
@@ -15,9 +16,30 @@ const getStaffs = (): Promise<DataResponse<Staff>> => {
         try {
             const staffs = await staffRepository.find();
             resolve({
-                message: 'Get staffs successfully',
+                message: 'Lấy thông tin nhân viên thành công.',
                 data: staffs
             })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getStaff = (staffId: number): Promise<GetDataResponse<Staff>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: Staff|null = await staffRepository.findOneBy({ id: staffId });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin nhân viên thành công.',
+                    data: result
+                })
+            }
+            else {
+                resolve({
+                    errorMessage: 'Thông tin nhân viên không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
         } catch (error) {
             reject(error);
         }
@@ -29,7 +51,7 @@ const searchStaff = (query: Object): Promise<DataResponse<Staff>> => {
         try {
             const staff = await staffRepository.find({ where: query});
             resolve({
-                message: 'Search staffs successfully',
+                message: 'Tìm kiếm thông tin nhân viên thành công.',
                 data: staff
             })
         } catch (error) {
@@ -42,8 +64,14 @@ const storeStaff =
     (data: StaffData, positionId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const position = await positionRepository.findOneByOrFail({ id: positionId });
-  
+            const position: Position|null = await positionRepository.findOneBy({ id: positionId });
+            
+            if (!position) {
+                return resolve({
+                    errorMessage: 'Thông tin chức vụ được chọn không tồn tại.'
+                })
+            }
+
             let newStaff = new Staff();
 
             newStaff.name = data.name;
@@ -60,12 +88,12 @@ const storeStaff =
             const errors = await validate(newStaff)
             
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                return resolve({ errorMessage: 'Thông tin nhân viên không hợp lệ.'})
             }
 
             await staffRepository.save(newStaff)
             resolve({
-                message: 'Insert staff successfully',
+                message: 'Thêm thông tin nhân viên thành công.',
                 data: newStaff
             })
         } catch (error) {
@@ -78,10 +106,19 @@ const updateStaff =
     (staffId: number, data: StaffData, positionId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const position = await positionRepository.findOneByOrFail({ id: positionId });
-  
-            let staff = await staffRepository.findOneByOrFail({ id: staffId });
+            const position: Position|null = await positionRepository.findOneBy({ id: positionId });
+            if (!position) {
+                return resolve({
+                    errorMessage: 'Thông tin chức vụ được chọn không tồn tại.'
+                })
+            }
 
+            let staff: Staff|null = await staffRepository.findOneBy({ id: staffId });
+            if (!staff) {
+                return resolve({
+                    errorMessage: 'Thông tin nhân viên không tồn tại. Vui lòng làm mới trang.'
+                })
+            }
             staff.name = data.name;
             staff.phoneNumber = data.phoneNumber;
             staff.gender = data.gender;
@@ -97,7 +134,7 @@ const updateStaff =
 
             const errors = await validate(staff)
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                return resolve({ errorMessage: 'Thông tin nhân viên không hợp lệ.'})
             }
 
             await staffRepository.save(staff)
@@ -114,12 +151,17 @@ const updateStaff =
 const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let staff: Staff = await staffRepository.findOneByOrFail({ id: staffId });
+            let staff: Staff|null = await staffRepository.findOneBy({ id: staffId });
+            if (!staff) {
+                return resolve({
+                    errorMessage: 'Thông tin nhân viên không tồn tại. Vui lòng làm mới trang.'
+                })
+            }
 
             await staffRepository.delete(staffId);
 
             resolve({
-                message: 'Staff deleted successfully',
+                message: 'Xóa thông tin nhân viên thành công.',
                 data: staff
             })
         } catch (error) {
@@ -130,6 +172,7 @@ const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
 
 export default {
     getStaffs,
+    getStaff,
     searchStaff,
     storeStaff,
     updateStaff,
