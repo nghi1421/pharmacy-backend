@@ -23,7 +23,7 @@ const refreshToken = (req: Request, res: Response) => {
         const refreshToken: string = req.cookies.jwt;
         jwt.verify(refreshToken, config.refreshKey, (error: VerifyErrors, decoded: JwtPayload) => {
             if (error) {
-                return res.status(406).json({message: "Unauthorized"})
+                return res.status(406).json({message: "Xác thực thất bại."})
             }
             else { 
                 const accessToken = jwt.sign({ 
@@ -37,7 +37,7 @@ const refreshToken = (req: Request, res: Response) => {
         })
     }
     else {
-        res.status(406).json({ message: 'Unauthorized' }); 
+        res.status(406).json({ message: 'Xác thực thất bại.' }); 
     } 
 }
 
@@ -50,13 +50,13 @@ const changePassword = async (req: Request, res: Response) => {
         
         if (!username || !oldPassword || !newPassword || !newPasswordConfirmation) {
             res.status(401).json({
-                errorMessage: 'Missing parameters.'
+                errorMessage: 'Thiếu tham số đầu vào.'
             })
         }
         else {
             if (newPassword !== newPasswordConfirmation) {
                 res.status(401).json({
-                    errorMessage: 'New password is not the same as the new password confirmation.'
+                    errorMessage: 'Mật khẩu xác nhận không hợp.'
                 })
             }
             else {

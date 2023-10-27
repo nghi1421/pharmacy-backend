@@ -64,6 +64,7 @@ const routesAPI = (app: Application) => {
 
     //Drug category
     router.get('/drug-categories', drugCategoryController.getDrugCategories)
+    router.get('/drug-categories/:drugId', drugCategoryController.getDrugCategory)
     router.get('/drug-categories/search', drugCategoryController.searchDrugCategory)
     router.post('/drug-categories', drugCategoryController.storeDrugCategory)
     router.put('/drug-categories/:drugCategoryId', drugCategoryController.updateDrugCategory)

@@ -11,9 +11,31 @@ const getDrugCategories = async (req: Request, res: Response) => {
     }
 }
 
+const getDrugCategory = async (req: Request, res: Response) => {
+    try {
+        const drugId: number = parseInt(req.params.drugId)
+        if (!drugId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+        const result = await drugCategoryService.getDrugCategory(drugId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const searchDrugCategory = async (req: Request, res: Response) => {
     try {
         const query = req.body
+        if (!query) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await drugCategoryService.searchDrugCategory(query);
         res.status(200).json(result);
     } catch (error) {
@@ -50,7 +72,7 @@ const storeDrugCategory = async (req: Request, res: Response) => {
             !quantityConversion ||
             !minimalUnit
         ) {
-            res.status(400).json({ errorMessage: 'Missing parameter' })
+            res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }
 
@@ -106,7 +128,7 @@ const updateDrugCategory = async (req: Request, res: Response) => {
             !minimalUnit ||
             !drugCategoryId
         ) {
-            res.status(400).json({ errorMessage: 'Missing parameter' })
+            res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }
 
@@ -135,7 +157,7 @@ const deleteDrugCategory = async (req: Request, res: Response) => {
         const drugCategoryId = parseInt(req.params.drugCategoryId)
         
         if (!drugCategoryId) {
-            res.status(400).json({ errorMessage: 'Missing parameter' })
+            res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }
 
@@ -148,6 +170,7 @@ const deleteDrugCategory = async (req: Request, res: Response) => {
 
 export default {
     getDrugCategories,
+    getDrugCategory,
     searchDrugCategory,
     storeDrugCategory,
     updateDrugCategory,

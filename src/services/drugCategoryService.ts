@@ -6,6 +6,7 @@ import { DrugCategoryData } from '../global/interfaces/DrugCategoryData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 const typeRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
@@ -15,9 +16,30 @@ const getDrugCategories = (): Promise<DataResponse<DrugCategory>> => {
         try {
             const drugCategories = await drugCategoryRepository.find();
             resolve({
-                message: 'Get drug categories successfully',
+                message: 'Lấy thông tin danh mục thuốc thành công.',
                 data: drugCategories
             })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getDrugCategory = (drugId: number): Promise<GetDataResponse<DrugCategory>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: DrugCategory|null = await drugCategoryRepository.findOneBy({ id: drugId });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin danh mục thuốc thành công.',
+                    data: result
+                })
+            }
+            else {
+                resolve({
+                    errorMessage: 'Danh mục thuốc không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
         } catch (error) {
             reject(error);
         }
@@ -29,7 +51,7 @@ const searchDrugCategory = (query: Object): Promise<DataResponse<DrugCategory>> 
         try {
             const drugCategories = await drugCategoryRepository.find({ where: query});
             resolve({
-                message: 'Search drug categories successfully',
+                message: 'Lấy thông tin danh mục thuốc thành công.',
                 data: drugCategories
             })
         } catch (error) {
@@ -44,10 +66,10 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
             let newDrugCategory = new DrugCategory();
             const type = typeRepository.findOneBy({ id: data.typeId })
             
-            if (type === null) {
-                return reject({
-                    errorMessge: 'Type by use not found'
-                })
+            if (!type) {
+                return resolve({
+                    errorMessage: 'Danh mục thuốc không tồn tại. Vui lòng làm mới trang.'
+                });
             }
 
             newDrugCategory.name = data.name
@@ -64,12 +86,12 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
             const errors = await validate(newDrugCategory)
             
             if (errors.length > 0) {
-                return reject({ errorMessage: 'Invalid information.'})
+                return resolve({ errorMessage: 'Thông tin danh mục thuốc không hợp lệ.'})
             }
 
             await drugCategoryRepository.save(newDrugCategory)
             resolve({
-                message: 'Insert drug category successfully',
+                message: 'Thêm thông tin danh mục thuốc thành công.',
                 data: newDrugCategory
             })
         } catch (error) {
@@ -85,16 +107,16 @@ const updateDrugCategory =
             let drugCategory: DrugCategory|null = await drugCategoryRepository.findOneBy({ id: drugCategoryId });
 
             if (drugCategory === null) {
-                return reject({
-                    errorMessage: 'Drug category not found'
-                })
+                return resolve({
+                    errorMessage: 'Danh mục thuốc không tồn tại. Vui lòng làm mới trang.'
+                });
             }
 
             const type = typeRepository.findOneBy({ id: data.typeId })
             
             if (type === null) {
-                return reject({
-                    errorMessge: 'Type by use not found'
+                return resolve({
+                    errorMessage: 'Phân loại công dụng không tồn tại.'
                 })
             }
 
@@ -110,12 +132,12 @@ const updateDrugCategory =
 
             const errors = await validate(drugCategory)
             if (errors.length > 0) {
-                return reject({ errorMessage: 'Invalid information.'})
+                return resolve({ errorMessage: 'Thông tin danh mục thuốc không hợp lệ.'})
             }
 
             await drugCategoryRepository.save(drugCategory)
             resolve({
-                message: 'Drug category updated successfully',
+                message: 'Cập nhật thông tin danh mục thuốc thành công.',
                 data: drugCategory
             })
         } catch (error) {
@@ -130,15 +152,15 @@ const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<
             let drugCategory: DrugCategory|null = await drugCategoryRepository.findOneBy({ id: drugCategoryId });
 
             if (drugCategory === null) {
-                return reject({
-                    errorMessage: 'Drug category not found'
-                })
+                return resolve({
+                    errorMessage: 'Danh mục thuốc không tồn tại. Vui lòng làm mới trang.'
+                });
             }
 
             await drugCategoryRepository.delete(drugCategoryId);
 
             resolve({
-                message: 'Drug category deleted successfully',
+                message: 'Xóa thông tin danh mục thuốc thành công.',
                 data: drugCategory
             })
         } catch (error) {
@@ -149,6 +171,7 @@ const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<
 
 export default {
     getDrugCategories,
+    getDrugCategory,
     searchDrugCategory,
     storeDrugCategory,
     updateDrugCategory,

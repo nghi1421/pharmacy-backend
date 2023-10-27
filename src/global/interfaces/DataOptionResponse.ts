@@ -1,4 +1,5 @@
 export interface DataOptionResponse<T> {
-    message: string;
+    message?: string;
     data?: T;
+    errorMessage?: string
 }
