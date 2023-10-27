@@ -76,7 +76,7 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             const errors = await validate(newCustomer)
             
             if (errors.length > 0) {
-                reject({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
+                resolve({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
             }
 
             await customerRepository.save(newCustomer)
@@ -107,7 +107,7 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
 
             const errors = await validate(customer)
             if (errors.length > 0) {
-                reject({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
+                resolve({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
             }
 
             await customerRepository.save(customer)
