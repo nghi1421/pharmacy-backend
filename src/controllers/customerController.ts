@@ -11,9 +11,31 @@ const getCustomers = async (req: Request, res: Response) => {
     }
 }
 
+const getCustomer = async (req: Request, res: Response) => {
+    try {
+        const customerId: number = parseInt(req.params.customerId)
+        if (!customerId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+        const result = await customerService.getCustomer(customerId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const searchCustomer = async (req: Request, res: Response) => {
     try {
         const query = req.body
+        if (!query) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await customerService.searchCustomer(query);
         res.status(200).json(result);
     } catch (error) {
@@ -25,7 +47,7 @@ const storeCustomer = async (req: Request, res: Response) => {
     try {
         const { 
             name,
-            phone_number,
+            phoneNumber,
             email,
             dob,
             address,
@@ -38,7 +60,13 @@ const storeCustomer = async (req: Request, res: Response) => {
             dob,
             address,
             gender,
-            phoneNumber: phone_number,
+            phoneNumber,
+        }
+        if (!data) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
         }
         const result = await customerService.storeCustomer(data);
         res.status(200).json(result);
@@ -51,7 +79,7 @@ const updateCustomer = async (req: Request, res: Response) => {
     try {
         const { 
             name,
-            phone_number,
+            phoneNumber,
             email,
             dob,
             address,
@@ -63,10 +91,16 @@ const updateCustomer = async (req: Request, res: Response) => {
             dob,
             address,
             gender,
-            phoneNumber: phone_number,
+            phoneNumber,
         }
 
         const customerId: number = parseInt(req.params.customerId);
+        if (!customerId || data) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await customerService.updateCustomer(customerId, data);
         res.status(200).json(result);
     } catch (error) {
@@ -77,6 +111,12 @@ const updateCustomer = async (req: Request, res: Response) => {
 const deleteCustomer = async (req: Request, res: Response) => {
     try {
         const customerId = parseInt(req.params.customerId)
+        if (!customerId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
         const result = await customerService.deleteCustomer(customerId);
         res.status(200).json(result);
     } catch (error) {
@@ -86,6 +126,7 @@ const deleteCustomer = async (req: Request, res: Response) => {
 
 export default {
     getCustomers,
+    getCustomer,
     searchCustomer,
     storeCustomer,
     updateCustomer,

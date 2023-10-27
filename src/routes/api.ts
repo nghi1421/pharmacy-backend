@@ -48,6 +48,7 @@ const routesAPI = (app: Application) => {
 
     //Customer
     router.get('/customers', customerController.getCustomers)
+    router.get('/customers/:customerId', customerController.getCustomer)
     router.get('/customers/search', customerController.searchCustomer)
     router.post('/customers', customerController.storeCustomer)
     router.put('/customers/:customerId', customerController.updateCustomer)

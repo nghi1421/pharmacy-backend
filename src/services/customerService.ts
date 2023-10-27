@@ -5,6 +5,7 @@ import { validate } from "class-validator"
 import { CustomerData } from '../global/interfaces/CustomerData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
 
@@ -13,9 +14,30 @@ const getCustomers = (): Promise<DataResponse<Customer>> => {
         try {
             const customers: Customer[] = await customerRepository.find();
             resolve({
-                message: 'Get customers successfully',
+                message: 'Lấy thông tin khách hàng thành công.',
                 data: customers
             })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getCustomer = (customerId: number): Promise<GetDataResponse<Customer>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: Customer|null = await customerRepository.findOneBy({ id: customerId });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin khách hàng thành công.',
+                    data: result
+                })
+            }
+            else {
+                resolve({
+                    errorMessage: 'Phân loại khách hàng không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
         } catch (error) {
             reject(error);
         }
@@ -27,7 +49,7 @@ const searchCustomer = (query: Object): Promise<DataResponse<Customer>> => {
         try {
             const customers: Customer[] = await customerRepository.find({ where: query});
             resolve({
-                message: 'Search customers successfully',
+                message: 'Tìm kiếm thông tin khách hàng thành công.',
                 data: customers
             })
         } catch (error) {
@@ -54,12 +76,12 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             const errors = await validate(newCustomer)
             
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                reject({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
             }
 
             await customerRepository.save(newCustomer)
             resolve({
-                message: 'Insert customer successfully',
+                message: 'Thêm thông tin khách hàng thành công.',
                 data: newCustomer
             })
         } catch (error) {
@@ -85,12 +107,12 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
 
             const errors = await validate(customer)
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                reject({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
             }
 
             await customerRepository.save(customer)
             resolve({
-                message: 'Update customer successfully',
+                message: 'Cập nhật thông tin khách hàng thành công.',
                 data: customer
             })
         } catch (error) {
@@ -107,7 +129,7 @@ const deleteCustomer = (customerId: number): Promise<DataOptionResponse<Customer
             await customerRepository.delete(customerId);
 
             resolve({
-                message: 'Customer deleted successfully',
+                message: 'Xóa thông tin khách hàng thành công.',
                 data: customer
             })
         } catch (error) {
@@ -118,6 +140,7 @@ const deleteCustomer = (customerId: number): Promise<DataOptionResponse<Customer
 
 export default {
     getCustomers,
+    getCustomer,
     searchCustomer,
     storeCustomer,
     updateCustomer,
