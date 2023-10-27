@@ -72,6 +72,7 @@ const routesAPI = (app: Application) => {
 
     //Provider
     router.get('/providers', providerController.getProviders)
+    router.get('/providers/:providerId', providerController.getProvider)
     router.get('/providers/search', providerController.searchProvider)
     router.post('/providers', providerController.storeProvider)
     router.put('/providers/:providerId', providerController.updateProvider)

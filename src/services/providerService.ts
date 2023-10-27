@@ -5,6 +5,7 @@ import { validate } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 
@@ -13,9 +14,30 @@ const getProviders = (): Promise<DataResponse<Provider>> => {
         try {
             const providers = await providerRepository.find();
             resolve({
-                message: 'Get providers successfully',
+                message: 'Lấy thông tin công ty dược thành công.',
                 data: providers
             })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getProvider = (providerId: number): Promise<GetDataResponse<Provider>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: Provider|null = await providerRepository.findOneBy({ id: providerId });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin công ty dược thành công.',
+                    data: result
+                })
+            }
+            else {
+                resolve({
+                    errorMessage: 'Công ty dược không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
         } catch (error) {
             reject(error);
         }
@@ -27,7 +49,7 @@ const searchProvider = (query: Object): Promise<DataResponse<Provider>> => {
         try {
             const providers = await providerRepository.find({ where: query});
             resolve({
-                message: 'Search providers successfully',
+                message: 'Tìm kiếm thông tin công ty dược thành công.',
                 data: providers
             })
         } catch (error) {
@@ -49,12 +71,12 @@ const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>
             const errors = await validate(newProvider)
             
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                resolve({ errorMessage: 'Thông tin công ti dược không hợp lệ.'})
             }
 
             await providerRepository.save(newProvider)
             resolve({
-                message: 'Insert Provider successfully',
+                message: 'Thêm thông tin công ti dược thành công.',
                 data: newProvider
             })
         } catch (error) {
@@ -67,7 +89,13 @@ const updateProvider =
     (providerId: number, data: ProviderData): Promise<DataOptionResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let provider = await providerRepository.findOneByOrFail({ id: providerId });
+            let provider: Provider | null = await providerRepository.findOneBy({ id: providerId });
+
+            if (!provider) {
+                return resolve({
+                    errorMessage: 'Công ty dược không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
 
             provider.name = data.name;
             provider.phoneNumber = data.phoneNumber;
@@ -76,12 +104,12 @@ const updateProvider =
 
             const errors = await validate(provider)
             if (errors.length > 0) {
-                reject({ errorMessage: 'Invalid information.'})
+                resolve({ errorMessage: 'Thông tin công ti dược không hợp lệ'})
             }
 
             await providerRepository.save(provider)
             resolve({
-                message: 'Update provider successfully',
+                message: 'Cập nhật thông tin công ti dược thành công.',
                 data: provider
             })
         } catch (error) {
@@ -93,12 +121,18 @@ const updateProvider =
 const deleteProvider = (providerId: number): Promise<DataOptionResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let provider: Provider = await providerRepository.findOneByOrFail({ id: providerId });
+            let provider: Provider | null = await providerRepository.findOneBy({ id: providerId });
+
+            if (!provider) {
+                return resolve({
+                    errorMessage: 'Công ty dược không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
 
             await providerRepository.delete(providerId);
 
             resolve({
-                message: 'Provider deleted successfully',
+                message: 'Xóa thông tin công ti dược thành công.',
                 data: provider
             })
         } catch (error) {
@@ -109,6 +143,7 @@ const deleteProvider = (providerId: number): Promise<DataOptionResponse<Provider
 
 export default {
     getProviders,
+    getProvider,
     searchProvider,
     storeProvider,
     updateProvider,

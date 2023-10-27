@@ -34,7 +34,7 @@ const getPosition = (positionId: number): Promise<GetDataResponse<Position>> => 
             }
             else {
                 resolve({
-                    errorMessage: 'Phân loại chức vụ không tồn tại. Vui lòng làm mới trang.'
+                    errorMessage: 'Chức vụ không tồn tại. Vui lòng làm mới trang.'
                 });
             }
         } catch (error) {
