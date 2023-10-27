@@ -109,19 +109,16 @@ const updateDrugCategory = async (req: Request, res: Response) => {
         const minimalUnit: string = req.body.minimalUnit
         const typeId: number = parseInt(req.body.typeId)
         price = parseInt(price)
-        vat = parseFloat(vat)
+        vat = parseFloat(vat) / 100
 
         const drugCategoryId: number = parseInt(req.params.drugCategoryId);
 
         if (!typeId ||
             !name ||
-            !price ||
             !unit ||
-            !vat ||
             !instruction ||
             !form ||
             !preserved ||
-            !quantityConversion ||
             !minimalUnit ||
             !drugCategoryId
         ) {
@@ -153,8 +150,8 @@ const deleteDrugCategory = async (req: Request, res: Response) => {
     try {
         const drugCategoryId = parseInt(req.params.drugCategoryId)
         
-        if (!drugCategoryId) {
-            res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
+        if (drugCategoryId === null) {
+            res.status(200).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }
 
