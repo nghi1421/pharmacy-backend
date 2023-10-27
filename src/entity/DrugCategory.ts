@@ -59,7 +59,7 @@ export class DrugCategory {
  
     @ManyToOne(() => TypeByUse, { eager: true })
     @JoinColumn()
-    type: string
+    type: TypeByUse
 
     @Column({ type: 'varchar', length: 255 })
     @Length(1, 255)

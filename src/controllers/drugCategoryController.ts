@@ -52,27 +52,24 @@ const storeDrugCategory = async (req: Request, res: Response) => {
             vat,
             instruction,
             preserved,
-            form
+            form,
+            minimalUnit
         } = req.body
 
-        const quantityConversion: number = req.body.quantity_conversion
-        const minimalUnit: string = req.body.minimal_unit
-        const typeId: number = req.body.type_id
+        const quantityConversion: number = req.body.quantityConversion
+        const typeId: number = req.body.typeId
         price = parseInt(price)
-        vat = parseFloat(vat)
+        vat = parseFloat(vat) / 100 as number
 
         if (!typeId ||
             !name ||
-            !price ||
             !unit ||
-            !vat ||
             !form ||
             !instruction ||
             !preserved ||
-            !quantityConversion ||
             !minimalUnit
         ) {
-            res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
+            res.status(200).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }
 
@@ -108,9 +105,9 @@ const updateDrugCategory = async (req: Request, res: Response) => {
             preserved,
         } = req.body
 
-        const quantityConversion: number = req.body.quantity_conversion
-        const minimalUnit: string = req.body.minimal_unit
-        const typeId: number = req.body.type_id
+        const quantityConversion: number = req.body.quantityConversion
+        const minimalUnit: string = req.body.minimalUnit
+        const typeId: number = parseInt(req.body.typeId)
         price = parseInt(price)
         vat = parseFloat(vat)
 
