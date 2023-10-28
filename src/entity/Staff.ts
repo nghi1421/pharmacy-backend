@@ -62,7 +62,7 @@ export class Staff {
     @JoinColumn()
     user: User
 
-    @ManyToOne(() => Position)
+    @ManyToOne(() => Position, { eager: true})
     @JoinColumn()
     @IsNotEmpty()
     position: Position
