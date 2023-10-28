@@ -33,7 +33,6 @@ export class Provider {
     phoneNumber: string
 
     @Column({ nullable: true })
-    @Length(1, 255)
     address: string
  
     @Column()

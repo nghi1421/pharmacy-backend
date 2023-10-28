@@ -45,16 +45,16 @@ const searchStaff = async (req: Request, res: Response) => {
 
 const storeStaff = async (req: Request, res: Response) => {
     try {
-        const { 
+        let { 
             name,
-            phone_number,
+            phoneNumber,
             email,
             dob,
             address,
             identification,
             gender,
+            isWorking
         } = req.body
-        let isWorking = req.body.is_working
         if (!isWorking) {
             isWorking = true;
         }
@@ -64,17 +64,12 @@ const storeStaff = async (req: Request, res: Response) => {
             dob,
             address,
             identification,
-            gender,
-            phoneNumber: phone_number,
+            gender: parseInt(gender),
+            phoneNumber,
             isWorking,
         }
-        const positionId: number = parseInt(req.body.position_id);
-        if (!positionId) {
-            res.status(400).json({
-                errorMessage: 'Thiếu tham số đầu vào.'
-            })
-            return;
-        }
+        const positionId: number = parseInt(req.body.positionId);
+
         const result = await staffService.storeStaff(data, positionId);
         res.status(200).json(result);
     } catch (error) {
@@ -86,12 +81,12 @@ const updateStaff = async (req: Request, res: Response) => {
     try {
         const { 
             name,
-            phone_number,
+            phoneNumber,
             email,
             dob,
             address,
             identification,
-            is_working,
+            isWorking,
             gender,
         } = req.body
         
@@ -102,11 +97,11 @@ const updateStaff = async (req: Request, res: Response) => {
             address,
             identification,
             gender,
-            phoneNumber: phone_number,
-            isWorking:  is_working,
+            phoneNumber,
+            isWorking,
         }
 
-        const positionId: number = parseInt(req.body.position_id);
+        const positionId: number = parseInt(req.body.positionId);
         const staffId: number = parseInt(req.params.staffId);
         if (!positionId || !staffId) {
             res.status(400).json({

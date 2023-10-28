@@ -1,7 +1,7 @@
 import { Staff } from '../entity/Staff'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { Position } from '../entity/Position';
 import { StaffData } from '../global/interfaces/StaffData';
 import { Repository } from 'typeorm';
@@ -85,11 +85,7 @@ const storeStaff =
 
             newStaff.position = position;
 
-            const errors = await validate(newStaff)
-            
-            if (errors.length > 0) {
-                return resolve({ errorMessage: 'Thông tin nhân viên không hợp lệ.'})
-            }
+            await validateOrReject(newStaff)
 
             await staffRepository.save(newStaff)
             resolve({

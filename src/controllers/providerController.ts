@@ -7,7 +7,7 @@ const getProviders = async (req: Request, res: Response) => {
         const result = await providerService.getProviders();
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({errorMessage: error})
     }
 }
 
@@ -15,7 +15,7 @@ const getProvider = async (req: Request, res: Response) => {
     try {
         const providerId: number = parseInt(req.params.providerId)
         if (!providerId) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -23,7 +23,7 @@ const getProvider = async (req: Request, res: Response) => {
         const result = await providerService.getProvider(providerId);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({errorMessage: error})
     }
 }
 
@@ -33,7 +33,7 @@ const searchProvider = async (req: Request, res: Response) => {
         const result = await providerService.searchProvider(query);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({errorMessage: error})
     }
 }
 
@@ -41,14 +41,14 @@ const storeProvider = async (req: Request, res: Response) => {
     try {
         const { 
             name,
-            phone_number,
+            phoneNumber,
             email,
             address,
         } = req.body
 
-        if (!name || !phone_number || !email) {
-            res.status(400).json({
-                errorMessage: 'Missing parameters'
+        if (!name || !phoneNumber || !email) {
+            res.status(200).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
             })
         }
 
@@ -56,12 +56,12 @@ const storeProvider = async (req: Request, res: Response) => {
             name,
             email,
             address,
-            phoneNumber: phone_number,
+            phoneNumber,
         }
         const result = await providerService.storeProvider(data);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({errorMessage: error})
     }
 }
 
@@ -69,14 +69,14 @@ const updateProvider = async (req: Request, res: Response) => {
     try {
         const { 
             name,
-            phone_number,
+            phoneNumber,
             email,
             address,
         } = req.body
 
-        if (!name || !phone_number || !email) {
-            res.status(400).json({
-                errorMessage: 'Missing parameters'
+        if (!name || !phoneNumber || !email) {
+            res.status(200).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
             })
         }
 
@@ -84,11 +84,11 @@ const updateProvider = async (req: Request, res: Response) => {
             name,
             email,
             address,
-            phoneNumber: phone_number,
+            phoneNumber
         }
         const providerId: number = parseInt(req.params.providerId);
         if (!providerId) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -96,7 +96,7 @@ const updateProvider = async (req: Request, res: Response) => {
         const result = await providerService.updateProvider(providerId, data);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({errorMessage: error})
     }
 }
 
@@ -105,14 +105,14 @@ const deleteProvider = async (req: Request, res: Response) => {
         const providerId = parseInt(req.params.providerId)
         const result = await providerService.deleteProvider(providerId);
         if (!providerId) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
         }
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send({errorMessage: error})
     }
 }
 

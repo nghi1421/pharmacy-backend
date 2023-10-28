@@ -1,7 +1,7 @@
 import { Provider } from '../entity/Provider'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
@@ -68,11 +68,7 @@ const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>
             newProvider.phoneNumber = data.phoneNumber;
             newProvider.address = data.address ? data.address : '';
 
-            const errors = await validate(newProvider)
-            
-            if (errors.length > 0) {
-                resolve({ errorMessage: 'Thông tin công ti dược không hợp lệ.'})
-            }
+            await validateOrReject(newProvider)
 
             await providerRepository.save(newProvider)
             resolve({
@@ -102,10 +98,7 @@ const updateProvider =
             provider.email = data.email;
             provider.address = data.address ? data.address : '';
 
-            const errors = await validate(provider)
-            if (errors.length > 0) {
-                resolve({ errorMessage: 'Thông tin công ti dược không hợp lệ'})
-            }
+            await validateOrReject(provider)
 
             await providerRepository.save(provider)
             resolve({
