@@ -23,11 +23,11 @@ export class Export {
     @IsDate()
     exportDate: Date
 
-    @ManyToOne(() => Staff)
+    @ManyToOne(() => Staff, {eager: true})
     @JoinColumn()
     staff: Staff
 
-    @ManyToOne(() => Customer)
+    @ManyToOne(() => Customer, {eager: true})
     @JoinColumn()
     customer: Customer
 

@@ -23,11 +23,11 @@ export class Import {
     @IsDate()
     importDate: Date
 
-    @ManyToOne(() => Staff)
+    @ManyToOne(() => Staff, {eager: true})
     @JoinColumn()
     staff: Staff
 
-    @ManyToOne(() => Provider)
+    @ManyToOne(() => Provider, {eager: true})
     @JoinColumn()
     provider: Provider
 

@@ -1,7 +1,7 @@
 import { Provider } from '../entity/Provider'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validateOrReject } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
