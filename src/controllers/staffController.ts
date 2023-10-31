@@ -68,6 +68,7 @@ const storeStaff = async (req: Request, res: Response) => {
             phoneNumber,
             isWorking,
         }
+
         const positionId: number = parseInt(req.body.positionId);
 
         const result = await staffService.storeStaff(data, positionId);

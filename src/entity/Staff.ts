@@ -10,16 +10,16 @@ import {
 } from 'typeorm';
 import {
     IsNotEmpty,
-    Length,
     IsEmail,
     Max,
     MaxLength,
     Matches,
     IsDate,
+    ValidateIf,
 } from 'class-validator';
 import { User } from './User'; 
 import { Position } from './Position'
-import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../config/helper';
+import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, stringOnlyNumberRegex, typeInvalidMessage } from '../config/helper';
 
 @Entity('staffs')
 export class Staff {
@@ -44,16 +44,19 @@ export class Staff {
     phoneNumber: string
 
     @Column({ unique: true })
-    @IsNotEmpty({ message: requiredMessage('CCCD')})
+    @IsNotEmpty({ message: requiredMessage('CCCD') })
+    @Matches(stringOnlyNumberRegex, { message: typeInvalidMessage('CCCD')})
     @MaxLength(20, { message: maxLengthErrorMessage('CCCD', 20) })
     identification: string
 
-    @Column()
-    @MaxLength(255, { message: maxLengthErrorMessage('Địa chỉ', 255)})
+    @Column({ nullable: true})
+    @MaxLength(255, { message: maxLengthErrorMessage('Địa chỉ', 255) })
+    @ValidateIf((_, value) => value)
     address!: string
  
     @Column({ nullable: true, type: 'date' })
-    @IsDate({ message: typeInvalidMessage('Ngày sinh')})
+    @IsDate({ message: typeInvalidMessage('Ngày sinh') })
+    @ValidateIf((_, value) => value)
     dob!: Date
 
     @Column({ type: 'tinyint' })

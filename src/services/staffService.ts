@@ -7,6 +7,7 @@ import { StaffData } from '../global/interfaces/StaffData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { getErrors } from '../config/helper';
 
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
@@ -78,14 +79,24 @@ const storeStaff =
             newStaff.email = data.email;
             newStaff.phoneNumber = data.phoneNumber;
             newStaff.gender = data.gender;
-            newStaff.address = data.address ? data.address : '';
             newStaff.identification = data.identification;
             newStaff.isWorking = data.isWorking;
-            newStaff.dob = data.dob ? new Date(data.dob) : new Date();
+            if (data.address) {
+                newStaff.address = data.address
+            }
+            else {}
+
+            if (data.dob) {
+                 newStaff.dob = new Date(data.dob)
+            }
 
             newStaff.position = position;
 
-            await validateOrReject(newStaff)
+            const errors = await validate(newStaff)
+
+            if (errors.length > 0) {
+                return reject(getErrors(errors))
+            }
 
             await staffRepository.save(newStaff)
             resolve({
