@@ -15,7 +15,7 @@ const getStaff = async (req: Request, res: Response) => {
     try {
         const staffId: number = parseInt(req.params.staffId)
         if (!staffId) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -31,7 +31,7 @@ const searchStaff = async (req: Request, res: Response) => {
     try {
         const query = req.body
         if (!query) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -104,7 +104,7 @@ const updateStaff = async (req: Request, res: Response) => {
         const positionId: number = parseInt(req.body.positionId);
         const staffId: number = parseInt(req.params.staffId);
         if (!positionId || !staffId) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -120,7 +120,7 @@ const deleteStaff = async (req: Request, res: Response) => {
     try {
         const staffId: number = parseInt(req.params.staffId);
         if (!staffId) {
-            res.status(400).json({
+            res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
