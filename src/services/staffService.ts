@@ -219,6 +219,27 @@ const updateStaff =
     })
 }
 
+const updateStaffStatus = (staffId: number): Promise<DataOptionResponse<Staff>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let staff: Staff|null = await staffRepository.findOneBy({ id: staffId });
+            if (!staff) {
+                return resolve({
+                    errorMessage: 'Thông tin nhân viên không tồn tại. Vui lòng làm mới trang.'
+                })
+            }
+            staff.isWorking = !staff.isWorking;
+            await staffRepository.save(staff)
+            resolve({
+                message: 'Chuyển trạng thái nhân viên  thành công.',
+                data: staff
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -247,5 +268,6 @@ export default {
     searchStaff,
     storeStaff,
     updateStaff,
+    updateStaffStatus,
     deleteStaff
 }

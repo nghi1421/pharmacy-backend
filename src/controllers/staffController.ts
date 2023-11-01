@@ -125,6 +125,22 @@ const updateStaff = async (req: Request, res: Response) => {
     }
 }
 
+const updateStaffStatus = async (req: Request, res: Response) => {
+    try {
+        const staffId: number = parseInt(req.params.staffId);
+        if (!staffId) {
+            res.status(200).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+        const result = await staffService.deleteStaff(staffId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const deleteStaff = async (req: Request, res: Response) => {
     try {
         const staffId: number = parseInt(req.params.staffId);
@@ -145,6 +161,7 @@ export default {
     getStaffs,
     getStaff,
     searchStaff,
+    updateStaffStatus,
     storeStaff,
     updateStaff,
     deleteStaff
