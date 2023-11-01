@@ -20,6 +20,7 @@ import {
 import { User } from './User'; 
 import { Position } from './Position'
 import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, stringOnlyNumberRegex, typeInvalidMessage } from '../config/helper';
+import { BoolBitTransformer } from '../global/classes/BoolBitTransformer';
 
 @Entity('staffs')
 export class Staff {
@@ -64,7 +65,7 @@ export class Staff {
     @IsNotEmpty({ message: requiredMessage('Giới tính')})
     gender: number
 
-    @Column({ type: 'bit', default: true })
+    @Column({ type: 'bit', default: true, transformer: new BoolBitTransformer() })
     @IsNotEmpty({ message: requiredMessage('Trạng thái')})
     isWorking: boolean
 

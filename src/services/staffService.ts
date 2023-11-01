@@ -97,7 +97,7 @@ const storeStaff =
             if (errors.length > 0) {
                 return reject({validateError: getErrors(errors)})
             }
-            
+
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueCreate(staffRepository, 'phone_number', data.phoneNumber)
@@ -161,12 +161,13 @@ const updateStaff =
             staff.phoneNumber = data.phoneNumber;
             staff.gender = data.gender;
             staff.email = data.email;
-            staff.address = data.address ? data.address : '';
             staff.isWorking = data.isWorking;
             staff.identification = data.identification;
-            
+            if (data.address) {
+                staff.address = data.address
+            }
             if (data.dob) {
-                staff.dob = new Date(data.dob)
+                 staff.dob = new Date(data.dob)
             }
 
             staff.position = position;

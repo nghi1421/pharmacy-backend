@@ -55,9 +55,7 @@ const storeStaff = async (req: Request, res: Response) => {
             gender,
             isWorking
         } = req.body
-        if (!isWorking) {
-            isWorking = true;
-        }
+
         const data: StaffData = {
             name,
             email,
@@ -85,7 +83,7 @@ const storeStaff = async (req: Request, res: Response) => {
 
 const updateStaff = async (req: Request, res: Response) => {
     try {
-        const { 
+        let { 
             name,
             phoneNumber,
             email,
@@ -95,14 +93,14 @@ const updateStaff = async (req: Request, res: Response) => {
             isWorking,
             gender,
         } = req.body
-        
+
         const data: StaffData = {
             name,
             email,
             dob,
             address,
             identification,
-            gender,
+            gender: parseInt(gender),
             phoneNumber,
             isWorking,
         }
