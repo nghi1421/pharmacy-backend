@@ -1,13 +1,14 @@
 import { Staff } from '../entity/Staff'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validate } from "class-validator"
 import { Position } from '../entity/Position';
 import { StaffData } from '../global/interfaces/StaffData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { getErrors } from '../config/helper';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
@@ -84,7 +85,6 @@ const storeStaff =
             if (data.address) {
                 newStaff.address = data.address
             }
-            else {}
 
             if (data.dob) {
                  newStaff.dob = new Date(data.dob)
@@ -93,9 +93,40 @@ const storeStaff =
             newStaff.position = position;
 
             const errors = await validate(newStaff)
-
+        
             if (errors.length > 0) {
-                return reject(getErrors(errors))
+                return reject({validateError: getErrors(errors)})
+            }
+            
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueCreate(staffRepository, 'phone_number', data.phoneNumber)
+            const [{ exists: existsIdentification }] = await
+                checkExistUniqueCreate(staffRepository, 'identification', data.identification)
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueCreate(staffRepository, 'email', data.email)
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existsIdentification) {
+                errorResponse.push({
+                    key: 'identification',
+                    value: ['CCCD đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
             }
 
             await staffRepository.save(newStaff)
@@ -133,6 +164,7 @@ const updateStaff =
             staff.address = data.address ? data.address : '';
             staff.isWorking = data.isWorking;
             staff.identification = data.identification;
+            
             if (data.dob) {
                 staff.dob = new Date(data.dob)
             }
@@ -141,12 +173,43 @@ const updateStaff =
 
             const errors = await validate(staff)
             if (errors.length > 0) {
-                return resolve({ errorMessage: 'Thông tin nhân viên không hợp lệ.'})
+                return reject({validateError: errors})
+            }
+
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueUpdate(staffRepository, 'phone_number', [data.phoneNumber, staff.id])
+            const [{ exists: existsIdentification }] = await
+                checkExistUniqueUpdate(staffRepository, 'identification', [data.identification, staff.id])
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueUpdate(staffRepository, 'email', [data.email, staff.id])
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existsIdentification) {
+                errorResponse.push({
+                    key: 'identification',
+                    value: ['CCCD đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
             }
 
             await staffRepository.save(staff)
             resolve({
-                message: 'Update staff successfully',
+                message: 'Cập nhật thông tin nhân viên thành công.',
                 data: staff
             })
         } catch (error) {

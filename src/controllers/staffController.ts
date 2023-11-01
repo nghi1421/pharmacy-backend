@@ -74,7 +74,12 @@ const storeStaff = async (req: Request, res: Response) => {
         const result = await staffService.storeStaff(data, positionId);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        if (error.validateErrors) {
+            res.status(400).json(error)
+        }
+        else {
+            res.status(500).send(error)
+        }
     }
 }
 
@@ -113,7 +118,12 @@ const updateStaff = async (req: Request, res: Response) => {
         const result = await staffService.updateStaff(staffId, data, positionId);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send(error)
+        if (error.validateErrors) {
+            res.status(400).json(error)
+        }
+        else {
+            res.status(500).send(error)
+        }
     }
 }
 
