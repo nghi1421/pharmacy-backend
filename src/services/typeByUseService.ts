@@ -1,17 +1,18 @@
 import { TypeByUse } from '../entity/TypeByUse'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validateOrReject } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 
-const TypeByUseRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
+const typeByUseRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
 const getTypeByUses = (): Promise<DataResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const types: TypeByUse[] = await TypeByUseRepository.find();
+            const types: TypeByUse[] = await typeByUseRepository.find();
             resolve({
                 message: 'Lấy thông tin phân loại công dụng thành công.',
                 data: types
@@ -25,7 +26,7 @@ const getTypeByUses = (): Promise<DataResponse<TypeByUse>> => {
 const getTypeByUse = (typeId: number): Promise<GetDataResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const result: TypeByUse|null = await TypeByUseRepository.findOneBy({ id: typeId });
+            const result: TypeByUse|null = await typeByUseRepository.findOneBy({ id: typeId });
             if (result) {
                 resolve({
                     message: 'Lấy thông tin phân loại công dụng thành công.',
@@ -46,7 +47,7 @@ const getTypeByUse = (typeId: number): Promise<GetDataResponse<TypeByUse>> => {
 const searchTypeByUse = (query: Object): Promise<DataResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const types: TypeByUse[] = await TypeByUseRepository.find({ where: query});
+            const types: TypeByUse[] = await typeByUseRepository.find({ where: query});
             resolve({
                 message: 'Tìm kiếm phân loại công dụng thuốc thành công.',
                 data: types
@@ -65,9 +66,23 @@ const storeTypeByUse = (name: string, detail: string): Promise<DataOptionRespons
             newTypeByUse.name = name;
             newTypeByUse.detail = detail;
 
-            await validateOrReject(newTypeByUse)
+            const errors = await validate(newTypeByUse)
+            if (errors.length > 0) {
+                return reject({ validateError: errors });
+            }
             
-            await TypeByUseRepository.save(newTypeByUse)
+            const [{ exists }] = await checkExistUniqueCreate(typeByUseRepository, 'name', [name])
+            
+            if (exists) {
+                return reject({
+                    validateError: [{
+                        key: 'name',
+                        value: ['Tên phân loại công dụng đã tồn tại.']
+                    }]
+                })
+            }
+            
+            await typeByUseRepository.save(newTypeByUse)
             resolve({
                 message: 'Thêm phân loại công dụng thuốc thành công.',
                 data: newTypeByUse
@@ -81,14 +96,28 @@ const storeTypeByUse = (name: string, detail: string): Promise<DataOptionRespons
 const updateTypeByUse = (typeId: number, name: string, detail: string): Promise<DataOptionResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let typeByUse = await TypeByUseRepository.findOneByOrFail({ id: typeId });
+            let typeByUse = await typeByUseRepository.findOneByOrFail({ id: typeId });
 
             typeByUse.name = name;
             typeByUse.detail = detail;
 
-            await validateOrReject(typeByUse)
+             const errors = await validate(typeByUse)
+            if (errors.length > 0) {
+                return reject({ validateError: errors });
+            }
+            
+            const [{ exists }] = await checkExistUniqueUpdate(typeByUseRepository, 'name', [name, typeByUse.id])
+            
+            if (exists) {
+                return reject({
+                    validateError: [{
+                        key: 'name',
+                        value: ['Tên phân loại công dụng đã tồn tại.']
+                    }]
+                })
+            }
 
-            await TypeByUseRepository.save(typeByUse)
+            await typeByUseRepository.save(typeByUse)
             resolve({
                 message: 'Cập nhật phân loại công dụng thuốc thành công.',
                 data: typeByUse
@@ -102,16 +131,16 @@ const updateTypeByUse = (typeId: number, name: string, detail: string): Promise<
 const deleteTypeByUse = (typeId: number): Promise<DataOptionResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let TypeByUse: TypeByUse = await TypeByUseRepository.findOneByOrFail({ id: typeId });
+            let TypeByUse: TypeByUse = await typeByUseRepository.findOneByOrFail({ id: typeId });
 
-            await TypeByUseRepository.delete(typeId);
+            await typeByUseRepository.delete(typeId);
 
             resolve({
                 message: 'Xóa phân loại công dụng thuốc thành công.',
                 data: TypeByUse
             })
         } catch (error) {
-            reject(error);
+            reject({ errorMessage: 'Phân loại công dụng đã thuộc danh mục thuốc. Không thể xóa phân loại công dụng này.'});
         }
     })
 }

@@ -44,7 +44,7 @@ const storeTypeByUse = async (req: Request, res: Response) => {
 
         if (!name || !detail) {
             res.status(400).json({
-                errorMessage: 'Missing parameters'
+                errorMessage: 'Thiếu tham số.'
             })
         }
 
@@ -64,7 +64,7 @@ const updateTypeByUse = async (req: Request, res: Response) => {
 
         if (!name || !detail) {
             res.status(400).json({
-                errorMessage: 'Missing parameters'
+                errorMessage: 'Thiếu tham số.'
             })
         }
         const typeId: number = parseInt(req.params.typeId);
