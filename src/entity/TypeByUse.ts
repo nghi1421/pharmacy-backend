@@ -7,22 +7,23 @@ import {
 } from 'typeorm';
 import {
     IsNotEmpty,
-    Length,
+    MaxLength,
 } from 'class-validator';
+import { maxLengthErrorMessage, requiredMessage } from '../config/helper';
 
 @Entity('type_by_uses')
 export class TypeByUse {
     @PrimaryGeneratedColumn()
     id: number
  
-    @Column({ unique: true })
-    @Length(1, 100)
-    @IsNotEmpty()
+    @Column({ unique: true, length: 100 })
+    @IsNotEmpty({ message: requiredMessage('Tên công dụng')})
+    @MaxLength(100, { message: maxLengthErrorMessage('Tên công dụng', 100)})
     name: string
 
-    @Column()
-    @Length(1, 255)
-    @IsNotEmpty()
+    @Column({ length: 255 })
+    @IsNotEmpty({ message: requiredMessage('Mô tả')})
+    @MaxLength(255, { message: maxLengthErrorMessage('Mô tả', 255)})
     detail: string
 
     @Column()
