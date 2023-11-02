@@ -257,7 +257,7 @@ const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
                 data: staff
             })
         } catch (error) {
-            reject(error);
+            reject({errorMessage: 'Nhân viên đã có hành động trên hệ thông. Không thể xóa thông tin nhân viên này.'});
         }
     })
 }

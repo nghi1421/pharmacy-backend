@@ -29,13 +29,13 @@ export class Staff {
 
     @Column()
     @IsNotEmpty({ message: requiredMessage('Tên nhân viên')})
-    @MaxLength(100, { message: maxLengthErrorMessage('Tên nhân viên', 255)})
+    @MaxLength(100, { message: maxLengthErrorMessage('Tên nhân viên', 100)})
     name: string
 
     @Column({ unique: true })
     @IsNotEmpty({ message: requiredMessage('Email')})
     @IsEmail({}, { message: typeInvalidMessage('Email')})
-    @MaxLength(255, { message: maxLengthErrorMessage('Số điện thoại', 255)})
+    @MaxLength(255, { message: maxLengthErrorMessage('Email', 255)})
     email: string
 
     @Column({ name: 'phone_number',  unique: true })
@@ -52,7 +52,7 @@ export class Staff {
 
     @Column({ nullable: true})
     @MaxLength(255, { message: maxLengthErrorMessage('Địa chỉ', 255) })
-    @ValidateIf((_, value) => value)
+    @ValidateIf((_, value) => value) 
     address!: string
  
     @Column({ nullable: true, type: 'date' })

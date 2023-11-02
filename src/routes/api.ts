@@ -36,7 +36,7 @@ const routesAPI = (app: Application) => {
     router.get('/staffs/:staffId', staffController.getStaff)
     router.get('/staffs/search', staffController.searchStaff)
     router.post('/staffs', staffController.storeStaff)
-    router.post('/staffs/update-status', staffController.updateStaffStatus)
+    router.post('/staffs/:staffId/update-status', staffController.updateStaffStatus)
     router.put('/staffs/:staffId', staffController.updateStaff)
     router.delete('/staffs/:staffId', staffController.deleteStaff)
 

@@ -6,6 +6,7 @@ import { CustomerData } from '../global/interfaces/CustomerData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
 
@@ -34,7 +35,7 @@ const getCustomer = (customerId: number): Promise<GetDataResponse<Customer>> => 
                 })
             }
             else {
-                resolve({
+                reject({
                     errorMessage: 'Phân loại khách hàng không tồn tại. Vui lòng làm mới trang.'
                 });
             }
@@ -67,7 +68,7 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             newCustomer.email = data.email;
             newCustomer.phoneNumber = data.phoneNumber;
             newCustomer.gender = data.gender;
-            newCustomer.address = data.address ? data.address : '';
+            newCustomer.address = data.address
 
             if (data.dob) {
                 newCustomer.dob = new Date(data.dob)
@@ -76,7 +77,29 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             const errors = await validate(newCustomer)
             
             if (errors.length > 0) {
-                resolve({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
+                return reject({validateError: errors})
+            }
+
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueCreate(customerRepository, 'phone_number', [newCustomer.phoneNumber])
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueCreate(customerRepository, 'email', [newCustomer.email])
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
             }
 
             await customerRepository.save(newCustomer)
@@ -99,15 +122,32 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
             customer.phoneNumber = data.phoneNumber;
             customer.gender = data.gender;
             customer.email = data.email;
-            customer.address = data.address ? data.address : '';
+            customer.address = data.address;
 
             if (data.dob) {
                 customer.dob = new Date(data.dob)
             }
 
-            const errors = await validate(customer)
-            if (errors.length > 0) {
-                resolve({ errorMessage: 'Thông tin khách hàng không hợp lệ.'})
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueUpdate(customerRepository, 'phone_number', [customer.phoneNumber, customer.id])
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueUpdate(customerRepository, 'email', [customer.email, customer.id])
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
             }
 
             await customerRepository.save(customer)
@@ -133,7 +173,7 @@ const deleteCustomer = (customerId: number): Promise<DataOptionResponse<Customer
                 data: customer
             })
         } catch (error) {
-            reject(error);
+            reject({errorMessage: 'Khách hàng đã mua thuốc tại nhà thuốc. Không thể xóa thông tin khách hàng.'});
         }
     })
 }

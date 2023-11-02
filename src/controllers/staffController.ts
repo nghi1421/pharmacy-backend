@@ -72,7 +72,7 @@ const storeStaff = async (req: Request, res: Response) => {
         const result = await staffService.storeStaff(data, positionId);
         res.status(200).json(result);
     } catch (error) {
-        if (error.validateErrors) {
+        if (error.validateError) {
             res.status(400).json(error)
         }
         else {
@@ -116,7 +116,7 @@ const updateStaff = async (req: Request, res: Response) => {
         const result = await staffService.updateStaff(staffId, data, positionId);
         res.status(200).json(result);
     } catch (error) {
-        if (error.validateErrors) {
+        if (error.validateError) {
             res.status(400).json(error)
         }
         else {
@@ -134,7 +134,7 @@ const updateStaffStatus = async (req: Request, res: Response) => {
             })
             return;
         }
-        const result = await staffService.deleteStaff(staffId);
+        const result = await staffService.updateStaffStatus(staffId);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)

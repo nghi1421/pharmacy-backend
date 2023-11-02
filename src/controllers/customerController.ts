@@ -54,6 +54,13 @@ const storeCustomer = async (req: Request, res: Response) => {
             gender,
         } = req.body
 
+        if (!name || !phoneNumber || !email || !address) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+
         const data: CustomerData = {
             name,
             email,
@@ -62,12 +69,7 @@ const storeCustomer = async (req: Request, res: Response) => {
             gender,
             phoneNumber,
         }
-        if (!data) {
-            res.status(400).json({
-                errorMessage: 'Thiếu tham số đầu vào.'
-            })
-            return;
-        }
+      
         const result = await customerService.storeCustomer(data);
         res.status(200).json(result);
     } catch (error) {
@@ -85,6 +87,14 @@ const updateCustomer = async (req: Request, res: Response) => {
             address,
             gender,
         } = req.body
+
+        if (!name || !phoneNumber || !email || !address) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+
         const data: CustomerData = {
             name,
             email,
@@ -95,12 +105,7 @@ const updateCustomer = async (req: Request, res: Response) => {
         }
 
         const customerId: number = parseInt(req.params.customerId);
-        if (!customerId || data) {
-            res.status(400).json({
-                errorMessage: 'Thiếu tham số đầu vào.'
-            })
-            return;
-        }
+        
         const result = await customerService.updateCustomer(customerId, data);
         res.status(200).json(result);
     } catch (error) {
