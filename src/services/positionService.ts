@@ -1,7 +1,7 @@
 import { Position } from '../entity/Position'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validate } from "class-validator"
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
@@ -74,10 +74,12 @@ const storePosition =
             const [{ exists }] = await checkExistUniqueCreate(positionRepository, 'name', [name])
             
             if (exists) {
-                return reject([{
-                    key: 'name',
-                    value: ['Tên chức vụ đã tồn tại.']
-                }])
+                return reject({
+                    validateError: [{
+                        key: 'name',
+                        value: ['Tên chức vụ đã tồn tại.']
+                    }]
+                })
             }
 
             await positionRepository.save(newPosition)
