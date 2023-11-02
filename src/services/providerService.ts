@@ -1,11 +1,12 @@
 import { Provider } from '../entity/Provider'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validateOrReject } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 
@@ -66,9 +67,45 @@ const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>
             newProvider.name = data.name;
             newProvider.email = data.email;
             newProvider.phoneNumber = data.phoneNumber;
-            newProvider.address = data.address ? data.address : '';
+            if (data.address) {
+                newProvider.address = data.address;
+            }
 
-            await validateOrReject(newProvider)
+            const errors = await validate(newProvider)
+
+            if (errors.length > 0) {
+                return reject({validateError: errors})
+            }
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueCreate(providerRepository, 'phone_number', [data.phoneNumber])
+            const [{ exists: existnName }] = await
+                checkExistUniqueCreate(providerRepository, 'name', [data.name])
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueCreate(providerRepository, 'email', [data.email])
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existnName) {
+                errorResponse.push({
+                    key: 'name',
+                    value: ['Tên công ty dược đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
+            }
 
             await providerRepository.save(newProvider)
             resolve({
@@ -98,7 +135,41 @@ const updateProvider =
             provider.email = data.email;
             provider.address = data.address ? data.address : '';
 
-            await validateOrReject(provider)
+            const errors = await validate(provider)
+
+            if (errors.length > 0) {
+                return reject({validateError: errors})
+            }
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueUpdate(providerRepository, 'phone_number', [data.phoneNumber, provider.id])
+            const [{ exists: existnName }] = await
+                checkExistUniqueUpdate(providerRepository, 'name', [data.name, provider.id])
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueUpdate(providerRepository, 'email', [data.email, provider.id])
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existnName) {
+                errorResponse.push({
+                    key: 'name',
+                    value: ['Tên công ty dược đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
+            }
 
             await providerRepository.save(provider)
             resolve({
@@ -129,7 +200,7 @@ const deleteProvider = (providerId: number): Promise<DataOptionResponse<Provider
                 data: provider
             })
         } catch (error) {
-            reject(error);
+            reject({errorMessage: 'Công ty dược đã cung cấp thuốc. Không thể xóa thông tin công ty dược này.'});
         }
     })
 }

@@ -7,9 +7,12 @@ import {
 } from 'typeorm';
 import {
     IsNotEmpty,
-    Length,
-    IsEmail
+    IsEmail,
+    MaxLength,
+    Matches,
+    ValidateIf
 } from 'class-validator';
+import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../config/helper';
 
 @Entity('providers')
 export class Provider {
@@ -17,23 +20,26 @@ export class Provider {
     id: number
 
     @Column({ unique: true })
-    @IsNotEmpty()
-    @Length(1, 100)
+    @IsNotEmpty({ message: requiredMessage('Tên công ty dược')})
+    @MaxLength(100, { message: maxLengthErrorMessage('Tên công ty dược', 100)})
     name: string
 
     @Column({ unique: true })
-    @IsNotEmpty()
-    @IsEmail()
-    @Length(1, 255)
+    @IsNotEmpty({ message: requiredMessage('Email')})
+    @IsEmail({}, { message: typeInvalidMessage('Email')})
+    @MaxLength(255, { message: maxLengthErrorMessage('Email', 255)})
     email: string
 
     @Column({ unique: true })
-    @IsNotEmpty()
-    @Length(1, 15)
+    @IsNotEmpty({ message: requiredMessage('Số điện thoại')})
+    @MaxLength(15, { message: maxLengthErrorMessage('Số điện thoại', 15) })
+    @Matches(phoneNumberRegex, { message: typeInvalidMessage('Số điện thoại')})
     phoneNumber: string
 
     @Column({ nullable: true })
-    address: string
+    @MaxLength(255, { message: maxLengthErrorMessage('Địa chỉ', 255) })
+    @ValidateIf((_, value) => value) 
+    address!: string
  
     @Column()
     @CreateDateColumn()

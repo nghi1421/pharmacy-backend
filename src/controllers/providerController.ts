@@ -7,7 +7,7 @@ const getProviders = async (req: Request, res: Response) => {
         const result = await providerService.getProviders();
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send({errorMessage: error})
+        res.status(500).send(error)
     }
 }
 
@@ -15,7 +15,7 @@ const getProvider = async (req: Request, res: Response) => {
     try {
         const providerId: number = parseInt(req.params.providerId)
         if (!providerId) {
-            res.status(200).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -23,7 +23,7 @@ const getProvider = async (req: Request, res: Response) => {
         const result = await providerService.getProvider(providerId);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send({errorMessage: error})
+        res.status(500).send(error)
     }
 }
 
@@ -47,9 +47,10 @@ const storeProvider = async (req: Request, res: Response) => {
         } = req.body
 
         if (!name || !phoneNumber || !email) {
-            res.status(200).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
+            return;
         }
 
         const data: ProviderData = {
@@ -75,9 +76,10 @@ const updateProvider = async (req: Request, res: Response) => {
         } = req.body
 
         if (!name || !phoneNumber || !email) {
-            res.status(200).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
+            return;
         }
 
         const data: ProviderData = {
@@ -88,7 +90,7 @@ const updateProvider = async (req: Request, res: Response) => {
         }
         const providerId: number = parseInt(req.params.providerId);
         if (!providerId) {
-            res.status(200).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
@@ -105,7 +107,7 @@ const deleteProvider = async (req: Request, res: Response) => {
         const providerId = parseInt(req.params.providerId)
         const result = await providerService.deleteProvider(providerId);
         if (!providerId) {
-            res.status(200).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;

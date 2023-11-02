@@ -61,7 +61,7 @@ export class Staff {
     dob!: Date
 
     @Column({ type: 'tinyint' })
-    @Max(2)
+    @Max(2) 
     @IsNotEmpty({ message: requiredMessage('Giới tính')})
     gender: number
 
