@@ -6,8 +6,9 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import {
-    IsNotEmpty,
+    IsNotEmpty, MaxLength,
 } from 'class-validator';
+import { maxLengthErrorMessage, requiredMessage } from '../config/helper';
 
 @Entity('positions')
 export class Position {
@@ -15,7 +16,8 @@ export class Position {
     id: number
  
     @Column({ length: 100 })
-    @IsNotEmpty()
+    @IsNotEmpty({ message: requiredMessage('Tên chức vụ')})
+    @MaxLength(100, { message: maxLengthErrorMessage('Tên chức vụ', 100)})
     name: string
 
     @Column()

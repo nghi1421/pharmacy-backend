@@ -62,7 +62,7 @@ const storeProvider = async (req: Request, res: Response) => {
         const result = await providerService.storeProvider(data);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send({errorMessage: error})
+        res.status(500).send(error)
     }
 }
 
@@ -98,7 +98,7 @@ const updateProvider = async (req: Request, res: Response) => {
         const result = await providerService.updateProvider(providerId, data);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send({errorMessage: error})
+        res.status(500).send(error)
     }
 }
 
@@ -114,7 +114,7 @@ const deleteProvider = async (req: Request, res: Response) => {
         }
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).send({errorMessage: error})
+        res.status(500).send(error)
     }
 }
 

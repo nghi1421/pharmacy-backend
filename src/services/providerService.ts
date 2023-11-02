@@ -1,7 +1,7 @@
 import { Provider } from '../entity/Provider'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validate } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
@@ -79,7 +79,7 @@ const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueCreate(providerRepository, 'phone_number', [data.phoneNumber])
-            const [{ exists: existnName }] = await
+            const [{ exists: existsName }] = await
                 checkExistUniqueCreate(providerRepository, 'name', [data.name])
             const [{ exists: existsEmail }] = await
                 checkExistUniqueCreate(providerRepository, 'email', [data.email])
@@ -90,7 +90,7 @@ const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>
                     value: ['Số điện thoại đã tồn tại.']
                 })
             }
-            if (existnName) {
+            if (existsName) {
                 errorResponse.push({
                     key: 'name',
                     value: ['Tên công ty dược đã tồn tại.']

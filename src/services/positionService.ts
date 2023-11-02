@@ -1,10 +1,11 @@
 import { Position } from '../entity/Position'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validateOrReject } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
@@ -33,7 +34,7 @@ const getPosition = (positionId: number): Promise<GetDataResponse<Position>> => 
                 })
             }
             else {
-                resolve({
+                reject({
                     errorMessage: 'Chức vụ không tồn tại. Vui lòng làm mới trang.'
                 });
             }
@@ -65,7 +66,19 @@ const storePosition =
 
             newPosition.name = name;
 
-            await validateOrReject(newPosition)
+            const errors = await validate(newPosition)
+            if (errors.length > 0) {
+                return reject({ validateError: errors });
+            }
+            
+            const [{ exists }] = await checkExistUniqueCreate(positionRepository, 'name', [name])
+            
+            if (exists) {
+                return reject([{
+                    key: 'name',
+                    value: ['Tên chức vụ đã tồn tại.']
+                }])
+            }
 
             await positionRepository.save(newPosition)
             resolve({
@@ -86,7 +99,19 @@ const updatePosition =
 
              position.name = name;
 
-            await validateOrReject(position)
+            const errors = await validate(position)
+            if (errors.length > 0) {
+                return reject({ validateError: errors });
+            }
+            
+            const [{ exists }] = await checkExistUniqueUpdate(positionRepository, 'name', [name, position.id])
+            
+            if (exists) {
+                return reject([{
+                    key: 'name',
+                    value: ['Tên chức vụ đã tồn tại.']
+                }])
+            }
 
             await positionRepository.save(position)
             resolve({
@@ -111,7 +136,7 @@ const deletePosition = (positionId: number): Promise<DataOptionResponse<Position
                 data: position
             })
         } catch (error) {
-            reject(error);
+            reject({errorMessage: 'Chức vụ đã được cấp cho nhân viên. Không thể xóa thông tin chức vụ này.'});
         }
     })
 }
