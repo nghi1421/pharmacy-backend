@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 const typeRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
@@ -67,7 +68,7 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
             const typeByUse: TypeByUse | null = await typeRepository.findOneBy({ id: data.typeId })
             
             if (!typeByUse) {
-                return resolve({
+                return reject({
                     errorMessage: 'Danh mục thuốc không tồn tại. Vui lòng làm mới trang.'
                 });
             }
@@ -85,9 +86,19 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
             newDrugCategory.type = typeByUse
 
             const errors = await validate(newDrugCategory)
-            
             if (errors.length > 0) {
-                return resolve({ errorMessage: 'Thông tin danh mục thuốc không hợp lệ.'})
+                return reject({ validateError: errors });
+            }
+            
+            const [{ exists }] = await checkExistUniqueCreate(drugCategoryRepository, 'name', [newDrugCategory.name])
+            
+            if (exists) {
+                return reject({
+                    validateError: [{
+                        key: 'name',
+                        value: ['Tên danh mục thuốc đã tồn tại.']
+                    }]
+                })
             }
 
             await drugCategoryRepository.save(newDrugCategory)
@@ -116,7 +127,7 @@ const updateDrugCategory =
             const typeByUse: TypeByUse|null = await typeRepository.findOneBy({ id: data.typeId })
             
             if (typeByUse === null) {
-                return resolve({
+                return reject({
                     errorMessage: 'Phân loại công dụng không tồn tại.'
                 })
             }
@@ -134,7 +145,18 @@ const updateDrugCategory =
             
             const errors = await validate(drugCategory)
             if (errors.length > 0) {
-                return resolve({ errorMessage: 'Thông tin danh mục thuốc không hợp lệ.'})
+                return reject({ validateError: errors });
+            }
+            
+            const [{ exists }] = await checkExistUniqueUpdate(drugCategoryRepository, 'name', [drugCategory.name, drugCategory.id])
+            
+            if (exists) {
+                return reject({
+                    validateError: [{
+                        key: 'name',
+                        value: ['Tên danh mục thuốc đã tồn tại.']
+                    }]
+                })
             }
 
             await drugCategoryRepository.save(drugCategory)
@@ -166,7 +188,7 @@ const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<
                 data: drugCategory
             })
         } catch (error) {
-            reject(error);
+            reject({ errorMessage: 'Danh mục thuốc đã được dùng. Không thể xóa thông tin danh mục thuốc này.'});
         }
     })
 }

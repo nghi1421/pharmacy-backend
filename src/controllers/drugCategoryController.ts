@@ -150,8 +150,8 @@ const deleteDrugCategory = async (req: Request, res: Response) => {
     try {
         const drugCategoryId = parseInt(req.params.drugCategoryId)
         
-        if (drugCategoryId === null) {
-            res.status(200).json({ errorMessage: 'Thiếu tham số đầu vào.' })
+        if (drugCategoryId) {
+            res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }
 
