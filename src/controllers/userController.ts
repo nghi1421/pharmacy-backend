@@ -4,10 +4,33 @@ import { UserData } from '../global/interfaces/UserData';
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { User } from '../entity/User';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getUsers = async (req: Request, res: Response) => {
     try {
-        const result: DataResponse<User> = await userService.getUsers();
+        let {
+            page,
+            perPage,
+            searchTerm,
+            searchColumns,
+            orderBy,
+            orderDirection
+        } = req.query
+
+        console.log('search', searchColumns)
+        const queryParams: QueryParam = {
+            page: parseInt(page as string),
+            perPage: parseInt(perPage as string),
+            searchTerm: searchTerm ? searchTerm as string : '',
+            searchColumns: searchColumns ? (searchColumns as string)
+                .split(',')
+                .map((value) => value.trim()).filter((value) => value)
+                : [],
+            orderBy: orderBy as string,
+            orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC')
+        }
+
+        const result: DataResponse<User> = await userService.getUsers(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)

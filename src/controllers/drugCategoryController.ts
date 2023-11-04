@@ -150,7 +150,7 @@ const deleteDrugCategory = async (req: Request, res: Response) => {
     try {
         const drugCategoryId = parseInt(req.params.drugCategoryId)
         
-        if (drugCategoryId) {
+        if (!drugCategoryId) {
             res.status(400).json({ errorMessage: 'Thiếu tham số đầu vào.' })
             return;
         }

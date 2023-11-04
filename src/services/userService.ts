@@ -2,22 +2,76 @@ import { User } from '../entity/User'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validateOrReject } from "class-validator"
-import { Repository } from 'typeorm';
+import { Like, Repository, SelectQueryBuilder } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { UserData } from '../global/interfaces/UserData';
 import { Role } from '../entity/Role';
 import config from '../config/config'
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
 const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
 
-const getUsers = (): Promise<DataResponse<User>> => {
+const getUsers = (queryParams: QueryParam): Promise<DataResponse<User>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const users = await userRepository.find();
+            const search  = queryParams.searchColumns.map((param) => {
+                    const object:any = {}
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                        return object
+                    }
+                )
+            
+            const order: any = {}
+            order[queryParams.orderBy] = queryParams.orderDirection
+
+            let result, total;
+            if (queryParams.searchColumns.length !== 0 && queryParams.searchTerm.length !== 0) {
+                [result, total] = await userRepository.findAndCount({
+                    where: search,
+                    take: queryParams.perPage,
+                    skip: ((queryParams.page - 1) * queryParams.perPage),
+                    order
+                })
+            }
+            else {
+                [result, total] = await userRepository.findAndCount({
+                take: queryParams.perPage,
+                skip: ((queryParams.page - 1) * queryParams.perPage),
+                order: {
+                        id: 'ASC'
+                    }
+                })
+            }
+
+            // const query: SelectQueryBuilder<User> = userRepository.createQueryBuilder()
+            // query.select('*')
+            // .leftJoinAndSelect('position_id', 'position')
+            // if (queryParams.searchColumns.length !== 0 && queryParams.searchTerm.length !== 0) {
+            //     query.where(`${queryParams.searchColumns[0]} LIKE :searchTerm`, { searchTerm: queryParams.searchTerm })
+            //     queryParams.searchColumns.forEach((params, index) => {
+            //         if (index !== 0) {
+            //             query.orWhere(`${params} LIKE :searchTerm`, { searchTerm: queryParams.searchTerm })
+            //         }
+            //     })
+            // }
+
+            // query.orderBy(queryParams.orderBy, queryParams.orderDirection);
+            // query.take(queryParams.perPage)
+            // query.skip((queryParams.page - 1) * queryParams.perPage)
+
+            // const [result, total] = await query.getManyAndCount()
+            // console.log('query', await query.getManyAndCount())
+
             resolve({
-                message: 'Get users successfully',
-                data: users
+                message: 'Lấy thông tin tài khoản thành công.',
+                data: result,
+                meta: {
+                    page: queryParams.page,
+                    perPage: queryParams.perPage,
+                    totalPage: total/queryParams.perPage === 0 ? 1 : total/queryParams.perPage,
+                    total
+                }
             })
         } catch (error) {
             reject(error);
