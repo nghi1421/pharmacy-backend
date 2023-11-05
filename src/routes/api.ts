@@ -26,7 +26,6 @@ const routesAPI = (app: Application) => {
 
     //User
     router.get('/users', userController.getUsers)
-    router.get('/users/search', userController.searchUser)
     router.post('/users', userController.storeUser)
     router.put('/users/:userId', userController.updateUser)
     router.delete('/users/:userId', userController.deleteUser)

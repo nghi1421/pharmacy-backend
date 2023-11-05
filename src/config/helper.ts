@@ -1,4 +1,11 @@
 import { ValidationError } from "class-validator"
+import { QueryParam } from "../global/interfaces/QueryParam"
+import { Repository } from "typeorm"
+
+export interface DataAndCount {
+    data: any;
+    total: number
+}
 
 export const maxLengthErrorMessage =   (c: string, n: number) => `${c} tối đa ${n} kí tự.`
 
@@ -24,5 +31,42 @@ export const getErrors = (errors: ValidationError[]) => {
             value = Object.values(error.constraints)
         }
         return {key, value}
+    })
+}
+
+export const getDataAndCount = async (
+    queryParams: QueryParam,
+    repository: Repository<any>,
+    search: {[key: string]: string}[],
+    order: {[key: string]: string
+}): Promise<DataAndCount> => {
+    let result, total
+    return new Promise(async (resolve, reject) => {
+         try {
+            if (queryParams.searchColumns.length !== 0 && queryParams.searchTerm.length !== 0) {
+                [result, total] = await repository.findAndCount({
+                    where: search,
+                    take: queryParams.perPage,
+                    skip: ((queryParams.page - 1) * queryParams.perPage),
+                    order   
+                })
+            }
+            else {
+                [result, total] = await repository.findAndCount({
+                    take: queryParams.perPage,
+                    skip: ((queryParams.page - 1) * queryParams.perPage),
+                    order
+                })
+            }      
+            resolve({
+                data: result,
+                total
+            })  
+        }
+        catch (error) {
+            reject({
+                error
+            })
+        }   
     })
 }

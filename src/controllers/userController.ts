@@ -17,7 +17,6 @@ const getUsers = async (req: Request, res: Response) => {
             orderDirection
         } = req.query
 
-        console.log('search', searchColumns)
         const queryParams: QueryParam = {
             page: parseInt(page as string),
             perPage: parseInt(perPage as string),
@@ -31,16 +30,6 @@ const getUsers = async (req: Request, res: Response) => {
         }
 
         const result: DataResponse<User> = await userService.getUsers(queryParams);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
-}
-
-const searchUser = async (req: Request, res: Response) => { 
-    try {
-        const query = req.body
-        const result: DataResponse<User> = await userService.searchUser(query);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -103,7 +92,6 @@ const deleteUser = async (req: Request, res: Response) => {
 
 export default {
     getUsers,
-    searchUser,
     storeUser,
     updateUser,
     deleteUser
