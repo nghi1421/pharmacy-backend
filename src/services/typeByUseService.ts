@@ -2,20 +2,39 @@ import { TypeByUse } from '../entity/TypeByUse'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate, validateOrReject } from "class-validator"
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { DataAndCount, getDataAndCount } from '../config/helper';
 
 const typeByUseRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
-const getTypeByUses = (): Promise<DataResponse<TypeByUse>> => {
+const getTypeByUses = (queryParams: QueryParam): Promise<DataResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const types: TypeByUse[] = await typeByUseRepository.find();
+            const search  = queryParams.searchColumns.map((param) => {
+                const object:any = {}
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
+            )
+            
+            const order: any = {}
+            order[queryParams.orderBy] = queryParams.orderDirection
+
+            const result: DataAndCount = await getDataAndCount(queryParams, typeByUseRepository, search, order);
+       
             resolve({
                 message: 'Lấy thông tin phân loại công dụng thành công.',
-                data: types
+                data: result.data,
+                meta: {
+                    page: queryParams.page,
+                    perPage: queryParams.perPage,
+                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
+                    total: result.total
+                }
             })
         } catch (error) {
             reject(error);
@@ -38,20 +57,6 @@ const getTypeByUse = (typeId: number): Promise<GetDataResponse<TypeByUse>> => {
                     errorMessage: 'Phân loại công dụng không tồn tại. Vui lòng làm mới trang.'
                 });
             }
-        } catch (error) {
-            reject(error);
-        }
-    })
-}
-
-const searchTypeByUse = (query: Object): Promise<DataResponse<TypeByUse>> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const types: TypeByUse[] = await typeByUseRepository.find({ where: query});
-            resolve({
-                message: 'Tìm kiếm phân loại công dụng thuốc thành công.',
-                data: types
-            })
         } catch (error) {
             reject(error);
         }
@@ -148,7 +153,6 @@ const deleteTypeByUse = (typeId: number): Promise<DataOptionResponse<TypeByUse>>
 export default {
     getTypeByUses,
     getTypeByUse,
-    searchTypeByUse,
     storeTypeByUse,
     updateTypeByUse,
     deleteTypeByUse

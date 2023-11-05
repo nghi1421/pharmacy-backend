@@ -4,10 +4,13 @@ import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
+import { getQueryParams } from '../config/helper';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getTypeByUses = async (req: Request, res: Response) => {
     try {
-        const result: DataResponse<TypeByUse> = await typeByUseService.getTypeByUses();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result: DataResponse<TypeByUse> = await typeByUseService.getTypeByUses(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -21,16 +24,6 @@ const getTypeByUse = async (req: Request, res: Response) => {
          res.status(200).json(result);
     }
     catch (error) {
-        res.status(500).send(error)
-    }
-}
-
-const searchTypeByUse = async (req: Request, res: Response) => { 
-    try {
-        const query = req.body
-        const result: DataResponse<TypeByUse> = await typeByUseService.searchTypeByUse(query);
-        res.status(200).json(result);
-    } catch (error) {
         res.status(500).send(error)
     }
 }
@@ -88,7 +81,6 @@ const deleteTypeByUse = async (req: Request, res: Response) => {
 export default {
     getTypeByUses,
     getTypeByUse,
-    searchTypeByUse,
     storeTypeByUse,
     updateTypeByUse,
     deleteTypeByUse
