@@ -2,30 +2,11 @@ import { Request, Response } from 'express'
 import staffService from '../services/staffService'
 import { StaffData } from '../global/interfaces/StaffData';
 import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getStaffs = async (req: Request, res: Response) => {
     try {
-        let {
-            page,
-            perPage,
-            searchTerm,
-            searchColumns,
-            orderBy,
-            orderDirection
-        } = req.query
-
-        const queryParams: QueryParam = {
-            page: parseInt(page as string),
-            perPage: parseInt(perPage as string),
-            searchTerm: searchTerm ? searchTerm as string : '',
-            searchColumns: searchColumns ? (searchColumns as string)
-                .split(',')
-                .map((value) => value.trim()).filter((value) => value)
-                : [],
-            orderBy: orderBy as string,
-            orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC')
-        }
-
+        const queryParams: QueryParam = await getQueryParams(req)
         const result = await staffService.getStaffs(queryParams);
         res.status(200).json(result);
     } catch (error) {

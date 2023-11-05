@@ -1,10 +1,13 @@
 import { Request, Response } from 'express'
 import customerService from '../services/customerService'
 import { CustomerData } from '../global/interfaces/CustomerData';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getCustomers = async (req: Request, res: Response) => {
     try {
-        const result = await customerService.getCustomers();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result = await customerService.getCustomers(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -21,22 +24,6 @@ const getCustomer = async (req: Request, res: Response) => {
             return;
         }
         const result = await customerService.getCustomer(customerId);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
-}
-
-const searchCustomer = async (req: Request, res: Response) => {
-    try {
-        const query = req.body
-        if (!query) {
-            res.status(400).json({
-                errorMessage: 'Thiếu tham số đầu vào.'
-            })
-            return;
-        }
-        const result = await customerService.searchCustomer(query);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -132,7 +119,6 @@ const deleteCustomer = async (req: Request, res: Response) => {
 export default {
     getCustomers,
     getCustomer,
-    searchCustomer,
     storeCustomer,
     updateCustomer,
     deleteCustomer

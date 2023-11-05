@@ -1,6 +1,7 @@
 import { ValidationError } from "class-validator"
 import { QueryParam } from "../global/interfaces/QueryParam"
 import { Repository } from "typeorm"
+import { Request } from "express";
 
 export interface DataAndCount {
     data: any;
@@ -68,5 +69,37 @@ export const getDataAndCount = async (
                 error
             })
         }   
+    })
+}
+
+export const getQueryParams = (req: Request): Promise<QueryParam> => {
+    return new Promise((resolve, reject) => {
+        try {
+            let {
+                page,
+                perPage,
+                searchTerm,
+                searchColumns,
+                orderBy,
+                orderDirection
+            } = req.query
+
+            const queryParams: QueryParam = {
+                page: parseInt(page as string),
+                perPage: parseInt(perPage as string),
+                searchTerm: searchTerm ? searchTerm as string : '',
+                searchColumns: searchColumns ? (searchColumns as string)
+                    .split(',')
+                    .map((value) => value.trim()).filter((value) => value)
+                    : [],
+                orderBy: orderBy as string,
+                orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC')
+            }
+
+            resolve(queryParams)
+        }
+        catch (error) {
+            reject(error)
+        }
     })
 }

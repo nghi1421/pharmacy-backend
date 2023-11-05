@@ -30,7 +30,7 @@ const getStaffs = (queryParams: QueryParam): Promise<DataResponse<Staff>> => {
             const result: DataAndCount = await getDataAndCount(queryParams, staffRepository, search, order);
        
             resolve({
-                message: 'Lấy thông tin tài khoản thành công.',
+                message: 'Lấy thông tin nhân viên thành công.',
                 data: result.data,
                 meta: {
                     page: queryParams.page,
