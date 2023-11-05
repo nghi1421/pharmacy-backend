@@ -4,23 +4,42 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Position } from '../entity/Position';
 import { StaffData } from '../global/interfaces/StaffData';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
-import { getErrors } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors } from '../config/helper';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
-const getStaffs = (): Promise<DataResponse<Staff>> => {
+const getStaffs = (queryParams: QueryParam): Promise<DataResponse<Staff>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const staffs = await staffRepository.find();
+            const search  = queryParams.searchColumns.map((param) => {
+                const object:any = {}
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
+            )
+            
+            const order: any = {}
+            order[queryParams.orderBy] = queryParams.orderDirection
+
+            const result: DataAndCount = await getDataAndCount(queryParams, staffRepository, search, order);
+       
             resolve({
-                message: 'Lấy thông tin nhân viên thành công.',
-                data: staffs
+                message: 'Lấy thông tin tài khoản thành công.',
+                data: result.data,
+                meta: {
+                    page: queryParams.page,
+                    perPage: queryParams.perPage,
+                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
+                    total: result.total
+                }
             })
+            
         } catch (error) {
             reject(error);
         }
@@ -42,20 +61,6 @@ const getStaff = (staffId: number): Promise<GetDataResponse<Staff>> => {
                     errorMessage: 'Thông tin nhân viên không tồn tại. Vui lòng làm mới trang.'
                 });
             }
-        } catch (error) {
-            reject(error);
-        }
-    })
-}
-
-const searchStaff = (query: Object): Promise<DataResponse<Staff>> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const staff = await staffRepository.find({ where: query});
-            resolve({
-                message: 'Tìm kiếm thông tin nhân viên thành công.',
-                data: staff
-            })
         } catch (error) {
             reject(error);
         }
@@ -265,7 +270,6 @@ const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
 export default {
     getStaffs,
     getStaff,
-    searchStaff,
     storeStaff,
     updateStaff,
     updateStaffStatus,

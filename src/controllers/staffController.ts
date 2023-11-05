@@ -1,10 +1,32 @@
 import { Request, Response } from 'express'
 import staffService from '../services/staffService'
 import { StaffData } from '../global/interfaces/StaffData';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getStaffs = async (req: Request, res: Response) => {
     try {
-        const result = await staffService.getStaffs();
+        let {
+            page,
+            perPage,
+            searchTerm,
+            searchColumns,
+            orderBy,
+            orderDirection
+        } = req.query
+
+        const queryParams: QueryParam = {
+            page: parseInt(page as string),
+            perPage: parseInt(perPage as string),
+            searchTerm: searchTerm ? searchTerm as string : '',
+            searchColumns: searchColumns ? (searchColumns as string)
+                .split(',')
+                .map((value) => value.trim()).filter((value) => value)
+                : [],
+            orderBy: orderBy as string,
+            orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC')
+        }
+
+        const result = await staffService.getStaffs(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -21,22 +43,6 @@ const getStaff = async (req: Request, res: Response) => {
             return;
         }
         const result = await staffService.getStaff(staffId);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
-}
-
-const searchStaff = async (req: Request, res: Response) => { 
-    try {
-        const query = req.body
-        if (!query) {
-            res.status(200).json({
-                errorMessage: 'Thiếu tham số đầu vào.'
-            })
-            return;
-        }
-        const result = await staffService.searchStaff(query);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -160,7 +166,6 @@ const deleteStaff = async (req: Request, res: Response) => {
 export default {
     getStaffs,
     getStaff,
-    searchStaff,
     updateStaffStatus,
     storeStaff,
     updateStaff,

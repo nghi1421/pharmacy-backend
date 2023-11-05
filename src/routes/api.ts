@@ -33,7 +33,6 @@ const routesAPI = (app: Application) => {
     //Staff
     router.get('/staffs', staffController.getStaffs)
     router.get('/staffs/:staffId', staffController.getStaff)
-    router.get('/staffs/search', staffController.searchStaff)
     router.post('/staffs', staffController.storeStaff)
     router.post('/staffs/:staffId/update-status', staffController.updateStaffStatus)
     router.put('/staffs/:staffId', staffController.updateStaff)
