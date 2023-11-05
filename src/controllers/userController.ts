@@ -5,30 +5,11 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { User } from '../entity/User';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getUsers = async (req: Request, res: Response) => {
     try {
-        let {
-            page,
-            perPage,
-            searchTerm,
-            searchColumns,
-            orderBy,
-            orderDirection
-        } = req.query
-
-        const queryParams: QueryParam = {
-            page: parseInt(page as string),
-            perPage: parseInt(perPage as string),
-            searchTerm: searchTerm ? searchTerm as string : '',
-            searchColumns: searchColumns ? (searchColumns as string)
-                .split(',')
-                .map((value) => value.trim()).filter((value) => value)
-                : [],
-            orderBy: orderBy as string,
-            orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC')
-        }
-
+        const queryParams: QueryParam = await getQueryParams(req)
         const result: DataResponse<User> = await userService.getUsers(queryParams);
         res.status(200).json(result);
     } catch (error) {
@@ -42,8 +23,8 @@ const storeUser = async (req: Request, res: Response) => {
             username,
             password,
         } = req.body
-        const roleId = parseInt(req.body.role_id)
-        const isDefaulPassword: boolean = req.body.default_password === 1
+        const roleId = parseInt(req.body.roleId)
+        const isDefaulPassword: boolean = req.body.defaultPassword === 1
         const data: UserData = {
             username,
             password,
