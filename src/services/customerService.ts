@@ -8,35 +8,40 @@ import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
 
-const getCustomers = (queryParams: QueryParam): Promise<DataResponse<Customer>> => {
+const getCustomers = (queryParams: QueryParam | undefined): Promise<DataResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const search  = queryParams.searchColumns.map((param) => {
-                const object:any = {}
-                    object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
-                }
-            )
-            
-            const order: any = {}
-            order[queryParams.orderBy] = queryParams.orderDirection
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
+                    const object:any = {}
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                order[queryParams.orderBy] = queryParams.orderDirection
 
-            const result: DataAndCount = await getDataAndCount(queryParams, customerRepository, search, order);
-       
-            resolve({
-                message: 'Lấy thông tin khách hàng thành công.',
-                data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
-            })
+                const result: DataAndCount = await getDataAndCount(queryParams, customerRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin khách hàng thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })    
+            }
+            else {
+                const data: Customer[] = await customerRepository.find();
+
+                resolve({
+                    message: 'Lấy thông tin khách hàng thành công.',
+                    data
+                })  
+            }
         } catch (error) {
             reject(error);
         }

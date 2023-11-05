@@ -6,9 +6,15 @@ import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getDrugCategories = async (req: Request, res: Response) => {
     try {
-        const queryParams: QueryParam = await getQueryParams(req)
-        const result = await drugCategoryService.getDrugCategories(queryParams);
-        res.status(200).json(result);
+        if (req.query.perPage) {
+            const queryParams: QueryParam = await getQueryParams(req)
+            const result = await drugCategoryService.getDrugCategories(queryParams);
+            res.status(200).json(result);
+        }
+        else {
+            const result = await drugCategoryService.getDrugCategories(undefined);
+            res.status(200).json(result);
+        }
     } catch (error) {
         res.status(500).send(error)
     }

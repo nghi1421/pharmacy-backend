@@ -2,6 +2,7 @@ import { ValidationError } from "class-validator"
 import { QueryParam } from "../global/interfaces/QueryParam"
 import { Repository } from "typeorm"
 import { Request } from "express";
+import { Meta } from "../global/interfaces/DataResponse";
 
 export interface DataAndCount {
     data: any;
@@ -97,6 +98,27 @@ export const getQueryParams = (req: Request): Promise<QueryParam> => {
             }
 
             resolve(queryParams)
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
+export const getMetaData = (queryParams: QueryParam, total: number): Promise<Meta> => {
+    return new Promise((resolve, reject) => {
+        try {
+            const mod = total % queryParams.perPage;
+            const pageNumber = Math.floor(total / queryParams.perPage);
+         
+            resolve({
+                page: queryParams.page,
+                perPage: queryParams.perPage,
+                totalPage: mod === 0
+                    ? pageNumber
+                    : pageNumber + 1,
+                total
+            })
         }
         catch (error) {
             reject(error)

@@ -1,13 +1,13 @@
 import { TypeByUse } from '../entity/TypeByUse'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validate } from "class-validator"
 import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const typeByUseRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
@@ -29,12 +29,7 @@ const getTypeByUses = (queryParams: QueryParam): Promise<DataResponse<TypeByUse>
             resolve({
                 message: 'Lấy thông tin phân loại công dụng thành công.',
                 data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
+                meta: await getMetaData(queryParams, result.total)
             })
         } catch (error) {
             reject(error);

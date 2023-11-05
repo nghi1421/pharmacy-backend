@@ -8,7 +8,7 @@ import { UserData } from '../global/interfaces/UserData';
 import { Role } from '../entity/Role';
 import config from '../config/config'
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
 const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
@@ -36,12 +36,7 @@ const getUsers = (queryParams: QueryParam): Promise<DataResponse<User>> => {
             resolve({
                 message: 'Lấy thông tin tài khoản thành công.',
                 data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
+                meta: await getMetaData(queryParams, result.total)
             })
         } catch (error) {
             reject(error);

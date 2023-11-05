@@ -9,41 +9,55 @@ import { TypeByUse } from '../entity/TypeByUse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 const typeRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
-const getDrugCategories = (queryParams: QueryParam): Promise<DataResponse<DrugCategory>> => {
+const getDrugCategories = (queryParams: QueryParam | undefined): Promise<DataResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const search  = queryParams.searchColumns.map((param) => {
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
                 const object:any = {}
                     object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                switch (queryParams.orderBy) {
+                    case 'use': {
+                        order['type'] = { id: queryParams.orderDirection }
+                        break;
+                    }
+                    
+                    case 'formatedPrice': {
+                        order['price'] = queryParams.orderDirection
+                        break;
+                    }
+                
+                    default: {
+                        order[queryParams.orderBy] = queryParams.orderDirection
+                    }
                 }
-            )
-            
-            const order: any = {}
-            if (queryParams.orderBy === 'use') {
-                order['typeByUse'] = { id: queryParams.orderDirection}
+
+                const result: DataAndCount = await getDataAndCount(queryParams, drugCategoryRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin danh mục thuốc thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })
             }
             else {
-                order[queryParams.orderBy] = queryParams.orderDirection
+                const data: DrugCategory[] = await drugCategoryRepository.find();
+                resolve({
+                    message: 'Lấy thông tin danh mục thuốc thành công.',
+                    data,
+                })
             }
-
-            const result: DataAndCount = await getDataAndCount(queryParams, drugCategoryRepository, search, order);
-       
-            resolve({
-                message: 'Lấy thông tin danh mục thuốc thành công.',
-                data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
-            })
+            
         } catch (error) {
             reject(error);
         }

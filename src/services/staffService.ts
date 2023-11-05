@@ -7,7 +7,7 @@ import { StaffData } from '../global/interfaces/StaffData';
 import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
-import { DataAndCount, getDataAndCount, getErrors } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
 
@@ -32,12 +32,7 @@ const getStaffs = (queryParams: QueryParam): Promise<DataResponse<Staff>> => {
             resolve({
                 message: 'Lấy thông tin nhân viên thành công.',
                 data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
+                meta: await getMetaData(queryParams, result.total)
             })
             
         } catch (error) {

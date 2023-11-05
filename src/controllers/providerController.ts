@@ -6,9 +6,15 @@ import { getQueryParams } from '../config/helper';
 
 const getProviders = async (req: Request, res: Response) => {
     try {
-        const queryParams: QueryParam = await getQueryParams(req)
-        const result = await providerService.getProviders(queryParams);
-        res.status(200).json(result);
+        if (req.query.perPage) {
+            const queryParams: QueryParam = await getQueryParams(req)
+            const result = await providerService.getProviders(queryParams);
+            res.status(200).json(result);
+        }
+        else {
+            const result = await providerService.getProviders(undefined);
+            res.status(200).json(result);
+        }
     } catch (error) {
         res.status(500).send(error)
     }

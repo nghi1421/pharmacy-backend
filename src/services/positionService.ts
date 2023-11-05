@@ -7,7 +7,7 @@ import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
@@ -29,12 +29,7 @@ const getPositions = (queryParams: QueryParam): Promise<DataResponse<Position>> 
             resolve({
                 message: 'Lấy thông tin chức vụ thành công.',
                 data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
+                meta: await getMetaData(queryParams, result.total)
             })
         } catch (error) {
             reject(error);

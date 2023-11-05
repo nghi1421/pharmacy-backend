@@ -8,35 +8,39 @@ import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 
-const getProviders = (queryParams: QueryParam): Promise<DataResponse<Provider>> => {
+const getProviders = (queryParams: QueryParam | undefined): Promise<DataResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const search  = queryParams.searchColumns.map((param) => {
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
                 const object:any = {}
                     object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
-                }
-            )
-            
-            const order: any = {}
-            order[queryParams.orderBy] = queryParams.orderDirection
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                order[queryParams.orderBy] = queryParams.orderDirection
 
-            const result: DataAndCount = await getDataAndCount(queryParams, providerRepository, search, order);
-       
-            resolve({
-                message: 'Lấy thông tin công ty dược thành công.',
-                data: result.data,
-                meta: {
-                    page: queryParams.page,
-                    perPage: queryParams.perPage,
-                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
-                    total: result.total
-                }
-            })
+                const result: DataAndCount = await getDataAndCount(queryParams, providerRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin công ty dược thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })
+            }
+            else {
+                const data: Provider[] = await providerRepository.find();
+                resolve({
+                    message: 'Lấy thông tin công ty dược thành công.',
+                    data: data
+                })
+            }
         } catch (error) { 
             reject(error);
         }
