@@ -1,10 +1,13 @@
 import { Request, Response } from 'express'
 import providerService from '../services/providerService'
 import { ProviderData } from '../global/interfaces/ProviderData';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getProviders = async (req: Request, res: Response) => {
     try {
-        const result = await providerService.getProviders();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result = await providerService.getProviders(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)

@@ -3,22 +3,41 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { ProviderData } from '../global/interfaces/ProviderData';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { DataAndCount, getDataAndCount } from '../config/helper';
 
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 
-const getProviders = (): Promise<DataResponse<Provider>> => {
+const getProviders = (queryParams: QueryParam): Promise<DataResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const providers = await providerRepository.find();
+            const search  = queryParams.searchColumns.map((param) => {
+                const object:any = {}
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
+            )
+            
+            const order: any = {}
+            order[queryParams.orderBy] = queryParams.orderDirection
+
+            const result: DataAndCount = await getDataAndCount(queryParams, providerRepository, search, order);
+       
             resolve({
                 message: 'Lấy thông tin công ty dược thành công.',
-                data: providers
+                data: result.data,
+                meta: {
+                    page: queryParams.page,
+                    perPage: queryParams.perPage,
+                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
+                    total: result.total
+                }
             })
-        } catch (error) {
+        } catch (error) { 
             reject(error);
         }
     })
