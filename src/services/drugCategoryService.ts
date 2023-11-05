@@ -3,22 +3,46 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { DrugCategoryData } from '../global/interfaces/DrugCategoryData';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { DataAndCount, getDataAndCount } from '../config/helper';
 
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 const typeRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
-const getDrugCategories = (): Promise<DataResponse<DrugCategory>> => {
+const getDrugCategories = (queryParams: QueryParam): Promise<DataResponse<DrugCategory>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const drugCategories = await drugCategoryRepository.find();
+            const search  = queryParams.searchColumns.map((param) => {
+                const object:any = {}
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
+            )
+            
+            const order: any = {}
+            if (queryParams.orderBy === 'use') {
+                order['typeByUse'] = { id: queryParams.orderDirection}
+            }
+            else {
+                order[queryParams.orderBy] = queryParams.orderDirection
+            }
+
+            const result: DataAndCount = await getDataAndCount(queryParams, drugCategoryRepository, search, order);
+       
             resolve({
                 message: 'Lấy thông tin danh mục thuốc thành công.',
-                data: drugCategories
+                data: result.data,
+                meta: {
+                    page: queryParams.page,
+                    perPage: queryParams.perPage,
+                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
+                    total: result.total
+                }
             })
         } catch (error) {
             reject(error);
@@ -41,20 +65,6 @@ const getDrugCategory = (drugId: number): Promise<GetDataResponse<DrugCategory>>
                     errorMessage: 'Danh mục thuốc không tồn tại. Vui lòng làm mới trang.'
                 });
             }
-        } catch (error) {
-            reject(error);
-        }
-    })
-}
-
-const searchDrugCategory = (query: Object): Promise<DataResponse<DrugCategory>> => {
-    return new Promise<DataResponse<DrugCategory>>(async (resolve, reject) => {
-        try {
-            const drugCategories = await drugCategoryRepository.find({ where: query});
-            resolve({
-                message: 'Lấy thông tin danh mục thuốc thành công.',
-                data: drugCategories
-            })
         } catch (error) {
             reject(error);
         }
@@ -196,7 +206,6 @@ const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<
 export default {
     getDrugCategories,
     getDrugCategory,
-    searchDrugCategory,
     storeDrugCategory,
     updateDrugCategory,
     deleteDrugCategory

@@ -43,7 +43,6 @@ const getUsers = (queryParams: QueryParam): Promise<DataResponse<User>> => {
                     total: result.total
                 }
             })
-            
         } catch (error) {
             reject(error);
         }

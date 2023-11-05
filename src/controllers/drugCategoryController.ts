@@ -1,10 +1,13 @@
 import { Request, Response } from 'express'
 import drugCategoryService from '../services/drugCategoryService'
 import { DrugCategoryData } from '../global/interfaces/DrugCategoryData';
+import { getQueryParams } from '../config/helper';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getDrugCategories = async (req: Request, res: Response) => {
     try {
-        const result = await drugCategoryService.getDrugCategories();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result = await drugCategoryService.getDrugCategories(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -21,22 +24,6 @@ const getDrugCategory = async (req: Request, res: Response) => {
             return;
         }
         const result = await drugCategoryService.getDrugCategory(drugId);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
-}
-
-const searchDrugCategory = async (req: Request, res: Response) => {
-    try {
-        const query = req.body
-        if (!query) {
-            res.status(400).json({
-                errorMessage: 'Thiếu tham số đầu vào.'
-            })
-            return;
-        }
-        const result = await drugCategoryService.searchDrugCategory(query);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -165,7 +152,6 @@ const deleteDrugCategory = async (req: Request, res: Response) => {
 export default {
     getDrugCategories,
     getDrugCategory,
-    searchDrugCategory,
     storeDrugCategory,
     updateDrugCategory,
     deleteDrugCategory
