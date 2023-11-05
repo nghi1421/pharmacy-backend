@@ -2,20 +2,39 @@ import { Position } from '../entity/Position'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { DataAndCount, getDataAndCount } from '../config/helper';
 
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
-const getPositions = (): Promise<DataResponse<Position>> => {
+const getPositions = (queryParams: QueryParam): Promise<DataResponse<Position>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const positions = await positionRepository.find();
+            const search  = queryParams.searchColumns.map((param) => {
+                const object:any = {}
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
+            )
+            
+            const order: any = {}
+            order[queryParams.orderBy] = queryParams.orderDirection
+
+            const result: DataAndCount = await getDataAndCount(queryParams, positionRepository, search, order);
+       
             resolve({
                 message: 'Lấy thông tin chức vụ thành công.',
-                data: positions
+                data: result.data,
+                meta: {
+                    page: queryParams.page,
+                    perPage: queryParams.perPage,
+                    totalPage: result.total/queryParams.perPage === 0 ? 1 : result.total/queryParams.perPage,
+                    total: result.total
+                }
             })
         } catch (error) {
             reject(error);
@@ -38,20 +57,6 @@ const getPosition = (positionId: number): Promise<GetDataResponse<Position>> => 
                     errorMessage: 'Chức vụ không tồn tại. Vui lòng làm mới trang.'
                 });
             }
-        } catch (error) {
-            reject(error);
-        }
-    })
-}
-
-const searchPosition = (query: Object): Promise<DataResponse<Position>> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const positions = await positionRepository.find({ where: query});
-            resolve({
-                message: 'Tìm kiếm thông tin chức vụ thành công.',
-                data: positions
-            })
         } catch (error) {
             reject(error);
         }
@@ -146,7 +151,6 @@ const deletePosition = (positionId: number): Promise<DataOptionResponse<Position
 export default {
     getPositions,
     getPosition,
-    searchPosition,
     storePosition,
     updatePosition,
     deletePosition

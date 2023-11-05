@@ -30,16 +30,6 @@ const getProvider = async (req: Request, res: Response) => {
     }
 }
 
-const searchProvider = async (req: Request, res: Response) => { 
-    try {
-        const query = req.body
-        const result = await providerService.searchProvider(query);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send({errorMessage: error})
-    }
-}
-
 const storeProvider = async (req: Request, res: Response) => {
     try {
         const { 
@@ -124,7 +114,6 @@ const deleteProvider = async (req: Request, res: Response) => {
 export default {
     getProviders,
     getProvider,
-    searchProvider,
     storeProvider,
     updateProvider,
     deleteProvider

@@ -41,7 +41,6 @@ const routesAPI = (app: Application) => {
     //Position
     router.get('/positions', positionController.getPositions)
     router.get('/positions/:positionId', positionController.getPosition)
-    router.get('/positions/search', positionController.searchPosition)
     router.post('/positions', positionController.storePosition)
     router.put('/positions/:positionId', positionController.updatePosition)
     router.delete('/positions/:positionId', positionController.deletePosition)
@@ -56,7 +55,6 @@ const routesAPI = (app: Application) => {
     //Type by use
     router.get('/type-by-uses', typeByUseController.getTypeByUses)
     router.get('/type-by-uses/:typeId', typeByUseController.getTypeByUse)
-    router.get('/type-by-uses/search', typeByUseController.searchTypeByUse)
     router.post('/type-by-uses', typeByUseController.storeTypeByUse)
     router.put('/type-by-uses/:typeId', typeByUseController.updateTypeByUse)
     router.delete('/type-by-uses/:typeId', typeByUseController.deleteTypeByUse)
@@ -64,7 +62,6 @@ const routesAPI = (app: Application) => {
     //Drug category
     router.get('/drug-categories', drugCategoryController.getDrugCategories)
     router.get('/drug-categories/:drugId', drugCategoryController.getDrugCategory)
-    router.get('/drug-categories/search', drugCategoryController.searchDrugCategory)
     router.post('/drug-categories', drugCategoryController.storeDrugCategory)
     router.put('/drug-categories/:drugCategoryId', drugCategoryController.updateDrugCategory)
     router.delete('/drug-categories/:drugCategoryId', drugCategoryController.deleteDrugCategory)
@@ -72,7 +69,6 @@ const routesAPI = (app: Application) => {
     //Provider
     router.get('/providers', providerController.getProviders)
     router.get('/providers/:providerId', providerController.getProvider)
-    router.get('/providers/search', providerController.searchProvider)
     router.post('/providers', providerController.storeProvider)
     router.put('/providers/:providerId', providerController.updateProvider)
     router.delete('/providers/:providerId', providerController.deleteProvider)

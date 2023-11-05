@@ -1,9 +1,12 @@
 import { Request, Response } from 'express'
 import positionService from '../services/positionService'
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getPositions = async (req: Request, res: Response) => {
     try {
-        const result = await positionService.getPositions();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result = await positionService.getPositions(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -20,16 +23,6 @@ const getPosition = async (req: Request, res: Response) => {
             return;
         }
         const result = await positionService.getPosition(positionId);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
-}
-
-const searchPosition = async (req: Request, res: Response) => { 
-    try {
-        const query = req.body
-        const result = await positionService.searchPosition(query);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -93,7 +86,6 @@ const deletePosition = async (req: Request, res: Response) => {
 export default {
     getPositions,
     getPosition,
-    searchPosition,
     storePosition,
     updatePosition,
     deletePosition

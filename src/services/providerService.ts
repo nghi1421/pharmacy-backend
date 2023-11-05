@@ -64,20 +64,6 @@ const getProvider = (providerId: number): Promise<GetDataResponse<Provider>> => 
     })
 }
 
-const searchProvider = (query: Object): Promise<DataResponse<Provider>> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const providers = await providerRepository.find({ where: query});
-            resolve({
-                message: 'Tìm kiếm thông tin công ty dược thành công.',
-                data: providers
-            })
-        } catch (error) {
-            reject(error);
-        }
-    })
-}
-
 const storeProvider = (data: ProviderData): Promise<DataOptionResponse<Provider>> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -227,7 +213,6 @@ const deleteProvider = (providerId: number): Promise<DataOptionResponse<Provider
 export default {
     getProviders,
     getProvider,
-    searchProvider,
     storeProvider,
     updateProvider,
     deleteProvider
