@@ -79,19 +79,4 @@ export class DrugCategory {
     @Column()
     @UpdateDateColumn()
     updatedAt: Date
-
-    // public addQuantityFromImport(quantity: number): void {
-    //     this.quantity = this.quantity + quantity
-    // }
-
-    // public updateQuantityFromImportModify(oldQuantity: number, newQuantity: number): boolean {
-    //     if (this.quantity - (oldQuantity * this.quantityConversion) < 0) {
-    //         return false;
-    //     }
-    //     else {
-    //         this.quantity = this.quantity + (newQuantity - oldQuantity) * this.quantityConversion;
-    //         console.log(this.quantity)
-    //         return true;
-    //     }
-    // }
 }

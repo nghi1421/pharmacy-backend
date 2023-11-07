@@ -49,7 +49,7 @@ const storeDrugCategory = async (req: Request, res: Response) => {
             minimalUnit
         } = req.body
 
-        const quantityConversion: number = req.body.quantityConversion
+        const conversionQuantity: number = req.body.conversionQuantity
         const typeId: number = req.body.typeId
         price = parseInt(price)
         vat = parseFloat(vat) / 100 as number
@@ -75,7 +75,7 @@ const storeDrugCategory = async (req: Request, res: Response) => {
             form,
             instruction,
             preserved,
-            quantityConversion,
+            conversionQuantity,
             minimalUnit,
         }
         const result = await drugCategoryService.storeDrugCategory(data);
@@ -98,7 +98,7 @@ const updateDrugCategory = async (req: Request, res: Response) => {
             preserved,
         } = req.body
 
-        const quantityConversion: number = req.body.quantityConversion
+        const conversionQuantity: number = req.body.conversionQuantity
         const minimalUnit: string = req.body.minimalUnit
         const typeId: number = parseInt(req.body.typeId)
         price = parseInt(price)
@@ -128,7 +128,7 @@ const updateDrugCategory = async (req: Request, res: Response) => {
             vat,
             instruction,
             preserved,
-            quantityConversion,
+            conversionQuantity,
             minimalUnit,
         }
         const result = await drugCategoryService.updateDrugCategory(drugCategoryId, data);

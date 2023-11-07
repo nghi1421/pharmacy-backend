@@ -1,10 +1,7 @@
 import { Request, Response } from 'express'
 import importService from '../services/importService'
 import { ImportData } from '../global/interfaces/ImportData';
-import { ExistsImportDetailData, NewImportDetailData } from '../global/interfaces/ImportDetailData';
-import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
-import { Import } from '../entity/Import';
-import { UpdateImportData } from '../global/interfaces/UpdateImportData';
+import { NewImportDetailData } from '../global/interfaces/ImportDetailData';
 
 const getImports = async (req: Request, res: Response) => {
     try {
@@ -32,13 +29,13 @@ const storeImport = async (req: Request, res: Response) => {
             paid,
         } = req.body
 
-        const importDate: Date = new Date(req.body.import_date)
-        const maturityDate: Date = new Date(req.body.maturity_date)
+        const importDate: Date = new Date(req.body.importDate)
+        const maturityDate: Date = new Date(req.body.maturityDate)
         /////////////////////////////////////res.locals.staffId
-        const staffId: number = parseInt(req.body.staff_id);
-        const providerId: number = parseInt(req.body.provider_id)
+        const staffId: number = parseInt(req.body.staffId);
+        const providerId: number = parseInt(req.body.providerId)
 
-        const importDetails: NewImportDetailData[] = req.body.import_details
+        const importDetails: NewImportDetailData[] = req.body.importDetails
 
 
         if (importDetails.length === 0) {
@@ -64,7 +61,7 @@ const storeImport = async (req: Request, res: Response) => {
             providerId,
         }
 
-        const result: DataOptionResponse<Import> = await importService.storeImport(data);
+        const result = await importService.storeImport(data);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -72,46 +69,49 @@ const storeImport = async (req: Request, res: Response) => {
 }
 
 const updateImport = async (req: Request, res: Response) => {
-    try {
-        const { 
-            note,
-            paid,
-        } = req.body
 
-        const importDate: Date = new Date(req.body.import_date)
-        const maturityDate: Date = new Date(req.body.maturity_date)
-        const providerId: number = parseInt(req.body.provider_id)
-
-        const data: UpdateImportData = {
-            note,
-            paid,
-            importDate,
-            maturityDate,
-            providerId,
-        }
-
-        const existsImportDetail: ExistsImportDetailData[] = req.body.existImportDetail ;
-        const newImportDetail: NewImportDetailData[] = req.body.newImportDetail;
-
-        if (newImportDetail.length === 0 && existsImportDetail.length === 0) {
-            res.status(401).json({
-                errorMessage: 'Import requires import detail.',
-            })
-            return;
-        }
-        const importId: number = parseInt(req.params.importId);
-        const result: DataOptionResponse<Import>
-            = await importService.updateImport(
-                importId,
-                data,
-                newImportDetail,
-                existsImportDetail
-            );
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
 }
+// const updateImport = async (req: Request, res: Response) => {
+//     try {
+//         const { 
+//             note,
+//             paid,
+//         } = req.body
+
+//         const importDate: Date = new Date(req.body.import_date)
+//         const maturityDate: Date = new Date(req.body.maturity_date)
+//         const providerId: number = parseInt(req.body.provider_id)
+
+//         const data: UpdateImportData = {
+//             note,
+//             paid,
+//             importDate,
+//             maturityDate,
+//             providerId,
+//         }
+
+//         const existsImportDetail: ExistsImportDetailData[] = req.body.existImportDetail ;
+//         const newImportDetail: NewImportDetailData[] = req.body.newImportDetail;
+
+//         if (newImportDetail.length === 0 && existsImportDetail.length === 0) {
+//             res.status(401).json({
+//                 errorMessage: 'Import requires import detail.',
+//             })
+//             return;
+//         }
+//         const importId: number = parseInt(req.params.importId);
+//         const result: DataOptionResponse<Import>
+//             = await importService.updateImport(
+//                 importId,
+//                 data,
+//                 newImportDetail,
+//                 existsImportDetail
+//             );
+//         res.status(200).json(result);
+//     } catch (error) {
+//         res.status(500).send(error)
+//     }
+// }
 
 const deleteImport = async (req: Request, res: Response) => {
     try {

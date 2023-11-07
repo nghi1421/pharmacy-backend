@@ -1,10 +1,11 @@
 import { registerDecorator, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
+import dayjs from 'dayjs';
 
 @ValidatorConstraint({ name: 'isBeforeToday', async: false })
 export class IsBeforeTodayConstraint implements ValidatorConstraintInterface {
   validate(date: Date) {
-    const today = new Date();
-    return date < today;
+    const today = dayjs();
+    return dayjs(date).isAfter(today);
   }
 }
 

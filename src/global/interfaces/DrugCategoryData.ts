@@ -5,7 +5,7 @@ export interface DrugCategoryData {
     form: string;
     minimalUnit: string;
     vat: number;
-    quantityConversion: number;
+    conversionQuantity: number;
     typeId: number;
     instruction: string;
     preserved: string;

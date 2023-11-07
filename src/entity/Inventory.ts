@@ -17,14 +17,14 @@ import { ImportDetail } from './ImportDetail';
 import { DrugCategory } from './DrugCategory';
 
 @Entity('inventories')
-@Unique(['drugCategory.id', 'monthYear'])
+@Unique(['drug.id', 'monthYear'])
 export class Inventory {
     @PrimaryGeneratedColumn()
     id: number
  
     @ManyToOne(() => DrugCategory, {eager: true})
     @JoinColumn()
-    drugCategory: DrugCategory
+    drug: DrugCategory
 
     @Column({ type: 'varchar', length: 6 })
     @IsNotEmpty({ message: requiredMessage('Tháng năm')})

@@ -1,6 +1,5 @@
 export interface NewImportDetailData {
     quantity: number;
-    quantityImport: number;
     batchId: string;
     unitPrice: number;
     expiryDate: Date; 

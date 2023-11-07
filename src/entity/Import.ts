@@ -40,7 +40,7 @@ export class Import {
     paid: number
  
     @Column({ name: 'maturity_date', nullable: true, type: 'date' })
-    @IsDate()
+    @IsDate({ message: typeInvalidMessage('Ngày đáo hạn')})
     maturityDate: Date
 
     @Column()
