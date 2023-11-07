@@ -10,9 +10,11 @@ import {
 import {
     IsDate,
     IsNotEmpty,
+    MaxLength,
 } from 'class-validator';
 import { Staff } from './Staff';
 import { Customer } from './Customer';
+import { maxLengthErrorMessage, requiredMessage, typeInvalidMessage } from '../config/helper';
 
 @Entity('exports')
 export class Export {
@@ -20,7 +22,7 @@ export class Export {
     id: number
 
     @Column({ type: 'date'})
-    @IsDate()
+    @IsDate({ message: typeInvalidMessage('Ngày xuất thuốc') })
     exportDate: Date
 
     @ManyToOne(() => Staff, {eager: true})
@@ -29,15 +31,19 @@ export class Export {
 
     @ManyToOne(() => Customer, {eager: true})
     @JoinColumn()
-    customer: Customer
+    customer: Customer 
+
+    @Column({ type: 'varchar', length: 20 })
+    @IsNotEmpty({ message: requiredMessage('Mã toa thuốc') })
+    @MaxLength(20, { message: maxLengthErrorMessage('Mã toa thuốc', 20)})
+    prescriptionId: string
+
+    @Column({ type: 'tinyint', default: 1 })
+    type: number
 
     @Column({ type: 'text', nullable: true })
     note: string
  
-    @Column({ type: 'varchar', length: 20 })
-    @IsNotEmpty()
-    prescriptionId: string
-
     @Column()
     @CreateDateColumn()
     createdAt: Date

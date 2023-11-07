@@ -29,11 +29,7 @@ export class DrugCategory {
 
     @Column({ type: 'decimal', precision: 15, scale: 2, transformer: new ColumnNumericTransformer() })
     @IsNotEmpty()
-    price: number
-
-    @Column({ type: 'decimal', precision: 19, scale: 2, transformer: new ColumnNumericTransformer() })
-    @IsNotEmpty()
-    quantity: number
+    price: number 
 
     @Column({ length: 20 })
     @IsNotEmpty({ message: requiredMessage('Dạng thuốc')})
@@ -59,7 +55,7 @@ export class DrugCategory {
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, transformer: new ColumnNumericTransformer() })
     @Min(0, { message: numberMinMesssage('Số lượng quy đổi', 0)})
     @IsNotEmpty({ message: requiredMessage('Số lượng quy đổi')})
-    quantityConversion: number
+    conversionQuantity: number
  
     @ManyToOne(() => TypeByUse, { eager: true })
     @IsNotEmpty({ message: requiredMessage('Công dụng thuốc')})
@@ -84,18 +80,18 @@ export class DrugCategory {
     @UpdateDateColumn()
     updatedAt: Date
 
-    public addQuantityFromImport(quantity: number): void {
-        this.quantity = this.quantity + quantity
-    }
+    // public addQuantityFromImport(quantity: number): void {
+    //     this.quantity = this.quantity + quantity
+    // }
 
-    public updateQuantityFromImportModify(oldQuantity: number, newQuantity: number): boolean {
-        if (this.quantity - (oldQuantity * this.quantityConversion) < 0) {
-            return false;
-        }
-        else {
-            this.quantity = this.quantity + (newQuantity - oldQuantity) * this.quantityConversion;
-            console.log(this.quantity)
-            return true;
-        }
-    }
+    // public updateQuantityFromImportModify(oldQuantity: number, newQuantity: number): boolean {
+    //     if (this.quantity - (oldQuantity * this.quantityConversion) < 0) {
+    //         return false;
+    //     }
+    //     else {
+    //         this.quantity = this.quantity + (newQuantity - oldQuantity) * this.quantityConversion;
+    //         console.log(this.quantity)
+    //         return true;
+    //     }
+    // }
 }

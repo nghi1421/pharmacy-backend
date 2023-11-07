@@ -4,22 +4,23 @@ import {
     PrimaryGeneratedColumn,
     ManyToOne,
     JoinColumn,
-    BeforeRemove,
-    EntityManager,
+    Unique,
 } from 'typeorm';
 import {
     IsDate,
     IsNotEmpty,
+    Max,
     Min,
 } from 'class-validator';
 import { DrugCategory } from './DrugCategory';
 import { Export } from './Export';
 import { Import } from './Import';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
-import { AppDataSource } from '../dataSource';
-import { ImportDetail } from './ImportDetail';
+import {  numberMaxMesssage, numberMinMesssage, requiredMessage, typeInvalidMessage } from '../config/helper';
+import { IsBeforeToday } from '../contraints/IsBeforeToday';
 
 @Entity('export_details')
+@Unique(['export.id', 'drug.id', 'import.id'])
 export class ExportDetail {
     @PrimaryGeneratedColumn()
     id: number
@@ -37,41 +38,44 @@ export class ExportDetail {
     drug: DrugCategory
 
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, transformer: new ColumnNumericTransformer()})
-    @IsNotEmpty()
+    @Min(0, { message: numberMinMesssage('Số lượng xuất', 0) })
+    @IsNotEmpty({ message: requiredMessage('Số lượng xuất')})
     quantity: number
 
     @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, transformer: new ColumnNumericTransformer()})
-    @IsNotEmpty()
+    @IsNotEmpty({ message: requiredMessage('Đơn giá xuất')})
     unitPrice: number
 
     @Column({ type: 'decimal', precision: 4, scale: 2, transformer: new ColumnNumericTransformer() })
-    @Min(0)
-    @IsNotEmpty()
+    @Min(0, { message: numberMinMesssage('Thuế VAT', 0) })
+    @Max(1, { message: numberMaxMesssage('Thuế VAT', 0)})
+    @IsNotEmpty({ message: requiredMessage('Thuế VAT')})
     vat: number
 
     @Column({ type: 'date'})
-    @IsDate()
+    @IsDate({ message: typeInvalidMessage('Hạn sử dụng') })
+    @IsBeforeToday({ message: 'Không thể bán thuốc đã quá hạn.'})
     expiryDate: Date
 
-    @BeforeRemove()
-    async handleRemoveExportDetail() {
-        try {   
-            const importDetailRepository = AppDataSource.getRepository(ImportDetail)
-            const importDetail = await importDetailRepository.findOneByOrFail({
-                import: { id: this.import.id },
-                drug: { id: this.drug.id}
-            })
+    // @BeforeRemove()
+    // async handleRemoveExportDetail() {
+    //     try {   
+    //         const importDetailRepository = AppDataSource.getRepository(ImportDetail)
+    //         const importDetail = await importDetailRepository.findOneByOrFail({
+    //             import: { id: this.import.id },
+    //             drug: { id: this.drug.id}
+    //         })
 
-            this.drug.quantity = this.drug.quantity + this.quantity
+    //         this.drug.quantity = this.drug.quantity + this.quantity
 
-            importDetail.quantity = importDetail.quantity + this.quantity
-            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                await transactionalEntityManager.getRepository(DrugCategory).save(this.drug)
-                await transactionalEntityManager.getRepository(ImportDetail).save(importDetail)
-            })
-        }
-        catch (error) {
-            console.log(`Error: ${error}`)
-        }
-    }
+    //         importDetail.quantity = importDetail.quantity + this.quantity
+    //         await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+    //             await transactionalEntityManager.getRepository(DrugCategory).save(this.drug)
+    //             await transactionalEntityManager.getRepository(ImportDetail).save(importDetail)
+    //         })
+    //     }
+    //     catch (error) {
+    //         console.log(`Error: ${error}`)
+    //     }
+    // }
 }

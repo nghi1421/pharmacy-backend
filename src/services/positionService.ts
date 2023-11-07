@@ -11,26 +11,35 @@ import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
 
-const getPositions = (queryParams: QueryParam): Promise<DataResponse<Position>> => {
+const getPositions = (queryParams: QueryParam | undefined): Promise<DataResponse<Position>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const search  = queryParams.searchColumns.map((param) => {
-                const object:any = {}
-                    object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
-                }
-            )
-            
-            const order: any = {}
-            order[queryParams.orderBy] = queryParams.orderDirection
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
+                    const object:any = {}
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                order[queryParams.orderBy] = queryParams.orderDirection
 
-            const result: DataAndCount = await getDataAndCount(queryParams, positionRepository, search, order);
-       
-            resolve({
-                message: 'Lấy thông tin chức vụ thành công.',
-                data: result.data,
-                meta: await getMetaData(queryParams, result.total)
-            })
+                const result: DataAndCount = await getDataAndCount(queryParams, positionRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin chức vụ thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })
+            }
+            else {
+                const data: Position[] = await positionRepository.find();
+                resolve({
+                    message: 'Lấy thông tin chức vụ thành công.',
+                    data
+                })
+            }
         } catch (error) {
             reject(error);
         }

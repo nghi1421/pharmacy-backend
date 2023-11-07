@@ -11,26 +11,35 @@ import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
 
 const typeByUseRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
-const getTypeByUses = (queryParams: QueryParam): Promise<DataResponse<TypeByUse>> => {
+const getTypeByUses = (queryParams: QueryParam | undefined): Promise<DataResponse<TypeByUse>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const search  = queryParams.searchColumns.map((param) => {
-                const object:any = {}
-                    object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
-                }
-            )
-            
-            const order: any = {}
-            order[queryParams.orderBy] = queryParams.orderDirection
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
+                    const object:any = {}
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                order[queryParams.orderBy] = queryParams.orderDirection
 
-            const result: DataAndCount = await getDataAndCount(queryParams, typeByUseRepository, search, order);
-       
-            resolve({
-                message: 'Lấy thông tin phân loại công dụng thành công.',
-                data: result.data,
-                meta: await getMetaData(queryParams, result.total)
-            })
+                const result: DataAndCount = await getDataAndCount(queryParams, typeByUseRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin phân loại công dụng thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })
+            }
+            else {
+                const data: TypeByUse[] = await typeByUseRepository.find();
+                resolve({
+                    message: 'Lấy thông tin phân loại công dụng thành công.',
+                    data
+                })
+            }
         } catch (error) {
             reject(error);
         }

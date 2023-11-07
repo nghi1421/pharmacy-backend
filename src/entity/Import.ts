@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { Staff } from './Staff';
 import { Provider } from './Provider';
+import { typeInvalidMessage } from '../config/helper';
 
 @Entity('imports')
 export class Import {
@@ -20,7 +21,7 @@ export class Import {
     id: number
 
     @Column({ type: 'date'})
-    @IsDate()
+    @IsDate({ message: typeInvalidMessage('Ngày nhập thuốc')})
     importDate: Date
 
     @ManyToOne(() => Staff, {eager: true})
@@ -32,9 +33,9 @@ export class Import {
     provider: Provider
 
     @Column({ type: 'text', nullable: true })
-    note: string
+    note!: string
 
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0})
+    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, nullable: true})
     @IsNotEmpty()
     paid: number
  
