@@ -5,6 +5,7 @@ import {
     ManyToOne,
     JoinColumn,
     Unique,
+    AfterInsert,
 } from 'typeorm';
 import {
     IsDate,
@@ -56,26 +57,4 @@ export class ExportDetail {
     @IsDate({ message: typeInvalidMessage('Hạn sử dụng') })
     @IsBeforeToday({ message: 'Không thể bán thuốc đã quá hạn.'})
     expiryDate: Date
-
-    // @BeforeRemove()
-    // async handleRemoveExportDetail() {
-    //     try {   
-    //         const importDetailRepository = AppDataSource.getRepository(ImportDetail)
-    //         const importDetail = await importDetailRepository.findOneByOrFail({
-    //             import: { id: this.import.id },
-    //             drug: { id: this.drug.id}
-    //         })
-
-    //         this.drug.quantity = this.drug.quantity + this.quantity
-
-    //         importDetail.quantity = importDetail.quantity + this.quantity
-    //         await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-    //             await transactionalEntityManager.getRepository(DrugCategory).save(this.drug)
-    //             await transactionalEntityManager.getRepository(ImportDetail).save(importDetail)
-    //         })
-    //     }
-    //     catch (error) {
-    //         console.log(`Error: ${error}`)
-    //     }
-    // }
 }

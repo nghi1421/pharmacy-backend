@@ -4,7 +4,7 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Staff } from '../entity/Staff';
 import { Provider } from '../entity/Provider';
-import { EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { ImportDetail } from '../entity/ImportDetail';
 import { NewImportDetailData } from '../global/interfaces/ImportDetailData';
@@ -28,6 +28,27 @@ const getImports = (): Promise<DataResponse<Import>> => {
                 data: imports
             })
         } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getImportDetailsAfter = (drugId: number, importDetailId: number): Promise<ImportDetail[]> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const importDetails: ImportDetail[] = await importDetailRepository.find({
+                where: {
+                    drug: { id: drugId },
+                    id: MoreThanOrEqual(importDetailId)
+                },
+                order: {
+                    id: 'ASC'
+                }
+            })
+
+            resolve(importDetails);
+        }
+        catch (error) {
             reject(error);
         }
     })
@@ -158,6 +179,7 @@ const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => 
 export default {
     getImports,
     searchImport,
+    getImportDetailsAfter,
     storeImport,
     updateImport,
     deleteImport

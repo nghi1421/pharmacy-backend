@@ -33,7 +33,7 @@ const storeExport = async (req: Request, res: Response) => {
         /////////////////////////////////////res.locals.staffId
         const staffId: number = parseInt(req.body.staffId);
         const customerId: number = parseInt(req.body.customerId)
-
+        const type: number = parseInt(req.body.type)
         const exportDetails: NewExportDetailData[] = req.body.exportDetails
 
         if (exportDetails.length === 0) {
@@ -52,6 +52,7 @@ const storeExport = async (req: Request, res: Response) => {
         const data: ExportData = {
             note,
             exportDate,
+            type,
             staffId,
             prescriptionId,
             customerId,

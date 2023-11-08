@@ -6,5 +6,6 @@ export interface ExportData {
     customerId: number;
     note: string;
     prescriptionId: string;
+    type: number;
     exportDetails: NewExportDetailData[];
 }
