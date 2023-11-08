@@ -84,7 +84,6 @@ const routesAPI = (app: Application) => {
     router.get('/exports', exportController.getExports) 
     router.get('/exports/search', exportController.searchExport)
     router.post('/exports', exportController.storeExport)
-    router.put('/exports/:exportId', exportController.updateExport)
     router.delete('/exports/:exportId', exportController.deleteExport)
 
     router.post('/test-login', (req: Request, res: Response) => {

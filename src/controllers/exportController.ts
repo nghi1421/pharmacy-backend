@@ -1,8 +1,7 @@
 import { Request, Response } from 'express'
 import exportService from '../services/exportService'
-import { ExistsExportDetailData, NewExportDetailData } from '../global/interfaces/ExportDetailData';
+import { NewExportDetailData } from '../global/interfaces/ExportDetailData';
 import { ExportData } from '../global/interfaces/ExportData';
-import { UpdateExportData } from '../global/interfaces/UpdateExportData';
 
 const getExports = async (req: Request, res: Response) => {
     try {
@@ -38,14 +37,14 @@ const storeExport = async (req: Request, res: Response) => {
         const exportDetails: NewExportDetailData[] = req.body.exportDetails
 
         if (exportDetails.length === 0) {
-            res.status(401).json({
-                errorMessage: 'Export requires export detail.',
+            res.status(400).json({
+                errorMessage: 'Vui lòng chọn danh mục thuốc khi thêm phiếu xuất.',
             })
             return;
         }
         if (!exportDate || !staffId || !customerId) {
-            res.status(401).json({
-                errorMessage: 'Missing parameters.',
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.',
             })
             return;
         }
@@ -66,44 +65,44 @@ const storeExport = async (req: Request, res: Response) => {
     }
 }
 
-const updateExport = async (req: Request, res: Response) => {
-    try {
-        const { 
-            note,
-            prescriptionId
-        } = req.body
+// const updateExport = async (req: Request, res: Response) => {
+//     try {
+//         const { 
+//             note,
+//             prescriptionId
+//         } = req.body
 
-        const exportDate: Date = new Date(req.body.exportDate)
-        const customerId: number = parseInt(req.body.customerId)
+//         const exportDate: Date = new Date(req.body.exportDate)
+//         const customerId: number = parseInt(req.body.customerId)
 
-        const data: UpdateExportData = {
-            note,
-            exportDate,
-            prescriptionId,
-            customerId,
-        }
+//         const data: UpdateExportData = {
+//             note,
+//             exportDate,
+//             prescriptionId,
+//             customerId,
+//         }
 
-        const existsExportDetail: ExistsExportDetailData[] = req.body.existExportDetail ;
-        const newExportDetail: NewExportDetailData[] = req.body.newExportDetail;
+//         const existsExportDetail: ExistsExportDetailData[] = req.body.existExportDetail ;
+//         const newExportDetail: NewExportDetailData[] = req.body.newExportDetail;
         
-        if (newExportDetail.length === 0 && existsExportDetail.length === 0) {
-            res.status(401).json({
-                errorMessage: 'Export requires export detail.',
-            })
-            return;
-        }
-        const exportId: number = parseInt(req.params.exportId);
-        const result = await exportService.updateExport(
-            exportId,
-            data,
-            newExportDetail,
-            existsExportDetail,
-        );
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).send(error)
-    }
-}
+//         if (newExportDetail.length === 0 && existsExportDetail.length === 0) {
+//             res.status(401).json({
+//                 errorMessage: 'Export requires export detail.',
+//             })
+//             return;
+//         }
+//         const exportId: number = parseInt(req.params.exportId);
+//         const result = await exportService.updateExport(
+//             exportId,
+//             data,
+//             newExportDetail,
+//             existsExportDetail,
+//         );
+//         res.status(200).json(result);
+//     } catch (error) {
+//         res.status(500).send(error)
+//     }
+// }
 
 const deleteExport = async (req: Request, res: Response) => {
     try {
@@ -118,6 +117,5 @@ export default {
     getExports,
     searchExport,
     storeExport,
-    updateExport,
     deleteExport
 }

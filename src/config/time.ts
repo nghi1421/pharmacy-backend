@@ -6,7 +6,7 @@ export const getMonthYearNow = (): string => {
     return `${month > 8 ? month +1 : '0' + month}${year}`
 }
 
-export const getLastMonthYear = (): string => {
+export const getPreviousYearMonth = (): string => {
     let month = dayjs().month()
     if (month === 0) {
         month = 11;

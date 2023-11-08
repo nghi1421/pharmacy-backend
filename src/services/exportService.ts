@@ -1,7 +1,7 @@
 import { Export } from '../entity/Export'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validateOrReject } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { Staff } from '../entity/Staff';
 import { EntityManager, In, MoreThan, Not, Repository } from 'typeorm';
 import { ImportDetail } from '../entity/ImportDetail';
@@ -12,6 +12,7 @@ import { Customer } from '../entity/Customer';
 import { UpdateExportData } from '../global/interfaces/UpdateExportData';
 import { ExistsExportDetailData, NewExportDetailData } from '../global/interfaces/ExportDetailData';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
+import { getErrors } from '../config/helper';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
@@ -53,12 +54,12 @@ const storeExport = (data: ExportData) => {
         try {
             const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
             if (staff === null) {
-                return reject({ errorMessage: 'Staff not found.' });
+                return reject({ errorMessage: 'Thông tin nhân viên không tồn tại.' });
             }
 
             const customer: Customer|null = await customerRepository.findOneBy({ id: data.customerId });
             if (customer === null) {
-                return reject({ errorMessage: 'Customer not found.' });
+                return reject({ errorMessage: 'Thông tin khách hàng không tồn tại.' });
             }
 
             let myExport = new Export();
@@ -72,10 +73,16 @@ const storeExport = (data: ExportData) => {
 
             await validateOrReject(myExport)
 
-            let drugIds: number[] = data.exportDetails.map((exportDetail) => {
-                return exportDetail.drugId
-            })
+            const errors = await validate(myExport);
+            if (errors.length > 0) {
+                return reject({ validateError: getErrors(errors) });
+            }
 
+            let drugIds: number[] = data.exportDetails.map((exportDetail: NewExportDetailData) => exportDetail.drugId)
+            const drugCategories: DrugCategory[] = await drugRepository.find({ where: { id: In(drugIds) } });
+            if (drugCategories.length == 0) {
+                return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
+            }
             const drugs: DrugCategory[] = await drugRepository.find(
                 {
                     where: { id: In(drugIds) }
