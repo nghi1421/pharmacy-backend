@@ -5,7 +5,6 @@ import {
     ManyToOne,
     JoinColumn,
     Unique,
-    AfterInsert,
 } from 'typeorm';
 import {
     IsDate,

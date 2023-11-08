@@ -4,7 +4,6 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate, validateOrReject } from "class-validator"
 import { Staff } from '../entity/Staff';
 import { EntityManager, Repository } from 'typeorm';
-import { DrugCategory } from '../entity/DrugCategory';
 import { ExportData } from '../global/interfaces/ExportData';
 import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
@@ -19,7 +18,6 @@ const exportRepository: Repository<Export> = AppDataSource.getRepository(Export)
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
-const drugRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 
 const getExports = (): Promise<DataResponse<Export>> => {
     return new Promise(async (resolve, reject) => {
@@ -159,7 +157,8 @@ const storeExport = (data: ExportData) => {
                             drugInventory.importDetail = importDetails[index]
                             drugInventory.inventoryImportDetail = inventory
                             drugInventory.inventoryQuantiy = drugInventory.inventoryQuantiy - exportDetail.quantity
-                            
+                            drugInventory.salesQuantity += exportDetail.quantity
+
                             handledExportDetails.forEach(async (handledExportDetail) => {
                                 const newExportDetail = new ExportDetail();
 
@@ -172,6 +171,7 @@ const storeExport = (data: ExportData) => {
                                 newExportDetail.expiryDate = new Date(handledExportDetail.importDetail.expiryDate)
 
                                 const errors = await validate(newExportDetail)
+
                                 if (errors.length > 0) {
                                     reject({ validateError: getErrors(errors) })
                                     throw new Error();
