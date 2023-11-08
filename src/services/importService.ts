@@ -87,7 +87,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                     const newImportDetail = new ImportDetail()
                     if (!drug) {
                         resolve({
-                            errorMessage: `Mã thuốc ${importDetail.drugId} không tồn. Vui lòng làm mới danh mục thuốc để cập nhật thông tin.`,
+                            errorMessage: `Mã thuốc ${importDetail.drugId} không tồn tại. Vui lòng làm mới danh mục thuốc để cập nhật thông tin.`,
                         }); 
                         throw new Error();
                     }

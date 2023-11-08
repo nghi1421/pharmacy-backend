@@ -7,11 +7,11 @@ import { validateOrReject } from "class-validator";
 
 const inventoryRepository = AppDataSource.getRepository(Inventory);
 
-const checkInventory = (listQuantity: QuantityRequired[]) => {
+const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
     return new Promise(async (resolve, reject) => {
         try {
             const drugIds: number[] = listQuantity.map((quantityRequried) => quantityRequried.drugId);
-            const listInventory = await inventoryRepository.find({
+            let listInventory: Inventory[] = await inventoryRepository.find({
                 where: {
                     drug: { id: In(drugIds) },
                     monthYear: getMonthYearNow()
@@ -34,8 +34,19 @@ const checkInventory = (listQuantity: QuantityRequired[]) => {
                         errorMessage: `Số lượng tồn kho của thuốc không tồn tại.`
                     })
                 }
-                
+                const newIvnentories = await generateInventoryNewMonth(listPrevMonthInventory)
+                listInventory.push(...newIvnentories)
             }
+
+            listInventory.forEach((inventory) => {
+                const drugInventory: QuantityRequired | undefined =
+                    listQuantity.find((item) => item.drugId === inventory.drug.id)
+                
+                if (drugInventory && drugInventory.quantity > inventory.inventoryQuantiy) {
+                    return resolve(false)
+                } 
+            })
+            resolve(true)
         }
         catch (error) {
             reject(error)
@@ -54,6 +65,24 @@ const getDrugInventoryPreviousMonth = (drugId: number) => {
                 return resolve(undefined)
             }
             return resolve(prevDrugInventory)
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const getDrugInventoryThisMonth = (drugId: number): Promise<Inventory | undefined> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const drugInventory: Inventory | null = await inventoryRepository.findOneBy(
+                { drug: { id: drugId }, monthYear: getMonthYearNow() }
+            )
+            
+            if (!drugInventory) {
+                return resolve(undefined)
+            }
+            return resolve(drugInventory)
         }
         catch (error) {
             reject(error)
@@ -176,5 +205,6 @@ const generateInventoryNewMonth = (prevDrugInventoryList: Inventory[]): Promise<
 
 export {
     updateOrGenerateInventoryImport,
+    getDrugInventoryThisMonth,
     checkInventory
 }
