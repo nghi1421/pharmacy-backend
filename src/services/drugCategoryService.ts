@@ -46,14 +46,18 @@ const getDrugCategories = (queryParams: QueryParam | undefined): Promise<DataRes
                 }
 
                 const result: DataAndCount = await getDataAndCount(queryParams, drugCategoryRepository, search, order);
-        
+                const getInventory = async () => Promise.all(result.data.map(async (drugCategory: DrugCategory) => {
+                    let drugInventory: Inventory | null = await inventoryService.getDrugInventory(drugCategory.id)
+                    return {...drugCategory, quantity: drugInventory ? drugInventory.inventoryQuantiy : 0} as DrugCategory
+                }))
+                const drugCategories = await getInventory()
                 resolve({
                     message: 'Lấy thông tin danh mục thuốc thành công.',
-                    data: result.data,
-                    meta: await getMetaData(queryParams, result.total)
+                    data: drugCategories,
+                    meta: await getMetaData(queryParams, result.total),
                 })
             }
-            else {
+            else {      
                 const drugCategoriesCache: DrugCategory[] | undefined | null
                     = drugCategoryCache.getDrugCategories();
 
@@ -64,11 +68,11 @@ const getDrugCategories = (queryParams: QueryParam | undefined): Promise<DataRes
                         return {...drugCategory, quantity: drugInventory ? drugInventory.inventoryQuantiy : 0} as DrugCategory
                     }))
                     const drugCategories = await getInventory()
-                    
+
                     drugCategoryCache.setDrugCategories(drugCategories)
                     resolve({
                         message: 'Lấy thông tin danh mục thuốc thành công.',
-                        data: drugCategories,
+                        data: data,
                     })    
                 }
                 else {
@@ -146,6 +150,7 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
             }
 
             await drugCategoryRepository.save(newDrugCategory)
+
             resolve({
                 message: 'Thêm thông tin danh mục thuốc thành công.',
                 data: newDrugCategory
@@ -204,6 +209,7 @@ const updateDrugCategory =
             }
 
             await drugCategoryRepository.save(drugCategory)
+
             resolve({
                 message: 'Cập nhật thông tin danh mục thuốc thành công.',
                 data: drugCategory
@@ -226,7 +232,6 @@ const deleteDrugCategory = (drugCategoryId: number): Promise<DataOptionResponse<
             }
 
             await drugCategoryRepository.delete(drugCategoryId);
-
             resolve({
                 message: 'Xóa thông tin danh mục thuốc thành công.',
                 data: drugCategory

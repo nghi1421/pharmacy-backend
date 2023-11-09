@@ -6,6 +6,9 @@ import {
     UpdateDateColumn,
     ManyToOne,
     JoinColumn,
+    AfterInsert,
+    AfterRemove,
+    AfterUpdate,
 } from 'typeorm';
 import {
     IsNotEmpty,
@@ -16,6 +19,7 @@ import {
 import { TypeByUse } from './TypeByUse';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
 import { maxLengthErrorMessage, numberMaxMesssage, numberMinMesssage, requiredMessage } from '../config/helper';
+import DrugCategoryCache from '../cache/DrugCategoryCache';
 
 @Entity('drug_categories')
 export class DrugCategory {
@@ -81,4 +85,19 @@ export class DrugCategory {
     updatedAt: Date
 
     quantity: number
+
+    @AfterInsert()
+    afterInsert() {
+        DrugCategoryCache.setDrugCategories(null)
+    }
+
+    @AfterRemove()
+    afterRemove() {
+        DrugCategoryCache.setDrugCategories(null)
+    }
+
+    @AfterUpdate()
+    afterUpdate() {
+        DrugCategoryCache.setDrugCategories(null)
+    }
 }

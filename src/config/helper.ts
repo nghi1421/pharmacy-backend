@@ -59,7 +59,8 @@ export const getDataAndCount = async (
                 [result, total] = await repository.findAndCount({
                     take: queryParams.perPage,
                     skip: ((queryParams.page - 1) * queryParams.perPage),
-                    order
+                    order,
+                    cache: true
                 })
             }      
             resolve({
