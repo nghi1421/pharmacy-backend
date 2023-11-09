@@ -39,8 +39,8 @@ export const UserRepository = importRepository.extend({
         let totalPrice: number = 0;
         let totalPriceWithVat: number = 0;
         const importDetail: ImportDetailData[] = importDetails.map((importDetail) => {
-            totalPrice += importDetail.unitPrice * importDetail.quantityImport
-            totalPriceWithVat += importDetail.unitPrice * importDetail.quantityImport * (1 + importDetail.vat)
+            totalPrice += importDetail.unitPrice * importDetail.quantity
+            totalPriceWithVat += importDetail.unitPrice * importDetail.quantity * (1 + importDetail.vat)
             return {
                 ...importDetail,    
                 drugId: importDetail.drug.id,

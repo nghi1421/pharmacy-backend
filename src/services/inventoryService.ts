@@ -1,13 +1,14 @@
-import { In } from "typeorm";
-import { AppDataSource } from "../dataSource";
+import { In, Repository } from "typeorm";
 import { Inventory } from "../entity/Inventory";
 import { getMonthYearNow, getPreviousYearMonth } from "../config/time";
 import { ImportDetail } from "../entity/ImportDetail";
 import { validateOrReject } from "class-validator";
+import { AppDataSource } from "../dataSource";
 
-const inventoryRepository = AppDataSource.getRepository(Inventory);
 
 const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
+
     return new Promise(async (resolve, reject) => {
         try {
             const drugIds: number[] = listQuantity.map((quantityRequried) => quantityRequried.drugId);
@@ -55,6 +56,7 @@ const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
 }
 
 const getDrugInventoryPreviousMonth = (drugId: number) => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
             const prevDrugInventory: Inventory | null = await inventoryRepository.findOneBy(
@@ -73,6 +75,7 @@ const getDrugInventoryPreviousMonth = (drugId: number) => {
 }
 
 const getDrugInventoryThisMonth = (drugId: number): Promise<Inventory | undefined> => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
             const drugInventory: Inventory | null = await inventoryRepository.findOneBy(
@@ -91,9 +94,9 @@ const getDrugInventoryThisMonth = (drugId: number): Promise<Inventory | undefine
 }
 
 const updateOrGenerateInventoryImport = (importDetail: ImportDetail) => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
-            const inventoryRepository = AppDataSource.getRepository(Inventory);
             const monthYearNow = getMonthYearNow();
             const inventory = importDetail.conversionQuantity * importDetail.quantity;
             const drugInventory: Inventory | null = await inventoryRepository.findOneBy(
@@ -118,6 +121,7 @@ const updateOrGenerateInventoryImport = (importDetail: ImportDetail) => {
 }
 
 const generateInventoryNewMonthImport = (importDetail: ImportDetail): Promise<Inventory> => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
             const inventory: number = importDetail.quantity * importDetail.conversionQuantity;
@@ -158,12 +162,12 @@ const generateInventoryNewMonthImport = (importDetail: ImportDetail): Promise<In
 }
 
 const updateInventoryImport = (drugInventory: Inventory, inventory: number): Promise<Inventory> => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
             drugInventory.importQuantity += inventory
             drugInventory.inventoryQuantiy += inventory
             await validateOrReject(drugInventory);
-            await inventoryRepository.save(drugInventory)
             const data = await inventoryRepository.save(drugInventory)
             resolve(data)
         }
@@ -174,6 +178,7 @@ const updateInventoryImport = (drugInventory: Inventory, inventory: number): Pro
 }
 
 const generateInventoryNewMonth = (prevDrugInventoryList: Inventory[]): Promise<Inventory[]> => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
             const inventoryNewMonth = prevDrugInventoryList.reduce((listNewInventory, prevDrugInventory) => {
@@ -205,6 +210,7 @@ const generateInventoryNewMonth = (prevDrugInventoryList: Inventory[]): Promise<
 
 export {
     updateOrGenerateInventoryImport,
+    getDrugInventoryPreviousMonth,
     getDrugInventoryThisMonth,
     checkInventory
 }

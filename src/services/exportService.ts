@@ -1,4 +1,4 @@
-import { Export } from '../entity/Export'
+import { Export } from '../entity/Export' 
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate, validateOrReject } from "class-validator"
@@ -154,6 +154,7 @@ const storeExport = (data: ExportData) => {
                                 importDetail: importDetails[index],
                                 quantity: inventory
                             })
+
                             drugInventory.importDetail = importDetails[index]
                             drugInventory.inventoryImportDetail = inventory
                             drugInventory.inventoryQuantiy = drugInventory.inventoryQuantiy - exportDetail.quantity
@@ -183,7 +184,6 @@ const storeExport = (data: ExportData) => {
                         }
                     }
                 }
-                
             })
             const exportDetailData = await exportDetailRepository.find({ where: { export: { id: newExport.id } } })
             const resultDetailData = []

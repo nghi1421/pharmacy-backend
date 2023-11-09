@@ -6,6 +6,7 @@ import {
     JoinColumn,
     Unique,
     AfterInsert,
+    Repository,
 } from 'typeorm';
 import {
     IsDate,
@@ -13,13 +14,16 @@ import {
     Max,
     MaxLength,
     Min,
+    validateOrReject,
 } from 'class-validator';
 import { Import } from './Import';
 import { DrugCategory } from './DrugCategory';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
 import { dateBeforeTodayMessage, maxLengthErrorMessage, numberMaxMesssage, numberMinMesssage, requiredMessage, typeInvalidMessage } from '../config/helper';
 import { IsBeforeToday } from '../contraints/IsBeforeToday';
-import { updateOrGenerateInventoryImport } from '../services/inventoryService';
+import { Inventory } from './Inventory';
+import { AppDataSource } from '../dataSource';
+import { getMonthYearNow, getPreviousYearMonth } from '../config/time';
 
 @Entity('import_details')
 @Unique(['import.id', 'drug.id'])
@@ -68,9 +72,56 @@ export class ImportDetail {
     @AfterInsert()
     async afterInsert() {
         try {
-            await updateOrGenerateInventoryImport(this)
+            const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
+            const monthYearNow = getMonthYearNow();
+            const inventory = this.conversionQuantity * this.quantity;
+            const drugInventory: Inventory | null = await inventoryRepository.findOneBy(
+                {
+                    monthYear: monthYearNow,
+                    drug: { id: this.drug.id }
+                }
+            )
+
+            if (!drugInventory) {
+                const prevDrugInventory: Inventory | null = await inventoryRepository.findOneBy(
+                    {
+                        monthYear: getPreviousYearMonth(),
+                        drug: { id: this.drug.id }
+                    }
+                )
+                const newInventory = new Inventory();
+                
+                if (!prevDrugInventory) {
+                    newInventory.prevMonthInventoryQuantity = 0
+                    newInventory.inventoryImportDetail = inventory
+                    newInventory.importDetail = this
+                    newInventory.inventoryQuantiy = inventory
+                }
+                else {
+                    newInventory.prevMonthInventoryQuantity = prevDrugInventory.inventoryQuantiy
+                    newInventory.inventoryImportDetail = prevDrugInventory.inventoryImportDetail
+                    newInventory.importDetail = prevDrugInventory.importDetail
+                    newInventory.inventoryQuantiy = prevDrugInventory.inventoryQuantiy + inventory
+                }
+                newInventory.monthYear = getMonthYearNow();
+                newInventory.drug = this.drug
+                newInventory.importQuantity = inventory
+                newInventory.salesQuantity = 0
+                newInventory.brokenQuanity = 0
+                
+                await validateOrReject(newInventory);
+                inventoryRepository.save(newInventory)
+            }
+            else {
+                drugInventory.importQuantity += inventory
+                drugInventory.inventoryQuantiy += inventory
+
+                await validateOrReject(drugInventory);
+                inventoryRepository.save(drugInventory)
+            }
         }
         catch (error) {
+            console.log(error)
         }
     }
 }

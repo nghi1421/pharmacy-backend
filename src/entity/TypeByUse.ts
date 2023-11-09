@@ -21,7 +21,7 @@ export class TypeByUse {
     @MaxLength(100, { message: maxLengthErrorMessage('Tên công dụng', 100)})
     name: string 
 
-    @Column({ length: 255 })
+    @Column({ length: 255 }) 
     @IsNotEmpty({ message: requiredMessage('Mô tả')})
     @MaxLength(255, { message: maxLengthErrorMessage('Mô tả', 255)})
     detail: string
