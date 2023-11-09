@@ -55,18 +55,18 @@ const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
     })
 }
 
-const getDrugInventoryPreviousMonth = (drugId: number) => {
-    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
+const getDrugInventory = (drugId: number): Promise<Inventory | null> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const prevDrugInventory: Inventory | null = await inventoryRepository.findOneBy(
-                { drug: { id: drugId }, monthYear: getPreviousYearMonth() }
-            )
+            const inventoryThisMonth: Inventory | null = await getDrugInventoryThisMonth(drugId)
             
-            if (!prevDrugInventory) {
-                return resolve(undefined)
+            if (!inventoryThisMonth) {
+                const ivnentoryPrevMonth: Inventory | null = await getDrugInventoryPreviousMonth(drugId)
+                resolve(ivnentoryPrevMonth)    
             }
-            return resolve(prevDrugInventory)
+            else {
+                resolve(inventoryThisMonth)
+            }
         }
         catch (error) {
             reject(error)
@@ -74,18 +74,29 @@ const getDrugInventoryPreviousMonth = (drugId: number) => {
     })
 }
 
-const getDrugInventoryThisMonth = (drugId: number): Promise<Inventory | undefined> => {
+const getDrugInventoryPreviousMonth = (drugId: number): Promise<Inventory | null> => {
+    const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
+    return new Promise(async (resolve, reject) => {
+        try {
+            const prevDrugInventory: Inventory | null = await inventoryRepository.findOneBy(
+                { drug: { id: drugId }, monthYear: getPreviousYearMonth() }
+            )
+            resolve(prevDrugInventory)
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const getDrugInventoryThisMonth = (drugId: number): Promise<Inventory | null> => {
     const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
     return new Promise(async (resolve, reject) => {
         try {
             const drugInventory: Inventory | null = await inventoryRepository.findOneBy(
                 { drug: { id: drugId }, monthYear: getMonthYearNow() }
             )
-            
-            if (!drugInventory) {
-                return resolve(undefined)
-            }
-            return resolve(drugInventory)
+            resolve(drugInventory)
         }
         catch (error) {
             reject(error)
@@ -208,8 +219,9 @@ const generateInventoryNewMonth = (prevDrugInventoryList: Inventory[]): Promise<
     })
 }
 
-export {
+export default {
     updateOrGenerateInventoryImport,
+    getDrugInventory,
     getDrugInventoryPreviousMonth,
     getDrugInventoryThisMonth,
     checkInventory

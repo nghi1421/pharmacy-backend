@@ -10,7 +10,10 @@ import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
-
+import drugCategoryCache from '../cache/DrugCategoryCache'
+import { Inventory } from '../entity/Inventory';
+import inventoryService from './inventoryService';
+    
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 const typeRepository: Repository<TypeByUse> = AppDataSource.getRepository(TypeByUse);
 
@@ -51,11 +54,29 @@ const getDrugCategories = (queryParams: QueryParam | undefined): Promise<DataRes
                 })
             }
             else {
-                const data: DrugCategory[] = await drugCategoryRepository.find();
-                resolve({
-                    message: 'Lấy thông tin danh mục thuốc thành công.',
-                    data,
-                })
+                const drugCategoriesCache: DrugCategory[] | undefined | null
+                    = drugCategoryCache.getDrugCategories();
+
+                if (!drugCategoriesCache) {
+                    const data: DrugCategory[] = await drugCategoryRepository.find();
+                    const getInventory = async () => Promise.all(data.map(async (drugCategory) => {
+                        let drugInventory: Inventory | null = await inventoryService.getDrugInventory(drugCategory.id)
+                        return {...drugCategory, quantity: drugInventory ? drugInventory.inventoryQuantiy : 0} as DrugCategory
+                    }))
+                    const drugCategories = await getInventory()
+                    
+                    drugCategoryCache.setDrugCategories(drugCategories)
+                    resolve({
+                        message: 'Lấy thông tin danh mục thuốc thành công.',
+                        data: drugCategories,
+                    })    
+                }
+                else {
+                    resolve({
+                        message: 'Lấy thông tin danh mục thuốc thành công.',
+                        data: drugCategoriesCache,
+                    })    
+                }
             }
             
         } catch (error) {

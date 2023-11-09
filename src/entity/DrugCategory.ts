@@ -79,4 +79,6 @@ export class DrugCategory {
     @Column()
     @UpdateDateColumn()
     updatedAt: Date
+
+    quantity: number
 }
