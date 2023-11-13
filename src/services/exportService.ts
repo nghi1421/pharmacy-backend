@@ -9,10 +9,10 @@ import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { getErrors } from '../config/helper';
-import { checkInventory, getDrugInventoryThisMonth } from './inventoryService';
 import { Inventory } from '../entity/Inventory';
 import importService from './importService'
 import { ImportDetail } from '../entity/ImportDetail';
+import inventoryService from './inventoryService'
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
@@ -80,7 +80,7 @@ const storeExport = (data: ExportData) => {
                 return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
             }
 
-            const isEnough = await checkInventory(data.exportDetails as QuantityRequired[])
+            const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
 
             if (!isEnough) {
                 return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
@@ -91,7 +91,7 @@ const storeExport = (data: ExportData) => {
                 
                 if (data.type === 1) {
                     for (let exportDetail of data.exportDetails) {
-                        let drugInventory: Inventory | undefined = await getDrugInventoryThisMonth(exportDetail.drugId);
+                        let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drugId);
 
                         if (!drugInventory) {
                             resolve({

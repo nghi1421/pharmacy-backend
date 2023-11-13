@@ -15,7 +15,7 @@ export class Role {
     @PrimaryGeneratedColumn()
     id: number
  
-    @Column({ unique: true })
+    @Column({ unique: true, length: 100 })
     @Length(1, 100)
     @IsNotEmpty()
     name: string

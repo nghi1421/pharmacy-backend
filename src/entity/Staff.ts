@@ -38,13 +38,13 @@ export class Staff {
     @MaxLength(255, { message: maxLengthErrorMessage('Email', 255)})
     email: string
 
-    @Column({ name: 'phone_number',  unique: true })
+    @Column({ name: 'phone_number',  unique: true, length: 15 })
     @IsNotEmpty({ message: requiredMessage('Số điện thoại')})
     @MaxLength(15, { message: maxLengthErrorMessage('Số điện thoại', 15) })
     @Matches(phoneNumberRegex, { message: typeInvalidMessage('Số điện thoại')})
     phoneNumber: string
 
-    @Column({ unique: true })
+    @Column({ unique: true, length: 20 })
     @IsNotEmpty({ message: requiredMessage('CCCD') })
     @Matches(stringOnlyNumberRegex, { message: typeInvalidMessage('CCCD')})
     @MaxLength(20, { message: maxLengthErrorMessage('CCCD', 20) })

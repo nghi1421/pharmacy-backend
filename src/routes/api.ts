@@ -47,6 +47,7 @@ const routesAPI = (app: Application) => {
 
     //Customer
     router.get('/customers', customerController.getCustomers)
+    router.post('/customers/search-by-phone-number', customerController.getCustomerByPhoneNumber)
     router.get('/customers/:customerId', customerController.getCustomer)
     router.post('/customers', customerController.storeCustomer)
     router.put('/customers/:customerId', customerController.updateCustomer)

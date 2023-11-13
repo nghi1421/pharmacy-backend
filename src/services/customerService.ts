@@ -48,6 +48,27 @@ const getCustomers = (queryParams: QueryParam | undefined): Promise<DataResponse
     })
 }
 
+const getCustomerByPhoneNumber = (phoneNumber: string): Promise<GetDataResponse<Customer>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result: Customer|null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            if (result) {
+                resolve({
+                    message: 'Lấy thông tin khách hàng thành công.',
+                    data: result
+                })
+            }
+            else {
+                reject({
+                    errorMessage: 'Không tìm thấy thông tin nhân viên.'
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
 const getCustomer = (customerId: number): Promise<GetDataResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -60,7 +81,7 @@ const getCustomer = (customerId: number): Promise<GetDataResponse<Customer>> => 
             }
             else {
                 reject({
-                    errorMessage: 'Phân loại khách hàng không tồn tại. Vui lòng làm mới trang.'
+                    errorMessage: 'Thông tin khách hàng không tồn tại. Vui lòng làm mới trang.'
                 });
             }
         } catch (error) {
@@ -75,14 +96,9 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             let newCustomer = new Customer();
 
             newCustomer.name = data.name;
-            newCustomer.email = data.email;
             newCustomer.phoneNumber = data.phoneNumber;
             newCustomer.gender = data.gender;
             newCustomer.address = data.address
-
-            if (data.dob) {
-                newCustomer.dob = new Date(data.dob)
-            }
 
             const errors = await validate(newCustomer)
             
@@ -93,19 +109,11 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueCreate(customerRepository, 'phone_number', [newCustomer.phoneNumber])
-            const [{ exists: existsEmail }] = await
-                checkExistUniqueCreate(customerRepository, 'email', [newCustomer.email])
             
             if (existsPhoneNumber) {
                 errorResponse.push({
                     key: 'phoneNumber',
                     value: ['Số điện thoại đã tồn tại.']
-                })
-            }
-            if (existsEmail) {
-                errorResponse.push({
-                    key: 'email',
-                    value: ['Email đã tồn tại.']
                 })
             }
             if (errorResponse.length > 0) {
@@ -131,29 +139,16 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
             customer.name = data.name;
             customer.phoneNumber = data.phoneNumber;
             customer.gender = data.gender;
-            customer.email = data.email;
             customer.address = data.address;
-
-            if (data.dob) {
-                customer.dob = new Date(data.dob)
-            }
 
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueUpdate(customerRepository, 'phone_number', [customer.phoneNumber, customer.id])
-            const [{ exists: existsEmail }] = await
-                checkExistUniqueUpdate(customerRepository, 'email', [customer.email, customer.id])
             
             if (existsPhoneNumber) {
                 errorResponse.push({
                     key: 'phoneNumber',
                     value: ['Số điện thoại đã tồn tại.']
-                })
-            }
-            if (existsEmail) {
-                errorResponse.push({
-                    key: 'email',
-                    value: ['Email đã tồn tại.']
                 })
             }
             if (errorResponse.length > 0) {
@@ -191,6 +186,7 @@ const deleteCustomer = (customerId: number): Promise<DataOptionResponse<Customer
 export default {
     getCustomers,
     getCustomer,
+    getCustomerByPhoneNumber,
     storeCustomer,
     updateCustomer,
     deleteCustomer

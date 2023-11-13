@@ -21,6 +21,22 @@ const getCustomers = async (req: Request, res: Response) => {
     }
 }
 
+const getCustomerByPhoneNumber = async (req: Request, res: Response) => {
+    try {
+        const phoneNumber: string = req.body.phoneNumber
+        if (!phoneNumber) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+            return;
+        }
+        const result = await customerService.getCustomerByPhoneNumber(phoneNumber);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const getCustomer = async (req: Request, res: Response) => {
     try {
         const customerId: number = parseInt(req.params.customerId)
@@ -42,13 +58,11 @@ const storeCustomer = async (req: Request, res: Response) => {
         const { 
             name,
             phoneNumber,
-            email,
-            dob,
             address,
             gender,
         } = req.body
 
-        if (!name || !phoneNumber || !email || !address) {
+        if (!name || !phoneNumber || !address) {
             res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
@@ -57,8 +71,6 @@ const storeCustomer = async (req: Request, res: Response) => {
 
         const data: CustomerData = {
             name,
-            email,
-            dob,
             address,
             gender,
             phoneNumber,
@@ -76,13 +88,11 @@ const updateCustomer = async (req: Request, res: Response) => {
         const { 
             name,
             phoneNumber,
-            email,
-            dob,
             address,
             gender,
         } = req.body
 
-        if (!name || !phoneNumber || !email || !address) {
+        if (!name || !phoneNumber || !address) {
             res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
@@ -91,8 +101,6 @@ const updateCustomer = async (req: Request, res: Response) => {
 
         const data: CustomerData = {
             name,
-            email,
-            dob,
             address,
             gender,
             phoneNumber,
@@ -125,6 +133,7 @@ const deleteCustomer = async (req: Request, res: Response) => {
 
 export default {
     getCustomers,
+    getCustomerByPhoneNumber,
     getCustomer,
     storeCustomer,
     updateCustomer,
