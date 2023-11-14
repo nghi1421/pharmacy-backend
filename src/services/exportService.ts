@@ -57,6 +57,47 @@ const getExports = (queryParams: QueryParam | undefined): Promise<DataResponse<E
     })
 }
 
+const getExport = (exportId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const exportData: null | Export = await exportRepository.findOneBy({ id: exportId});
+            if (exportData) {
+                const exportDetailData = await exportDetailRepository.find({ where: { export: { id: exportData.id } } })
+                const resultDetailData = []
+                let totalPrice: number = 0;
+                let totalPriceWithVat: number = 0;
+                for (let exportDetail of exportDetailData) {
+                    const price = exportDetail.unitPrice * exportDetail.quantity
+                    const priceWithVat = exportDetail.unitPrice * exportDetail.quantity * (1 + exportDetail.vat)
+
+                    resultDetailData.push({
+                            ...exportDetail,
+                            price,
+                            priceWithVat,
+                        })
+                    
+                    totalPrice += price
+                    totalPriceWithVat += priceWithVat
+                }
+                resolve({
+                    message: 'Lấy thông tin phiếu xuất hàng thành công.',
+                    data: {
+                        export: { ...exportData, totalPriceWithVat, totalPrice: totalPrice},
+                        exportDetail: resultDetailData
+                    },
+                })
+            }
+            else {
+                reject({
+                    errorMessage: 'Phiếu xuất hàng không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
 const searchExport = (query: Object): Promise<DataResponse<Export>> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -305,6 +346,7 @@ const deleteExport = (exportId: number): Promise<DataOptionResponse<Export>> => 
 
 export default {
     getExports,
+    getExport,
     searchExport,
     storeExport,
     updateExport,

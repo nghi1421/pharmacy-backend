@@ -16,6 +16,16 @@ const getExports = async (req: Request, res: Response) => {
     }
 }
 
+const getExport = async (req: Request, res: Response) => {
+    try {
+        const exportId: number = parseInt(req.params.exportId)
+        const result = await exportService.getExport(exportId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const searchExport = async (req: Request, res: Response) => { 
     try {
         const query = req.body
@@ -119,6 +129,7 @@ const deleteExport = async (req: Request, res: Response) => {
 }
 export default {
     getExports,
+    getExport,
     searchExport,
     storeExport,
     deleteExport

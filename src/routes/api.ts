@@ -76,6 +76,7 @@ const routesAPI = (app: Application) => {
 
     //Import
     router.get('/imports', importController.getImports)
+    router.get('/imports/:importId', importController.getImport)
     router.get('/imports/search', importController.searchImport)
     router.post('/imports', importController.storeImport)
     router.put('/imports/:importId', importController.updateImport)
@@ -83,6 +84,7 @@ const routesAPI = (app: Application) => {
 
     //Export
     router.get('/exports', exportController.getExports) 
+    router.get('/exports/:exportId', exportController.getExport)
     router.get('/exports/search', exportController.searchExport)
     router.post('/exports', exportController.storeExport)
     router.delete('/exports/:exportId', exportController.deleteExport)

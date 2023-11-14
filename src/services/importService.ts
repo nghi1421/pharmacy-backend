@@ -57,6 +57,50 @@ const getImports = (queryParams: QueryParam): Promise<DataResponse<Import>> => {
     })
 }
 
+const getImport = (importId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const importData: null | Import = await importRepository.findOneBy({ id: importId});
+            if (importData) {
+                const importDetails = await importDetailRepository.find({ where: { import: { id: importData.id } } })
+                const resultDetailData = []
+                let totalPrice: number = 0;
+                let totalPriceWithVat: number = 0;
+                for (let importDetail of importDetails) {
+                    const price = importDetail.unitPrice * importDetail.quantity
+                    const priceWithVat = importDetail.unitPrice * importDetail.quantity * (1 + importDetail.vat)
+
+                    resultDetailData.push({
+                            ...importDetail,
+                        })
+                    
+                    totalPrice += price
+                    totalPriceWithVat += priceWithVat
+                }
+                resolve({
+                    message: 'Lấy thông tin phiếu nhập hàng thành công.',
+                    data: {
+                        import: {
+                            ...importData,
+                             totalPriceWithVat,
+                             totalPrice: totalPrice,
+                            vatValue: totalPriceWithVat - totalPrice
+                        },
+                        importDetail: resultDetailData
+                    },
+                })
+            }
+            else {
+                reject({
+                    errorMessage: 'Phiếu xuất hàng không tồn tại. Vui lòng làm mới trang.'
+                });
+            }
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
 const getImportDetailsAfter = (drugId: number, importDetailId: number): Promise<ImportDetail[]> => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -203,6 +247,7 @@ const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => 
 
 export default {
     getImports,
+    getImport,
     searchImport,
     getImportDetailsAfter,
     storeImport,

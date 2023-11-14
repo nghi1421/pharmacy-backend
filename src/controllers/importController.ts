@@ -15,6 +15,16 @@ const getImports = async (req: Request, res: Response) => {
     }
 }
 
+const getImport = async (req: Request, res: Response) => {
+    try {
+        const importId: number = parseInt(req.params.importId)
+        const result = await importService.getImport(importId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const searchImport = async (req: Request, res: Response) => { 
     try {
         const query = req.body
@@ -128,6 +138,7 @@ const deleteImport = async (req: Request, res: Response) => {
 
 export default {
     getImports,
+    getImport,
     searchImport,
     storeImport,
     updateImport,
