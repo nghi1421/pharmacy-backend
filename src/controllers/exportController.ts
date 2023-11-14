@@ -3,10 +3,13 @@ import exportService from '../services/exportService'
 import { NewExportDetailData } from '../global/interfaces/ExportDetailData';
 import { ExportData } from '../global/interfaces/ExportData';
 import { CustomerData } from '../global/interfaces/CustomerData';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getExports = async (req: Request, res: Response) => {
     try {
-        const result = await exportService.getExports();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result = await exportService.getExports(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)

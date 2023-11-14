@@ -2,10 +2,13 @@ import { Request, Response } from 'express'
 import importService from '../services/importService'
 import { ImportData } from '../global/interfaces/ImportData';
 import { NewImportDetailData } from '../global/interfaces/ImportDetailData';
+import { QueryParam } from '../global/interfaces/QueryParam';
+import { getQueryParams } from '../config/helper';
 
 const getImports = async (req: Request, res: Response) => {
     try {
-        const result = await importService.getImports();
+        const queryParams: QueryParam = await getQueryParams(req)
+        const result = await importService.getImports(queryParams);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)

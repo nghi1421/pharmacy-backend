@@ -3,31 +3,54 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate, validateOrReject } from "class-validator"
 import { Staff } from '../entity/Staff';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, Like, Repository } from 'typeorm';
 import { ExportData } from '../global/interfaces/ExportData';
 import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
-import { getErrors } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
 import { Inventory } from '../entity/Inventory';
 import importService from './importService'
 import { ImportDetail } from '../entity/ImportDetail';
 import inventoryService from './inventoryService'
 import drugCategoryCache from '../cache/DrugCategoryCache';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
 
-const getExports = (): Promise<DataResponse<Export>> => {
+const getExports = (queryParams: QueryParam | undefined): Promise<DataResponse<Export>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const exports = await exportRepository.find();
-            resolve({
-                message: 'Get exports successfully',
-                data: exports
-            })
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
+                    const object:any = {}
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                order[queryParams.orderBy] = queryParams.orderDirection
+
+                const result: DataAndCount = await getDataAndCount(queryParams, exportRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin phiếu xuất hàng thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })    
+            }
+            else {
+                const data: Export[] = await exportRepository.find();
+
+                resolve({
+                    message: 'Lấy thông tin phiếu xuất hàng thành công.',
+                    data
+                })  
+            }
         } catch (error) {
             reject(error);
         }

@@ -4,15 +4,16 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Staff } from '../entity/Staff';
 import { Provider } from '../entity/Provider';
-import { EntityManager, In, MoreThanOrEqual, Repository } from 'typeorm';
+import { EntityManager, In, Like, MoreThanOrEqual, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { ImportDetail } from '../entity/ImportDetail';
 import { NewImportDetailData } from '../global/interfaces/ImportDetailData';
 import { DrugCategory } from '../entity/DrugCategory';
 import { calculateUnitPrice } from './calculationService'
 import { ImportData } from '../global/interfaces/ImportData';
-import { getErrors } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
 import drugCategoryCache from '../cache/DrugCategoryCache';
+import { QueryParam } from '../global/interfaces/QueryParam';
 
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import);
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
@@ -20,14 +21,36 @@ const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const providerRepository: Repository<Provider> = AppDataSource.getRepository(Provider);
 const drugRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory);
 
-const getImports = (): Promise<DataResponse<Import>> => {
+const getImports = (queryParams: QueryParam): Promise<DataResponse<Import>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const imports = await importRepository.find();
-            resolve({
-                message: 'Get import successfully',
-                data: imports
-            })
+            if (queryParams) {
+                const search  = queryParams.searchColumns.map((param) => {
+                    const object:any = {}
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                        return object
+                    }
+                )
+                
+                const order: any = {}
+                order[queryParams.orderBy] = queryParams.orderDirection
+
+                const result: DataAndCount = await getDataAndCount(queryParams, importRepository, search, order);
+        
+                resolve({
+                    message: 'Lấy thông tin phiếu nhập hàng thành công.',
+                    data: result.data,
+                    meta: await getMetaData(queryParams, result.total)
+                })    
+            }
+            else {
+                const data: Import[] = await importRepository.find();
+
+                resolve({
+                    message: 'Lấy thông tin phiếu nhập hàng thành công.',
+                    data
+                })
+            }
         } catch (error) {
             reject(error);
         }
