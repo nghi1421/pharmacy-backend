@@ -151,6 +151,7 @@ const storeDrugCategory = (data: DrugCategoryData): Promise<DataOptionResponse<D
 
             await drugCategoryRepository.save(newDrugCategory)
 
+            drugCategoryCache.setDrugCategories(null)
             resolve({
                 message: 'Thêm thông tin danh mục thuốc thành công.',
                 data: newDrugCategory
@@ -209,7 +210,7 @@ const updateDrugCategory =
             }
 
             await drugCategoryRepository.save(drugCategory)
-
+            drugCategoryCache.setDrugCategories(null)
             resolve({
                 message: 'Cập nhật thông tin danh mục thuốc thành công.',
                 data: drugCategory

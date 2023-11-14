@@ -13,6 +13,7 @@ import { Inventory } from '../entity/Inventory';
 import importService from './importService'
 import { ImportDetail } from '../entity/ImportDetail';
 import inventoryService from './inventoryService'
+import drugCategoryCache from '../cache/DrugCategoryCache';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
@@ -55,10 +56,8 @@ const storeExport = (data: ExportData) => {
                 return reject({ errorMessage: 'Thông tin nhân viên không tồn tại.' });
             }
 
-            const customer: Customer|null = await customerRepository.findOneBy({ id: data.customerId });
-            if (customer === null) {
-                return reject({ errorMessage: 'Thông tin khách hàng không tồn tại.' });
-            }
+            let customer: Customer|null = await customerRepository.findOneBy({ phoneNumber: data.customer.phoneNumber });
+            
 
             let newExport = new Export();
 
@@ -66,7 +65,7 @@ const storeExport = (data: ExportData) => {
             newExport.note = data.note;
             newExport.prescriptionId = data.prescriptionId
             newExport.staff = staff;
-            newExport.customer = customer;
+            
             newExport.type = data.type;
 
             await validateOrReject(newExport)
@@ -87,6 +86,38 @@ const storeExport = (data: ExportData) => {
             }
 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                if (customer === null) {
+                    const newCustomer = new Customer()
+                    newCustomer.address = data.customer.address
+                    newCustomer.name = data.customer.name
+                    newCustomer.gender = data.customer.gender
+                    newCustomer.phoneNumber = data.customer.phoneNumber
+
+                    const errors = await validate(newCustomer)
+
+                    if (errors.length > 0) {
+                        reject({ validateError: getErrors(errors) })
+                        throw new Error();
+                    }
+                    customer = await transactionalEntityManager.save(newCustomer)
+                }
+                else {
+                    customer.address = data.customer.address
+                    customer.name = data.customer.name
+                    customer.gender = data.customer.gender
+                    customer.phoneNumber = data.customer.phoneNumber
+
+                    const errors = await validate(customer)
+
+                    if (errors.length > 0) {
+                        reject({ validateError: getErrors(errors) })
+                        throw new Error();
+                    }
+
+                    customer = await transactionalEntityManager.save(customer)
+                }
+                newExport.customer = customer;
+            
                 await transactionalEntityManager.save(newExport)
                 
                 if (data.type === 1) {
@@ -202,6 +233,7 @@ const storeExport = (data: ExportData) => {
                 totalPrice += price
                 totalPriceWithVat += priceWithVat
             }
+            drugCategoryCache.setDrugCategories(null)
             resolve({
                 message: 'Thêm mới thông tin phiếu nhập thành công.',
                 data: {

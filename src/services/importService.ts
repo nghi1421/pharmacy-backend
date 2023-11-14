@@ -12,6 +12,7 @@ import { DrugCategory } from '../entity/DrugCategory';
 import { calculateUnitPrice } from './calculationService'
 import { ImportData } from '../global/interfaces/ImportData';
 import { getErrors } from '../config/helper';
+import drugCategoryCache from '../cache/DrugCategoryCache';
 
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import);
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
@@ -132,6 +133,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                     await transactionalEntityManager.save(newImportDetail);
                 }
             })
+            drugCategoryCache.setDrugCategories(null)
             resolve({
                 message: 'Thêm thông tin phiếu nhập thuốc thành công.',
                 data: newImport

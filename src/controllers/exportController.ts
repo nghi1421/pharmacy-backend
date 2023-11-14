@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import exportService from '../services/exportService'
 import { NewExportDetailData } from '../global/interfaces/ExportDetailData';
 import { ExportData } from '../global/interfaces/ExportData';
+import { CustomerData } from '../global/interfaces/CustomerData';
 
 const getExports = async (req: Request, res: Response) => {
     try {
@@ -32,17 +33,16 @@ const storeExport = async (req: Request, res: Response) => {
         const exportDate: Date = new Date(req.body.exportDate)
         /////////////////////////////////////res.locals.staffId
         const staffId: number = parseInt(req.body.staffId);
-        const customerId: number = parseInt(req.body.customerId)
         const type: number = parseInt(req.body.type)
         const exportDetails: NewExportDetailData[] = req.body.exportDetails
-
+        const customer: CustomerData = req.body.customer
         if (exportDetails.length === 0) {
             res.status(400).json({
                 errorMessage: 'Vui lòng chọn danh mục thuốc khi thêm phiếu xuất.',
             })
             return;
         }
-        if (!exportDate || !staffId || !customerId) {
+        if (!exportDate || !staffId) {
             res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.',
             })
@@ -55,7 +55,7 @@ const storeExport = async (req: Request, res: Response) => {
             type,
             staffId,
             prescriptionId,
-            customerId,
+            customer,
             exportDetails,
         }
 
