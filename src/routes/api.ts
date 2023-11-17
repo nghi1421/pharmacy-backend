@@ -12,6 +12,7 @@ import roleController from '../controllers/roleController';
 import positionController from '../controllers/positionController';
 import { checkAccessToken } from '../middlewares/checkAccessToken';
 import { checkAdmin } from '../middlewares/checkAdmin';
+import statisticsController from '../controllers/statisticsController';
 
 const router = express.Router();
 
@@ -88,6 +89,9 @@ const routesAPI = (app: Application) => {
     router.get('/exports/search', exportController.searchExport)
     router.post('/exports', exportController.storeExport)
     router.delete('/exports/:exportId', exportController.deleteExport)
+
+    //Statistics
+    router.get('/statistics/sales-count-today', statisticsController.getStatisticsToday)
 
     router.post('/test-login', (req: Request, res: Response) => {
         res.cookie("token", "this is a secret token", {

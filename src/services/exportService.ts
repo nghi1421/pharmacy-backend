@@ -289,9 +289,8 @@ const storeExport = (data: ExportData) => {
                 const priceWithVat = exportDetail.unitPrice * exportDetail.quantity * (1 + exportDetail.vat)
 
                 resultDetailData.push({
-                        ...exportDetail,
-                        price,
-                        priceWithVat,
+                    ...exportDetail,
+                        totalPrice: price,
                     })
                 
                 totalPrice += price
