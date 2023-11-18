@@ -20,7 +20,7 @@ export class Import {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: 'date'})
+    @Column({ type: 'datetime'})
     @IsDate({ message: typeInvalidMessage('Ngày nhập thuốc')})
     importDate: Date
 
@@ -30,7 +30,7 @@ export class Import {
 
     @ManyToOne(() => Provider, {eager: true})
     @JoinColumn()
-    provider: Provider
+    provider: Provider 
 
     @Column({ type: 'text', nullable: true })
     note!: string

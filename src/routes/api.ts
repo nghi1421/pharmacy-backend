@@ -92,6 +92,8 @@ const routesAPI = (app: Application) => {
 
     //Statistics
     router.get('/statistics/sales-count-today', statisticsController.getStatisticsToday)
+    router.post('/statistics', statisticsController.getStatistics)
+    
 
     router.post('/test-login', (req: Request, res: Response) => {
         res.cookie("token", "this is a secret token", {

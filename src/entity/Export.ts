@@ -21,7 +21,7 @@ export class Export {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: 'date'})
+    @Column({ type: 'datetime'})
     @IsDate({ message: typeInvalidMessage('Ngày xuất thuốc') })
     exportDate: Date
 
