@@ -91,7 +91,7 @@ const routesAPI = (app: Application) => {
     router.delete('/exports/:exportId', exportController.deleteExport)
 
     //Statistics
-    router.get('/statistics/sales-count-today', statisticsController.getStatisticsToday)
+    router.get('/statistics-today', statisticsController.getStatisticsToday)
     router.post('/statistics', statisticsController.getStatistics)
     
 
