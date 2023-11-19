@@ -92,7 +92,7 @@ const routesAPI = (app: Application) => {
 
     //Statistics
     router.get('/statistics-today', statisticsController.getStatisticsToday)
-    router.post('/statistics', statisticsController.getStatistics)
+    router.get('/statistics', statisticsController.getStatistics)
     
 
     router.post('/test-login', (req: Request, res: Response) => {

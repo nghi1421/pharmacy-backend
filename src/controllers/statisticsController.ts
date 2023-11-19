@@ -14,10 +14,16 @@ const getStatisticsToday = async (req: Request, res: Response) => {
 
 const getStatistics = async (req: Request, res: Response) => {
     try {
-        const startDate = req.body.startDate
-        const endDate = req.body.endDate
-        const result = await statisticsService.getStatistics(startDate, endDate);
-        res.status(200).json(result);
+        const startDate = req.query.startDate as string
+        const endDate = req.query.endDate as string
+        
+        if (startDate.length > 0 && endDate.length > 0) {
+            const result = await statisticsService.getStatistics(startDate, endDate);
+            res.status(200).json(result);
+            return
+        }
+        
+        res.status(500).json({ errorMessage: 'Thiếu tham số đầu vào'});
         
     } catch (error) {
         res.status(500).send(error)

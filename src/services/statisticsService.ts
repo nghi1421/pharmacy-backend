@@ -1,7 +1,9 @@
 import dayjs from "dayjs"
 import { AppDataSource } from "../dataSource"
 import { ExportDetail } from "../entity/ExportDetail"
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 
+dayjs.extend(customParseFormat)
 const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
 
 const getStatisticsToday =  () => {
@@ -47,8 +49,14 @@ const getStatisticsToday =  () => {
 const getStatistics = (startDate: string, endDate: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const start = dayjs(startDate)
-            const end = dayjs(endDate)
+            const start = dayjs(startDate, 'DD-MM-YYYY')
+            const end = dayjs(endDate, 'DD-MM-YYYY')
+            console.log('valid____________________________________________-',dayjs(startDate, 'DD-MM-YYYY').isValid());
+            console.log('START DATE ________________________________________________________________', startDate)
+            console.log('END DATE ________________________________________________________________', endDate)
+            console.log('diff__________________________________',end.diff(start, 'day'));
+            console.log('diff__________________________________', start);
+            
             if (end.diff(start, 'day') < 0) {
                 return reject({
                     errorMessage: 'Thời gian thông kê không hợp lệ'
@@ -69,8 +77,8 @@ const getStatistics = (startDate: string, endDate: string) => {
             let salesEarningsList = []
             let customerPurchasesList = []
             let labels: string[] = []
-            if (end.diff(start, 'day') + 1 === 1) {
-                let date = start
+            if (end.diff(start, 'day') === 0) {
+                let date = start.set('hour', 0)
                 let indexExportDetail = 0
                 for (let i = 0; i < 24; i++) {
                     labels.push(date.format('HH:00'))
@@ -93,7 +101,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     date = date.add(1, 'hour')
                 }
             }
-            else if (end.diff(start, 'day') + 1 <= 30){
+            else if (end.diff(start, 'day') <= 30){
                 let date = start
                 let indexExportDetail = 0
                 for (let i = 0; i < end.diff(start, 'day') + 1; i++) {
@@ -103,7 +111,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     let customerPurchases = []
 
                     while (indexExportDetail < exportDetails.length) {
-                        if (dayjs(exportDetails[indexExportDetail].export.exportDate).format('MM/DD') !== date.format('MM/DD')) {
+                        if (dayjs(exportDetails[indexExportDetail].export.exportDate).format('DD/MM') !== date.format('DD/MM')) {
                             break;
                         }
                         salesCount += exportDetails[indexExportDetail].quantity;
@@ -117,7 +125,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     date = date.add(1, 'day')
                 }
             }
-            else if (end.diff(start, 'day') + 1 <= 365) {
+            else if (end.diff(start, 'day') <= 365) {
                 let date = start
                 let indexExportDetail = 0
                 for (let i = 0; i < end.diff(start, 'month') + 1; i++) {
@@ -172,8 +180,8 @@ const getStatistics = (startDate: string, endDate: string) => {
                     salesCountList,
                     salesEarningsList,
                     customerPurchasesList,
-                    exportDetails,
-                }
+                },
+                message: 'Lấy thông tin thống kê thành công.'
             })
         }
         catch (error) {
