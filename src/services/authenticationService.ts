@@ -1,15 +1,22 @@
 import { User } from '../entity/User'
 import { AppDataSource } from '../dataSource'
-import { Repository } from 'typeorm'
+import { EntityManager, Repository } from 'typeorm'
 import jwt from 'jsonwebtoken'
 import config from '../config/config'
-import { LoginResponse } from '../global/interfaces/LoginResponse'
+import { LoginResponse, LoginCustomerResponse } from '../global/interfaces/LoginResponse'
 import { Staff } from '../entity/Staff'
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse'
-import { validateOrReject } from 'class-validator'
+import { validate, validateOrReject } from 'class-validator'
+import { Customer } from '../entity/Customer'
+import { SignUpCustomerData } from '../global/interfaces/CustomerData'
+import { Role } from '../entity/Role'
+import { getErrors } from '../config/helper'
+import { checkExistUniqueCreate } from '../config/query'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
+const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer)
+const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
 
 const login = async (username: string, password: string): Promise<LoginResponse> => {
     return new Promise(async (resolve, reject) => {
@@ -17,7 +24,7 @@ const login = async (username: string, password: string): Promise<LoginResponse>
         if (user !== null && user.checkPassword(password)) {
             const staff: Staff|null = await staffRepository.findOneBy({ user: { id: user.id }});
             if (!staff) {
-                reject({errorMessage: 'Account does not match staff information.'})
+                reject({errorMessage: 'Thông tin nhân viên không tồn tại.'})
                 return
             }
             const accessToken = jwt.sign({
@@ -33,7 +40,7 @@ const login = async (username: string, password: string): Promise<LoginResponse>
 
             resolve({
                 response: {
-                    message: 'Đăng nhập thành công..',
+                    message: 'Đăng nhập thành công.',
                     data: {
                         id: user.id,
                         username: user.username,
@@ -47,7 +54,7 @@ const login = async (username: string, password: string): Promise<LoginResponse>
         }
         else {
             reject({
-                errorMessage: 'Login failed. Wrong username or password.'
+                errorMessage: 'Tên đăng nhập hoặc mật khẩu không hợp lệ.'
             })
         }
     })
@@ -60,7 +67,7 @@ const changePassword =
             const user: User | null = await userRepository.findOneBy({ username: username });
             
             if (!user) {
-                reject({ errorMessage: 'User not found.' });
+                reject({ errorMessage: 'Tên đăng nhập hoặc mật khẩu không khớp.' });
             } else {
                 if (user.checkPassword(oldPassword)) {
                     user.password = newPassword;
@@ -70,12 +77,12 @@ const changePassword =
                     await userRepository.save(user);
 
                     resolve({
-                        message: 'Password changed successfully.',
+                        message: 'Đổi mật khẩu thành công.',
                         data: user,
                     })
                 }
                 else {
-                    reject({ errorMessage: 'Wrong password.' });
+                    reject({ errorMessage: 'Mật khẩu không hợp lệ.' });
                 }
             }
         } catch (error) {
@@ -84,7 +91,183 @@ const changePassword =
     })
 }
 
+const loginCustomer = (username: string, password: string, deviceToken: string)
+    : Promise<LoginCustomerResponse> => {
+    return new Promise(async (resolve, reject) => {
+        const user: User|null = await userRepository.findOneBy({ username: username })
+        if (user !== null && user.checkPassword(password)) {
+            const customer: Customer|null = await customerRepository.findOneBy({ user: { id: user.id }});
+            if (!customer) {
+                reject({errorMessage: 'Thông tin khách hàng không tồn tại.'})
+                return
+            }
+            const accessToken = jwt.sign({
+                userId: user.id,
+                roleId: user.role.id,
+                customerId: customer.id
+            }, config.accessKey, { expiresIn: config.expiryRefreshToken });
+
+            user.deviceToken = accessToken
+            await userRepository.save(user);
+
+            resolve({
+                response: {
+                    message: 'Đăng nhập thành công.',
+                    data: {
+                        id: user.id,
+                        username: user.username,
+                        customer: customer,
+                        role: user.role
+                    }
+                },
+                accessToken,
+        })
+        }
+        else {
+            reject({
+                errorMessage: 'Tên đăng nhập hoặc mật khẩu không hợp lệ.'
+            })
+        }
+    })
+}
+
+const verifyPhoneNumber = (phoneNumber: string) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            if (customer && customer.user) {
+                resolve({
+                    message: 'Số điện thoại đã được sử dụng.'
+                })
+            }
+            else {
+                resolve({
+                    otpCode: Math.floor(Math.random() * 1000000).toString().padStart(6, '0'),
+                })
+            }
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const signUpForCustomer = (data: SignUpCustomerData) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (data.password !== data.confirmationPassword) {
+                return reject({
+                    errorMessge: 'Mật khẩu xác nhận không khớp.',
+                });
+            }
+
+            const newUser = new User();
+            const role: Role|null = await roleRepository.findOneBy({ id: 3 });
+
+            if (role === null) {
+                return reject({
+                    errorMessge: 'Thông tin quyền không tồn tại.',
+                });
+            }
+
+            newUser.role = role;
+            newUser.username = data.username;
+            newUser.password = data.password;
+            newUser.deviceToken = data.deviceToken;
+            newUser.hashPasswrod();
+
+            const errors = await validate(newUser)
+        
+            if (errors.length > 0) {
+                return reject({validateError: getErrors(errors)})
+            }
+
+            const errorResponse = []
+            const [{ exists: existsUsername }] = await
+                checkExistUniqueCreate(userRepository, 'username', data.username)
+
+            if (existsUsername) {
+                errorResponse.push({
+                    key: 'username',
+                    value: ['Tên đăng nhập đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
+            }
+
+            let newCustomer = new Customer();
+
+            newCustomer.name = data.name;
+            newCustomer.phoneNumber = data.phoneNumber;
+            newCustomer.gender = data.gender;
+            newCustomer.address = data.address
+
+            const customerErrors = await validate(newCustomer)
+            
+            if (customerErrors.length > 0) {
+                return reject({validateError: customerErrors})
+            }
+
+            const customerErrorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueCreate(customerRepository, 'phone_number', [newCustomer.phoneNumber])
+            
+            if (existsPhoneNumber) {
+                customerErrorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (customerErrorResponse.length > 0) {
+                return reject({validateError: customerErrorResponse})
+            }
+
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                await transactionalEntityManager.save(newCustomer)
+
+                await transactionalEntityManager.save(newUser)
+            })
+
+            resolve({
+                message: 'Thêm đăng kí thông tin khách hàng thành công.',
+                data: newUser
+            })
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const forgotPassword = (phoneNumber: string) => {
+    return new Promise(async (resolve, reject) => {
+       try {
+            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            if (customer && customer.user) {
+                resolve({
+                    otpCode: Math.floor(Math.random() * 1000000).toString().padStart(6, '0'),
+                })
+
+            }
+            else {
+                resolve({
+                    message: 'Số điện thoại không hợp lệ.'
+                })
+            }
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export default{
     login,
-    changePassword
+    changePassword,
+    loginCustomer,
+    verifyPhoneNumber,
+    signUpForCustomer,
+    forgotPassword
 }

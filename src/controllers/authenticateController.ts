@@ -2,6 +2,7 @@ import authenticateService from '../services/authenticationService'
 import { Request, Response } from 'express'
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken'
 import config from '../config/config'
+import { SignUpCustomerData } from '../global/interfaces/CustomerData'
 
 const login = async (req: Request, res: Response) => {
     try {
@@ -14,7 +15,7 @@ const login = async (req: Request, res: Response) => {
             })
         res.json(result.response)
     } catch (error: unknown) {
-        res.json(error)
+        res.status(500).json(error)
     }
 }
 
@@ -66,12 +67,83 @@ const changePassword = async (req: Request, res: Response) => {
         }
     }
     catch (error) {
+        res.status(500).json(error)
+    }
+}
 
+const loginCustomer = async (req: Request, res: Response) => {
+    try {
+        const { username, password, deviceToken } = req.body
+        const result = await authenticateService.loginCustomer(username, password, deviceToken)
+        res.cookie("mobile-accesstoken-token", result.accessToken , {
+            httpOnly: true,
+            maxAge: parseInt(config.expiryRefreshTokenCookie),
+            domain: "localhost",
+        })
+        res.json(result.response)
+    } catch (error: unknown) {
+        res.status(500).json(error)
+    }
+}
+
+const verifyPhoneNumber = async (req: Request, res: Response) => {
+    try {
+        const { phoneNumber } = req.body
+        const result = await authenticateService.verifyPhoneNumber(phoneNumber)
+        res.json(result)
+    } catch (error: unknown) {
+        res.status(500).json(error)
+    }
+}
+
+const signUpForCustomer = async (req: Request, res: Response) => {
+    try {
+        const {
+            username,
+            password,
+            confirmationPassword,
+            name,
+            phoneNumber,
+            address,
+            gender,
+            deviceToken
+        } = req.body
+
+        const data: SignUpCustomerData = {
+            username,
+            password,
+            confirmationPassword,
+            name,
+            phoneNumber,
+            address,
+            gender,
+            deviceToken
+        }
+
+        const result = await authenticateService.signUpForCustomer(data)
+        res.status(200).json(result)
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { phoneNumber } = req.body
+        const result = await authenticateService.forgotPassword(phoneNumber)
+        res.json(result)
+    } catch (error: unknown) {
+        res.status(500).json(error)
     }
 }
 
 export default {
     login,
     refreshToken,
-    changePassword
+    changePassword,
+    loginCustomer,
+    verifyPhoneNumber,
+    forgotPassword,
+    signUpForCustomer
 }

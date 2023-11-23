@@ -95,6 +95,11 @@ const routesAPI = (app: Application) => {
     router.get('/statistics', statisticsController.getStatistics)
     
 
+    //MOBLE ROUTE
+    router.post('/mobile/login', authenticateController.loginCustomer)
+    router.post('/mobile/verify-phone-number', authenticateController.loginCustomer)
+    router.post('/mobile/sign-up', authenticateController.signUpForCustomer)
+
     router.post('/test-login', (req: Request, res: Response) => {
         res.cookie("token", "this is a secret token", {
                 httpOnly: true,

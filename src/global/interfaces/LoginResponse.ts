@@ -1,3 +1,4 @@
+import { Customer } from "../../entity/Customer";
 import { Role } from "../../entity/Role";
 import { Staff } from "../../entity/Staff";
 
@@ -13,4 +14,17 @@ export interface LoginResponse {
         accessToken: string;
     }
     refreshToken: string;
+}
+
+export interface LoginCustomerResponse {
+    response: {
+        message: string;
+        data: {
+            id: number;
+            username: string;
+            customer: Customer;
+            role: Role;
+        },
+    }
+    accessToken : string;
 }

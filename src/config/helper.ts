@@ -3,6 +3,8 @@ import { QueryParam } from "../global/interfaces/QueryParam"
 import { Repository } from "typeorm"
 import { Request } from "express";
 import { Meta } from "../global/interfaces/DataResponse";
+import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken'
+import config from "./config";
 
 export interface DataAndCount {
     data: any;
@@ -125,6 +127,17 @@ export const getMetaData = (queryParams: QueryParam, total: number): Promise<Met
         }
         catch (error) {
             reject(error)
+        }
+    })
+}
+
+export const encryptDeviceToken = (deviceToken: string) => {
+    return jwt.verify(deviceToken, config.accessKey, (error: VerifyErrors, payload: JwtPayload) => {
+        if (error) {
+            return null;
+        }
+        else {
+            return payload.deviceToken;
         }
     })
 }

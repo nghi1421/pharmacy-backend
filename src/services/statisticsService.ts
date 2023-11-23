@@ -2,9 +2,11 @@ import dayjs from "dayjs"
 import { AppDataSource } from "../dataSource"
 import { ExportDetail } from "../entity/ExportDetail"
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { ImportDetail } from "../entity/ImportDetail"
 
 dayjs.extend(customParseFormat)
 const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
+const imoportDetailRepository = AppDataSource.getRepository(ImportDetail)
 
 const getStatisticsToday =  () => {
     return new Promise(async (resolve, reject) => {
@@ -51,11 +53,6 @@ const getStatistics = (startDate: string, endDate: string) => {
         try {
             const start = dayjs(startDate, 'DD-MM-YYYY')
             const end = dayjs(endDate, 'DD-MM-YYYY')
-            console.log('valid____________________________________________-',dayjs(startDate, 'DD-MM-YYYY').isValid());
-            console.log('START DATE ________________________________________________________________', startDate)
-            console.log('END DATE ________________________________________________________________', endDate)
-            console.log('diff__________________________________',end.diff(start, 'day'));
-            console.log('diff__________________________________', start);
             
             if (end.diff(start, 'day') < 0) {
                 return reject({
@@ -64,6 +61,7 @@ const getStatistics = (startDate: string, endDate: string) => {
             }
             const exportDetails = await exportDetailRepository
                 .createQueryBuilder('exportDetail')
+                .innerJoinAndSelect('exportDetail.drug', 'drug')
                 .innerJoinAndSelect('exportDetail.export', 'export')
                 .innerJoinAndSelect('export.customer', 'customer')
                 .where('export.exportDate BETWEEN :startDate AND :endDate', {
@@ -73,10 +71,25 @@ const getStatistics = (startDate: string, endDate: string) => {
                 .orderBy('export.exportDate')
                 .getMany();
             
+            const importDetails = await imoportDetailRepository
+                .createQueryBuilder('importDetail')
+                .innerJoinAndSelect('importDetail.import', 'import')
+                .where('import.importDate BETWEEN :startDate AND :endDate', {
+                    startDate: new Date(start.startOf('day').format('YYYY-MM-DD HH:mm:ss')),
+                    endDate: new Date(end.endOf('day').format('YYYY-MM-DD HH:mm:ss')),
+                })
+                .orderBy('import.importDate')
+                .getMany();
+            
             let salesCountList = []
             let salesEarningsList = []
             let customerPurchasesList = []
             let labels: string[] = []
+            let topSales: {
+                id: number
+                name: string
+                sales: number
+            }[] = []
             if (end.diff(start, 'day') === 0) {
                 let date = start.set('hour', 0)
                 let indexExportDetail = 0
@@ -93,6 +106,19 @@ const getStatistics = (startDate: string, endDate: string) => {
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
                         customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
+                            topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
+                                ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
+                                : sale
+                                )
+                        }
+                        else {
+                            topSales.push({
+                                id: exportDetails[indexExportDetail].drug.id,
+                                name: exportDetails[indexExportDetail].drug.name,
+                                sales: exportDetails[indexExportDetail].quantity
+                            })
+                        }
                         indexExportDetail++;
                     }
                     salesCountList.push(salesCount)
@@ -117,11 +143,25 @@ const getStatistics = (startDate: string, endDate: string) => {
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
                         customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
+                            topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
+                                ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
+                                : sale
+                                )
+                        }
+                        else {
+                            topSales.push({
+                                id: exportDetails[indexExportDetail].drug.id,
+                                name: exportDetails[indexExportDetail].drug.name,
+                                sales: exportDetails[indexExportDetail].quantity
+                            })
+                        }
                         indexExportDetail++;
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
                     customerPurchasesList.push(new Set(customerPurchases).size)
+                    
                     date = date.add(1, 'day')
                 }
             }
@@ -141,11 +181,25 @@ const getStatistics = (startDate: string, endDate: string) => {
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
                         customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                         if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
+                            topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
+                                ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
+                                : sale
+                                )
+                        }
+                        else {
+                            topSales.push({
+                                id: exportDetails[indexExportDetail].drug.id,
+                                name: exportDetails[indexExportDetail].drug.name,
+                                sales: exportDetails[indexExportDetail].quantity
+                            })
+                        }
                         indexExportDetail++;
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
                     customerPurchasesList.push(new Set(customerPurchases).size)
+                   
                     date = date.add(1, 'month')
                 }
             }
@@ -165,21 +219,52 @@ const getStatistics = (startDate: string, endDate: string) => {
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
                         customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
+                            topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
+                                ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
+                                : sale
+                                )
+                        }
+                        else {
+                            topSales.push({
+                                id: exportDetails[indexExportDetail].drug.id,
+                                name: exportDetails[indexExportDetail].drug.name,
+                                sales: exportDetails[indexExportDetail].quantity
+                            })
+                        }
                         indexExportDetail++;
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
                     customerPurchasesList.push(new Set(customerPurchases).size)
+                    
                     date = date.add(1, 'year')
                 }
             }
-            
+            const salesCount = exportDetails.reduce((sum, exportDetail) => {
+                return sum += exportDetail.quantity
+            }, 0)
+            const salesEarnings = exportDetails.reduce((total, exportDetail) => {
+                return total += exportDetail.quantity * exportDetail.unitPrice
+            }, 0)
+            const customerPurchases = exportDetails.map((exportDetail) => {
+                return exportDetail.export.customer.id
+            })
+            const importQuantity = importDetails.reduce((total, exportDetail) => {
+                return total += exportDetail.quantity
+            }, 0)
+
             resolve({
                 data: {
                     labels,
+                    topSales,
                     salesCountList,
                     salesEarningsList,
                     customerPurchasesList,
+                    salesCount,
+                    salesEarnings,
+                    customerPurchases: new Set(customerPurchases).size,
+                    importQuantity
                 },
                 message: 'Lấy thông tin thống kê thành công.'
             })

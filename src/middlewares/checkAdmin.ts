@@ -7,15 +7,15 @@ export const checkAdmin = (req: Request, res: Response, next: NextFunction) => {
             break;
         }
         case RoleEnum.Seller: {
-            res.status(403).json({errorMessage: 'You don\'t have permission to this acction. Please check the authentication'})
+            res.status(403).json({errorMessage: 'Bạn không có quyền thực hiện hành động này.'})
             return;
         }
         case RoleEnum.Customer: {
-            res.status(403).json({errorMessage: 'You don\'t have permission to this acction. Please check the authentication'})
+            res.status(403).json({errorMessage: 'Bạn không có quyền thực hiện hành động này.'})
             return;
         }
         default: {
-            res.status(500).json({ errorMessage: 'Error from server.' })
+            res.status(500).json({ errorMessage: 'Lỗi server.' })
             return;
         }
     }

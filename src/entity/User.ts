@@ -36,6 +36,10 @@ export class User {
     @IsNotEmpty()
     role: Role
 
+    @Column({ nullable: true})
+    @Length(1, 1000)
+    deviceToken!: string
+
     @Column()
     @CreateDateColumn({ name: 'created_at'})
     createdAt: Date

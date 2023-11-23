@@ -1,14 +1,15 @@
 import { User } from '../entity/User'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validateOrReject } from "class-validator"
+import { validate, validateOrReject } from "class-validator"
 import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { UserData } from '../global/interfaces/UserData';
 import { Role } from '../entity/Role';
 import config from '../config/config'
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
+import { checkExistUniqueCreate } from '../config/query';
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
 const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
@@ -53,7 +54,7 @@ const storeUser =
 
             if (role === null) {
                 return reject({
-                    errorMessge: 'Role not found',
+                    errorMessge: 'Thông tin quyền không tồn tại.',
                 });
             }
 
@@ -62,11 +63,30 @@ const storeUser =
             newUser.password = isDefaultPassword ? config.defaultPassword : data.password
             newUser.hashPasswrod();
 
-            await validateOrReject(newUser)
+            const errors = await validate(newUser)
+        
+            if (errors.length > 0) {
+                return reject({validateError: getErrors(errors)})
+            }
+
+            const errorResponse = []
+            const [{ exists: existsUsername }] = await
+                checkExistUniqueCreate(userRepository, 'username', data.username)
+
+            if (existsUsername) {
+                errorResponse.push({
+                    key: 'username',
+                    value: ['Tên đăng nhập đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
+            }
 
             await userRepository.save(newUser)
             resolve({
-                message: 'Insert User successfully',
+                message: 'Thêm tài khoản thành công.',
                 data: newUser
             })
         } catch (error) {
