@@ -135,14 +135,28 @@ const verifyPhoneNumber = (phoneNumber: string) => {
     return new Promise(async (resolve, reject) => {
         try {
             const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+            console.log('This is OTP CODE_______________-__:', otpCode)
+            
             if (customer && customer.user) {
-                resolve({
-                    message: 'Số điện thoại đã được sử dụng.'
-                })
+                if (customer.user) {
+                    reject({
+                        errorMessage: 'Số điện thoại đã được sử dụng.'
+                    })
+                }
+                else {
+                    resolve({
+                        message: 'Lấy mã OTP thành công.',
+                        otpCode,
+                        customer
+                    })
+                }
             }
             else {
+                
                 resolve({
-                    otpCode: Math.floor(Math.random() * 1000000).toString().padStart(6, '0'),
+                    message: 'Lấy mã OTP thành công.',
+                    otpCode,
                 })
             }
         }

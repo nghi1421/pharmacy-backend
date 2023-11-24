@@ -97,7 +97,7 @@ const routesAPI = (app: Application) => {
 
     //MOBLE ROUTE
     router.post('/mobile/login', authenticateController.loginCustomer)
-    router.post('/mobile/verify-phone-number', authenticateController.loginCustomer)
+    router.post('/mobile/verify-phone-number', authenticateController.verifyPhoneNumber)
     router.post('/mobile/sign-up', authenticateController.signUpForCustomer)
 
     router.post('/test-login', (req: Request, res: Response) => {
@@ -134,6 +134,10 @@ const routesAPI = (app: Application) => {
         res.status(200).json({
             message: 'Your access is accepted!'
         })
+    })
+
+    router.get('/test-api', (req: Request, res: Response) => {
+        res.status(200).json({ message: 'Test is successful'})
     })
 
     return app.use("/api", router);
