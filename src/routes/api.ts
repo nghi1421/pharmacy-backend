@@ -13,6 +13,7 @@ import positionController from '../controllers/positionController';
 import { checkAccessToken } from '../middlewares/checkAccessToken';
 import { checkAdmin } from '../middlewares/checkAdmin';
 import statisticsController from '../controllers/statisticsController';
+import historyController from '../controllers/historyController';
 
 const router = express.Router();
 
@@ -99,6 +100,7 @@ const routesAPI = (app: Application) => {
     router.post('/mobile/login', authenticateController.loginCustomer)
     router.post('/mobile/verify-phone-number', authenticateController.verifyPhoneNumber)
     router.post('/mobile/sign-up', authenticateController.signUpForCustomer)
+    router.get('/mobile/histories/:phoneNumber', historyController.getHistory)
 
     router.post('/test-login', (req: Request, res: Response) => {
         res.cookie("token", "this is a secret token", {
