@@ -3,7 +3,7 @@ import { AppDataSource } from "../dataSource"
 import { Export } from "../entity/Export"
 import { History, HistoryData, HistoryDetail } from "../global/interfaces/HistoryData"
 import { ExportDetail } from "../entity/ExportDetail"
-import { formatCurrency } from '../utils/format'
+import { formatCurrency, formatNumber } from '../utils/format'
 
 const exportRepository = AppDataSource.getRepository(Export)
 const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
@@ -43,9 +43,8 @@ const getHistory = (phoneNumber: string) => {
 
                         historiyDetails.push({
                                 drugName: exportDetail.drug.name,
-                                quantity: exportDetail.quantity,
-                                unitPrice: exportDetail.unitPrice,
-                                vat: exportDetail.vat
+                                quantity: formatNumber(exportDetail.quantity),
+                                unitPrice: formatCurrency(exportDetail.unitPrice),
                             }
                         )
                         
@@ -55,9 +54,13 @@ const getHistory = (phoneNumber: string) => {
                     
                     if (currentTitle === dayjs(exports[0].exportDate).format('MM/YYYY')) {
                         historyData.push({
+                            id: exportData.id,
                             staffName: exportData.staff.name,
                             time: dayjs(exportData.exportDate).format('DD/MM/YYYY HH:mm:ss'),
                             total: formatCurrency(totalPriceWithVat),
+                            totalWithoutVat: formatCurrency(totalPrice),
+                            vat: formatCurrency(totalPriceWithVat-totalPrice),
+                            prescriptionId: exportData.prescriptionId,
                             historyDetail: historiyDetails
                         })
                     }

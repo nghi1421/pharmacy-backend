@@ -1,16 +1,19 @@
 
 export interface HistoryData {
+    id: number;
     staffName: string;
     time: string;
     total: string;
+    totalWithoutVat: string
+    vat: string
+    prescriptionId: string
     historyDetail: HistoryDetail[]
 }
 
 export interface HistoryDetail {
     drugName: string
-    quantity: number
-    unitPrice: number
-    vat: number
+    quantity: string
+    unitPrice: string
 }
 
 export interface History {
