@@ -16,7 +16,7 @@ import { DrugCategory } from './DrugCategory';
 import { Export } from './Export';
 import { Import } from './Import';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
-import {  numberMaxMesssage, numberMinMesssage, requiredMessage, typeInvalidMessage } from '../config/helper';
+import {  numberMaxMesssage, numberMinMesssage, requiredMessage, typeInvalidMessage } from '../utils/helper';
 import { IsBeforeToday } from '../contraints/IsBeforeToday';
 
 @Entity('export_details')

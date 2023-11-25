@@ -7,9 +7,9 @@ import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
-import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../utils/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../utils/helper';
 import drugCategoryCache from '../cache/DrugCategoryCache'
 import { Inventory } from '../entity/Inventory';
 import inventoryService from './inventoryService';

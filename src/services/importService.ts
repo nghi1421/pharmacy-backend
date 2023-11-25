@@ -11,7 +11,7 @@ import { NewImportDetailData } from '../global/interfaces/ImportDetailData';
 import { DrugCategory } from '../entity/DrugCategory';
 import { calculateUnitPrice } from './calculationService'
 import { ImportData } from '../global/interfaces/ImportData';
-import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../utils/helper';
 import drugCategoryCache from '../cache/DrugCategoryCache';
 import { QueryParam } from '../global/interfaces/QueryParam';
 

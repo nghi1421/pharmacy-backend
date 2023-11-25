@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import customerService from '../services/customerService'
 import { CustomerData } from '../global/interfaces/CustomerData';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getCustomers = async (req: Request, res: Response) => {
     try {

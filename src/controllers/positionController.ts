@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import positionService from '../services/positionService'
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getPositions = async (req: Request, res: Response) => {
     try {

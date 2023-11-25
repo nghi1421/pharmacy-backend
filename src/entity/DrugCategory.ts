@@ -18,7 +18,7 @@ import {
 } from 'class-validator';
 import { TypeByUse } from './TypeByUse';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
-import { maxLengthErrorMessage, numberMaxMesssage, numberMinMesssage, requiredMessage } from '../config/helper';
+import { maxLengthErrorMessage, numberMaxMesssage, numberMinMesssage, requiredMessage } from '../utils/helper';
 import DrugCategoryCache from '../cache/DrugCategoryCache';
 
 @Entity('drug_categories')

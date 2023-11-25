@@ -3,6 +3,7 @@ import { AppDataSource } from "../dataSource"
 import { Export } from "../entity/Export"
 import { History, HistoryData, HistoryDetail } from "../global/interfaces/HistoryData"
 import { ExportDetail } from "../entity/ExportDetail"
+import { formatCurrency } from '../utils/format'
 
 const exportRepository = AppDataSource.getRepository(Export)
 const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
@@ -33,7 +34,7 @@ const getHistory = (phoneNumber: string) => {
                             }
                         }
                     })
-                    const historiyDetails: HistoryDetail[] = []
+                    let historiyDetails: HistoryDetail[] = []
                     let totalPrice: number = 0;
                     let totalPriceWithVat: number = 0;
                     for (let exportDetail of exportDetails) {
@@ -56,7 +57,7 @@ const getHistory = (phoneNumber: string) => {
                         historyData.push({
                             staffName: exportData.staff.name,
                             time: dayjs(exportData.exportDate).format('DD/MM/YYYY HH:mm:ss'),
-                            total: totalPriceWithVat,
+                            total: formatCurrency(totalPriceWithVat),
                             historyDetail: historiyDetails
                         })
                     }
@@ -65,7 +66,7 @@ const getHistory = (phoneNumber: string) => {
                             title: currentTitle,
                             histories: historyData,
                         })
-                        historyData = []
+                        historiyDetails = []
                         currentTitle = dayjs(exports[0].exportDate).format('MM/YYYY')
                     }
                 }

@@ -8,8 +8,8 @@ import { UserData } from '../global/interfaces/UserData';
 import { Role } from '../entity/Role';
 import config from '../config/config'
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
-import { checkExistUniqueCreate } from '../config/query';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../utils/helper';
+import { checkExistUniqueCreate } from '../utils/query';
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
 const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)

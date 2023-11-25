@@ -4,7 +4,7 @@ import { Repository } from "typeorm"
 import { Request } from "express";
 import { Meta } from "../global/interfaces/DataResponse";
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken'
-import config from "./config";
+import config from "../config/config";
 
 export interface DataAndCount {
     data: any;

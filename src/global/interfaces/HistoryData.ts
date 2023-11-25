@@ -2,7 +2,7 @@
 export interface HistoryData {
     staffName: string;
     time: string;
-    total: number;
+    total: string;
     historyDetail: HistoryDetail[]
 }
 

@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import staffService from '../services/staffService'
 import { StaffData } from '../global/interfaces/StaffData';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getStaffs = async (req: Request, res: Response) => {
     try {

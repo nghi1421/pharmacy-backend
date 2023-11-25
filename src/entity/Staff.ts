@@ -19,7 +19,7 @@ import {
 } from 'class-validator';
 import { User } from './User'; 
 import { Position } from './Position'
-import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, stringOnlyNumberRegex, typeInvalidMessage } from '../config/helper';
+import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, stringOnlyNumberRegex, typeInvalidMessage } from '../utils/helper';
 import { BoolBitTransformer } from '../global/classes/BoolBitTransformer';
 
 @Entity('staffs')

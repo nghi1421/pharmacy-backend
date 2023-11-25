@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 import { Staff } from './Staff';
 import { Provider } from './Provider';
-import { typeInvalidMessage } from '../config/helper';
+import { typeInvalidMessage } from '../utils/helper';
 
 @Entity('imports')
 export class Import {

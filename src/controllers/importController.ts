@@ -3,7 +3,7 @@ import importService from '../services/importService'
 import { ImportData } from '../global/interfaces/ImportData';
 import { NewImportDetailData } from '../global/interfaces/ImportDetailData';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getImports = async (req: Request, res: Response) => {
     try {

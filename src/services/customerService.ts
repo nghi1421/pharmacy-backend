@@ -6,9 +6,9 @@ import { CustomerData } from '../global/interfaces/CustomerData';
 import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
-import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../config/query';
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../utils/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { DataAndCount, getDataAndCount, getMetaData } from '../config/helper';
+import { DataAndCount, getDataAndCount, getMetaData } from '../utils/helper';
 
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
 

@@ -5,7 +5,7 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { User } from '../entity/User';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getUsers = async (req: Request, res: Response) => {
     try {

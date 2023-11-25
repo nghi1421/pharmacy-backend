@@ -12,7 +12,7 @@ import {
     Matches,
     ValidateIf
 } from 'class-validator';
-import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../config/helper';
+import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../utils/helper';
 
 @Entity('providers')
 export class Provider {

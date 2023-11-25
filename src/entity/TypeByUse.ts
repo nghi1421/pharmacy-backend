@@ -9,7 +9,7 @@ import {
     IsNotEmpty,
     MaxLength,
 } from 'class-validator';
-import { maxLengthErrorMessage, requiredMessage } from '../config/helper';
+import { maxLengthErrorMessage, requiredMessage } from '../utils/helper';
 
 @Entity('type_by_uses')
 export class TypeByUse {

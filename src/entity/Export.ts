@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 import { Staff } from './Staff';
 import { Customer } from './Customer';
-import { maxLengthErrorMessage, requiredMessage, typeInvalidMessage } from '../config/helper';
+import { maxLengthErrorMessage, requiredMessage, typeInvalidMessage } from '../utils/helper';
 
 @Entity('exports')
 export class Export {

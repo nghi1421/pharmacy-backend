@@ -1,6 +1,6 @@
 import { In, Repository } from "typeorm";
 import { Inventory } from "../entity/Inventory";
-import { getMonthYearNow, getPreviousYearMonth } from "../config/time";
+import { getMonthYearNow, getPreviousYearMonth } from "../utils/time";
 import { ImportDetail } from "../entity/ImportDetail";
 import { validateOrReject } from "class-validator";
 import { AppDataSource } from "../dataSource";

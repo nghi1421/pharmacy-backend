@@ -22,7 +22,7 @@
         "downlevelIteration": true
     },
     "include": [
-      "src",
+      "src", "src/utils/helper.ts",
     ],
     "exclude": [
         "tmp",

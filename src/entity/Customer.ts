@@ -9,14 +9,11 @@ import {
 } from 'typeorm';
 import {
     IsNotEmpty,
-    IsEmail,
     MaxLength,
     Matches,
-    IsDate,
-    ValidateIf
 } from 'class-validator';
 import { User } from './User'; 
-import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../config/helper';
+import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../utils/helper';
 
 @Entity('customers')
 export class Customer {

@@ -4,7 +4,7 @@ import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { TypeByUse } from '../entity/TypeByUse';
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getTypeByUses = async (req: Request, res: Response) => {

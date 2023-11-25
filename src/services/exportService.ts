@@ -8,7 +8,7 @@ import { ExportData } from '../global/interfaces/ExportData';
 import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
-import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../config/helper';
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../utils/helper';
 import { Inventory } from '../entity/Inventory';
 import importService from './importService'
 import { ImportDetail } from '../entity/ImportDetail';

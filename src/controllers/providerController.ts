@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import providerService from '../services/providerService'
 import { ProviderData } from '../global/interfaces/ProviderData';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getProviders = async (req: Request, res: Response) => {
     try {

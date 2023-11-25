@@ -10,8 +10,8 @@ import { validate, validateOrReject } from 'class-validator'
 import { Customer } from '../entity/Customer'
 import { SignUpCustomerData } from '../global/interfaces/CustomerData'
 import { Role } from '../entity/Role'
-import { getErrors } from '../config/helper'
-import { checkExistUniqueCreate } from '../config/query'
+import { getErrors } from '../utils/helper'
+import { checkExistUniqueCreate } from '../utils/query'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
@@ -107,7 +107,7 @@ const loginCustomer = (username: string, password: string, deviceToken: string)
                 customerId: customer.id
             }, config.accessKey, { expiresIn: config.expiryRefreshToken });
 
-            user.deviceToken = accessToken
+            user.deviceToken = deviceToken
             await userRepository.save(user);
 
             resolve({

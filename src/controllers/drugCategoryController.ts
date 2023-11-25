@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import drugCategoryService from '../services/drugCategoryService'
 import { DrugCategoryData } from '../global/interfaces/DrugCategoryData';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 import { QueryParam } from '../global/interfaces/QueryParam';
 
 const getDrugCategories = async (req: Request, res: Response) => {

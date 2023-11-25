@@ -11,7 +11,7 @@ import {
 import {
     IsNotEmpty, Min,
 } from 'class-validator';
-import { numberMinMesssage, requiredMessage } from '../config/helper';
+import { numberMinMesssage, requiredMessage } from '../utils/helper';
 import { ColumnNumericTransformer } from '../global/classes/ColumnNumbericTransformer';
 import { ImportDetail } from './ImportDetail';
 import { DrugCategory } from './DrugCategory';

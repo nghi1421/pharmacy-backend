@@ -4,7 +4,7 @@ import { NewExportDetailData } from '../global/interfaces/ExportDetailData';
 import { ExportData } from '../global/interfaces/ExportData';
 import { CustomerData } from '../global/interfaces/CustomerData';
 import { QueryParam } from '../global/interfaces/QueryParam';
-import { getQueryParams } from '../config/helper';
+import { getQueryParams } from '../utils/helper';
 
 const getExports = async (req: Request, res: Response) => {
     try {

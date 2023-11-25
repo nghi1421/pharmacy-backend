@@ -8,7 +8,7 @@ import {
 import {
     IsNotEmpty, MaxLength,
 } from 'class-validator';
-import { maxLengthErrorMessage, requiredMessage } from '../config/helper';
+import { maxLengthErrorMessage, requiredMessage } from '../utils/helper';
 
 @Entity('positions')
 export class Position {
