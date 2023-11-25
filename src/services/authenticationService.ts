@@ -174,78 +174,81 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
             }
 
             const newUser = new User();
-            const role: Role|null = await roleRepository.findOneBy({ id: 3 });
+                const role: Role|null = await roleRepository.findOneBy({ id: 3 });
 
-            if (role === null) {
-                return reject({
-                    errorMessge: 'Thông tin quyền không tồn tại.',
-                });
+                if (role === null) {
+                    return reject({
+                        errorMessge: 'Thông tin quyền không tồn tại.',
+                    });
+                }
+
+                newUser.role = role;
+                newUser.username = data.username;
+                newUser.password = data.password;
+                newUser.deviceToken = data.deviceToken;
+                newUser.hashPasswrod();
+
+                const errors = await validate(newUser)
+            
+                if (errors.length > 0) {
+                    return reject({validateError: getErrors(errors)})
+                }
+
+                const errorResponse = []
+                const [{ exists: existsUsername }] = await
+                    checkExistUniqueCreate(userRepository, 'username', data.username)
+
+                if (existsUsername) {
+                    errorResponse.push({
+                        key: 'username',
+                        value: ['Tên đăng nhập đã tồn tại.']
+                    })
+                }
+
+                if (errorResponse.length > 0) {
+                    return reject({validateError: errorResponse})
             }
+            
+            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: data.phoneNumber })
+            
+            if (customer) {
+                await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                    await transactionalEntityManager.save(newUser)
+                    customer.user = newUser
+                    await transactionalEntityManager.save(customer)
+                })
 
-            newUser.role = role;
-            newUser.username = data.username;
-            newUser.password = data.password;
-            newUser.deviceToken = data.deviceToken;
-            newUser.hashPasswrod();
+                resolve({
+                    message: 'Đăng ký thành công.',
+                    data: customer
+                })
+            } 
+            else {
+                let newCustomer = new Customer();
 
-            const errors = await validate(newUser)
-        
-            if (errors.length > 0) {
-                return reject({validateError: getErrors(errors)})
-            }
+                newCustomer.name = data.name;
+                newCustomer.phoneNumber = data.phoneNumber;
+                newCustomer.gender = data.gender;
+                newCustomer.address = data.address
 
-            const errorResponse = []
-            const [{ exists: existsUsername }] = await
-                checkExistUniqueCreate(userRepository, 'username', data.username)
+                const customerErrors = await validate(newCustomer)
+                
+                if (customerErrors.length > 0) {
+                    return reject({validateError: customerErrors})
+                }
 
-            if (existsUsername) {
-                errorResponse.push({
-                    key: 'username',
-                    value: ['Tên đăng nhập đã tồn tại.']
+                await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                    await transactionalEntityManager.save(newCustomer)
+
+                    await transactionalEntityManager.save(newUser)
+                })
+
+                resolve({
+                    message: 'Đăng ký thành công.',
+                    data: customer
                 })
             }
-
-            if (errorResponse.length > 0) {
-                return reject({validateError: errorResponse})
-            }
-
-            let newCustomer = new Customer();
-
-            newCustomer.name = data.name;
-            newCustomer.phoneNumber = data.phoneNumber;
-            newCustomer.gender = data.gender;
-            newCustomer.address = data.address
-
-            const customerErrors = await validate(newCustomer)
             
-            if (customerErrors.length > 0) {
-                return reject({validateError: customerErrors})
-            }
-
-            const customerErrorResponse = []
-            const [{ exists: existsPhoneNumber }] = await
-                checkExistUniqueCreate(customerRepository, 'phone_number', [newCustomer.phoneNumber])
-            
-            if (existsPhoneNumber) {
-                customerErrorResponse.push({
-                    key: 'phoneNumber',
-                    value: ['Số điện thoại đã tồn tại.']
-                })
-            }
-            if (customerErrorResponse.length > 0) {
-                return reject({validateError: customerErrorResponse})
-            }
-
-            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                await transactionalEntityManager.save(newCustomer)
-
-                await transactionalEntityManager.save(newUser)
-            })
-
-            resolve({
-                message: 'Thêm đăng kí thông tin khách hàng thành công.',
-                data: newUser
-            })
         }
         catch (error) {
             reject(error)
