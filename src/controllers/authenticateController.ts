@@ -45,7 +45,7 @@ const refreshToken = (req: Request, res: Response) => {
 const changePassword = async (req: Request, res: Response) => {
     try {
         const username: string = req.body.username;
-        const oldPassword: string = req.body.oldPasswrod;
+        const oldPassword: string = req.body.oldPassword;
         const newPassword: string = req.body.newPassword;
         const newPasswordConfirmation: string = req.body.confirmationPassword;
         
@@ -153,7 +153,7 @@ const forgotPassword = async (req: Request, res: Response) => {
 const changePasswordCustomer = async (req: Request, res: Response) => {
     try {
         const phoneNumber: string = req.body.phoneNumber;
-        const oldPassword: string = req.body.oldPasswrod;
+        const oldPassword: string = req.body.oldPassword;
         const newPassword: string = req.body.newPassword;
         const confirmationPassword: string = req.body.confirmationPassword;
         
@@ -163,7 +163,7 @@ const changePasswordCustomer = async (req: Request, res: Response) => {
             })
         }
         else {
-            if (newPassword !== confirmationPassword) {
+             if (newPassword !== confirmationPassword) {
                 res.status(401).json({
                     errorMessage: 'Mật khẩu xác nhận không hợp.'
                 })
@@ -173,6 +173,7 @@ const changePasswordCustomer = async (req: Request, res: Response) => {
                 res.status(200).json(result);
             }
         }
+       
     }
     catch (error) {
         res.status(500).json(error)

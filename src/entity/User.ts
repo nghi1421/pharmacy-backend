@@ -23,7 +23,7 @@ export class User {
     @Column()
     @Index({ unique: true })
     @IsNotEmpty()
-    @Length(8, 255)
+    @Length(6, 255)
     username: string
 
     @Column()

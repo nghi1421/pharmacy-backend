@@ -103,6 +103,7 @@ const changePasswordCustomer =
                 const user = customer.user
                 if (user) {
                     if (user.checkPassword(oldPassword)) {
+                        console.log(user);
                         user.password = newPassword;
                         user.hashPasswrod();
 
@@ -123,7 +124,7 @@ const changePasswordCustomer =
                 }
             }
         } catch (error) {
-            reject({errorMessage: error})
+            reject(error)
         }
     })
 }
