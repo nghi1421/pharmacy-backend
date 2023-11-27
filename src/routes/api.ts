@@ -99,8 +99,13 @@ const routesAPI = (app: Application) => {
     //MOBLE ROUTE
     router.post('/mobile/login', authenticateController.loginCustomer)
     router.post('/mobile/verify-phone-number', authenticateController.verifyPhoneNumber)
+    router.post('/mobile/check-send-otp', authenticateController.checkAndSendOTPCode)
+    
     router.post('/mobile/sign-up', authenticateController.signUpForCustomer)
+    router.post('/mobile/change-password', authenticateController.changePasswordCustomer)
     router.get('/mobile/histories/:phoneNumber', historyController.getHistory)
+    router.post('/mobile/update-profile/:customerId', customerController.updateCustomer)
+    
 
     router.post('/test-login', (req: Request, res: Response) => {
         res.cookie("token", "this is a secret token", {

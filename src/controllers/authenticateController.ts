@@ -45,9 +45,9 @@ const refreshToken = (req: Request, res: Response) => {
 const changePassword = async (req: Request, res: Response) => {
     try {
         const username: string = req.body.username;
-        const oldPassword: string = req.body.old_password;
-        const newPassword: string = req.body.new_password;
-        const newPasswordConfirmation: string = req.body.new_password_confirmation;
+        const oldPassword: string = req.body.oldPasswrod;
+        const newPassword: string = req.body.newPassword;
+        const newPasswordConfirmation: string = req.body.confirmationPassword;
         
         if (!username || !oldPassword || !newPassword || !newPasswordConfirmation) {
             res.status(401).json({
@@ -96,6 +96,18 @@ const verifyPhoneNumber = async (req: Request, res: Response) => {
     }
 }
 
+const checkAndSendOTPCode = async (req: Request, res: Response) => {
+    try {
+        const { phoneNumber } = req.body
+        const result = await authenticateService.checkAndSendOTPCode(phoneNumber)
+        res.json(result)
+    } catch (error: unknown) {
+        res.status(500).json(error)
+    }
+}
+
+
+
 const signUpForCustomer = async (req: Request, res: Response) => {
     try {
         const {
@@ -138,6 +150,35 @@ const forgotPassword = async (req: Request, res: Response) => {
     }
 }
 
+const changePasswordCustomer = async (req: Request, res: Response) => {
+    try {
+        const phoneNumber: string = req.body.phoneNumber;
+        const oldPassword: string = req.body.oldPasswrod;
+        const newPassword: string = req.body.newPassword;
+        const confirmationPassword: string = req.body.confirmationPassword;
+        
+        if (!phoneNumber || !oldPassword || !newPassword || !confirmationPassword) {
+            res.status(401).json({
+                errorMessage: 'Thiếu tham số đầu vào.'
+            })
+        }
+        else {
+            if (newPassword !== confirmationPassword) {
+                res.status(401).json({
+                    errorMessage: 'Mật khẩu xác nhận không hợp.'
+                })
+            }
+            else {
+                const result = await authenticateService.changePasswordCustomer(phoneNumber, newPassword, oldPassword);
+                res.status(200).json(result);
+            }
+        }
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
+
 export default {
     login,
     refreshToken,
@@ -145,5 +186,7 @@ export default {
     loginCustomer,
     verifyPhoneNumber,
     forgotPassword,
-    signUpForCustomer
+    signUpForCustomer,
+    checkAndSendOTPCode,
+    changePasswordCustomer
 }

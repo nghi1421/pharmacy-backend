@@ -89,6 +89,43 @@ const changePassword =
             reject({errorMessage: error})
         }
     })
+    }
+
+const changePasswordCustomer =
+    (phoneNumber: string, newPassword: string, oldPassword: string): Promise<DataOptionResponse<User>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            
+            if (!customer) {
+                reject({ errorMessage: 'Số điện thoại không tồn tại.' });
+            } else {
+                const user = customer.user
+                if (user) {
+                    if (user.checkPassword(oldPassword)) {
+                        user.password = newPassword;
+                        user.hashPasswrod();
+
+                        await validateOrReject(user);
+                        await userRepository.save(user);
+
+                        resolve({
+                            message: 'Đổi mật khẩu thành công.',
+                            data: user,
+                        })
+                    }
+                    else {
+                        reject({ errorMessage: 'Mật khẩu không hợp lệ.' });
+                    }
+                }
+                else {
+                    reject({ errorMessage: 'Khách hàng chưa tạo tài khoản.'})
+                }
+            }
+        } catch (error) {
+            reject({errorMessage: error})
+        }
+    })
 }
 
 const loginCustomer = (username: string, password: string, deviceToken: string)
@@ -164,6 +201,30 @@ const verifyPhoneNumber = (phoneNumber: string) => {
     })
 }
 
+const checkAndSendOTPCode = (phoneNumber: string) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+            console.log('This is OTP CODE_______________-__:', otpCode)
+            if (customer) {
+                reject({
+                    errorMessage: 'Số điện thoại đã được sử dụng.'
+                })
+            }
+            else {
+                resolve({
+                    message: 'Mã OTP đã được gửi.',
+                    otpCode,
+                })
+            }
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 const signUpForCustomer = (data: SignUpCustomerData) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -213,8 +274,8 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
             
             if (customer) {
                 await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                    await transactionalEntityManager.save(newUser)
-                    customer.user = newUser
+                    const user = await transactionalEntityManager.save(newUser)
+                    customer.user = user
                     await transactionalEntityManager.save(customer)
                 })
 
@@ -238,9 +299,10 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
                 }
 
                 await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                    const user = await transactionalEntityManager.save(newUser)
+                    newCustomer.user = user
                     await transactionalEntityManager.save(newCustomer)
 
-                    await transactionalEntityManager.save(newUser)
                 })
 
                 resolve({
@@ -281,8 +343,10 @@ const forgotPassword = (phoneNumber: string) => {
 export default{
     login,
     changePassword,
+    checkAndSendOTPCode,
     loginCustomer,
     verifyPhoneNumber,
     signUpForCustomer,
-    forgotPassword
+    forgotPassword,
+    changePasswordCustomer
 }

@@ -29,18 +29,17 @@ export class Customer {
     @IsNotEmpty({ message: requiredMessage('Số điện thoại')})
     @MaxLength(15, { message: maxLengthErrorMessage('Số điện thoại', 15) })
     @Matches(phoneNumberRegex, { message: typeInvalidMessage('Số điện thoại')})
-    phoneNumber: string
+    phoneNumber: string 
 
     @Column()
     @MaxLength(255, { message: maxLengthErrorMessage('Địa chỉ', 255) })
     address: string
 
-
     @Column({ type: 'tinyint'})
     @IsNotEmpty({ message: requiredMessage('Giới tính')})
     gender: number
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, { eager: true })
     @JoinColumn()
     user: User
 

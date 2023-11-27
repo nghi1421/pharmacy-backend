@@ -57,7 +57,7 @@ const getHistory = (phoneNumber: string) => {
                             id: exportData.id,
                             staffName: exportData.staff.name,
                             time: dayjs(exportData.exportDate).format('DD/MM/YYYY HH:mm:ss'),
-                            total: formatCurrency(totalPriceWithVat),
+                            total: formatCurrency(totalPriceWithVat),   
                             totalWithoutVat: formatCurrency(totalPrice),
                             vat: formatCurrency(totalPriceWithVat-totalPrice),
                             prescriptionId: exportData.prescriptionId,
