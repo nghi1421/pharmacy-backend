@@ -3,8 +3,8 @@ import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate, validateOrReject } from "class-validator"
 import { Staff } from '../entity/Staff';
-import { EntityManager, Like, Repository } from 'typeorm';
-import { ExportData } from '../global/interfaces/ExportData';
+import { Between, EntityManager, Like, Repository } from 'typeorm';
+import { EditExportData, ExportData } from '../global/interfaces/ExportData';
 import { ExportDetail } from '../entity/ExportDetail';
 import { Customer } from '../entity/Customer';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
@@ -92,6 +92,58 @@ const getExport = (exportId: number) => {
                     errorMessage: 'Phiếu xuất hàng không tồn tại. Vui lòng làm mới trang.'
                 });
             }
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const getTodaySalesCreatedByStaff =  (staffId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const now = new Date();
+            let start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+            let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            const exports = await exportRepository.find({
+                select: {
+                    id: true,
+                    exportDate: true,
+                    type: true,
+                },  
+                where: {
+                    staff: {
+                        id: staffId
+                    },
+                    exportDate: Between(start, end)
+                },
+                order: { exportDate: 'DESC'}
+            })
+
+            let handleExport = [];
+            for (let exportData of exports) {
+                const exportDetailData = await exportDetailRepository.find({ where: { export: { id: exportData.id } } })
+                const resultDetailData = []
+                let totalPrice: number = 0;
+                let totalPriceWithVat: number = 0;
+                for (let exportDetail of exportDetailData) {
+                    const price = exportDetail.unitPrice * exportDetail.quantity
+                    const priceWithVat = exportDetail.unitPrice * exportDetail.quantity * (1 + exportDetail.vat)
+
+                    resultDetailData.push({
+                        ...exportDetail,
+                    })
+                    
+                    totalPrice += price
+                    totalPriceWithVat += priceWithVat
+                }
+                handleExport.push({...exportData,total: totalPriceWithVat})
+            }
+
+            resolve({
+                message: 'Lấy thông tin phiếu xuất thành công.',
+                data: handleExport,
+            })
+            
         } catch (error) {
             reject(error);
         }
@@ -310,8 +362,217 @@ const storeExport = (data: ExportData) => {
     })
 }
 
-const updateExport = () => {
+const refundExportAndCreateNewExport = (data: EditExportData) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const now = new Date();
+            let start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+            let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            const exportData: Export | null = await exportRepository.findOneBy({ id: data.id })
+            
+            if (!exportData) {
+                return reject({ errorMessage: 'Không tìm thấy đơn hàng. Vui lòng làm mới.' });
+            }
+            if (exportData.type === 1) {
 
+            }
+            if (exportData.exportDate >= start && exportData.exportDate <= end) {
+                if (data.type === 2) {
+                    exportData.note = data.note;
+                    exportData.type = data.type;
+                    const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
+                    if (staff === null) {
+                        return reject({ errorMessage: 'Thông tin nhân viên không tồn tại.' });
+                    }
+
+                    let customer: Customer|null = await customerRepository.findOneBy({ phoneNumber: data.customer.phoneNumber });
+
+                    let newExport = new Export();
+
+                    newExport.exportDate = new Date();
+                    newExport.note = 'Đơn xuất hoàn.'
+                    newExport.prescriptionId = data.prescriptionId
+                    newExport.staff = staff;
+                    newExport.type = 1;
+
+                    await validateOrReject(newExport)
+
+                    const errors = await validate(newExport);
+                    if (errors.length > 0) {
+                        return reject({ validateError: getErrors(errors) });
+                    }
+
+                    if (data.exportDetails.length === 0) {
+                        return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
+                    }
+
+                    const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
+
+                    if (!isEnough) {
+                        return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
+                    }
+                    await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                        //old export handle
+                        await transactionalEntityManager.save(exportData)
+
+                        const oldExportDetails = await exportDetailRepository.find({ where: {export : { id: exportData.id}}})
+                        for (let exportDetail of oldExportDetails) {
+                            let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drug.id);
+                            if (!drugInventory) {
+                                resolve({
+                                    errorMessage: `Mã thuốc ${exportDetail.drug.id} không tồn. Vui lòng làm mới danh mục thuốc để cập nhật thông tin danh mục thuốc mới.`,
+                                }); 
+                                throw new Error();
+                            }
+                            drugInventory.inventoryImportDetail += exportDetail.quantity;    
+                            await transactionalEntityManager.save(drugInventory);
+                        }
+                        //
+                        
+                        if (customer === null) {
+                            const newCustomer = new Customer()
+                            newCustomer.address = data.customer.address
+                            newCustomer.name = data.customer.name
+                            newCustomer.gender = data.customer.gender
+                            newCustomer.phoneNumber = data.customer.phoneNumber
+
+                            const errors = await validate(newCustomer)
+
+                            if (errors.length > 0) {
+                                reject({ validateError: getErrors(errors) })
+                                throw new Error();
+                            }
+                            customer = await transactionalEntityManager.save(newCustomer)
+                        }
+                        else {
+                            customer.address = data.customer.address
+                            customer.name = data.customer.name
+                            customer.gender = data.customer.gender
+                            customer.phoneNumber = data.customer.phoneNumber
+
+                            const errors = await validate(customer)
+
+                            if (errors.length > 0) {
+                                reject({ validateError: getErrors(errors) })
+                                throw new Error();
+                            }
+
+                            customer = await transactionalEntityManager.save(customer)
+                        }
+                        newExport.customer = customer;
+                        
+                        await transactionalEntityManager.save(newExport)
+                    
+                        for (let exportDetail of data.exportDetails) {
+                            let drugInventory: Inventory | null =
+                                await inventoryService.getDrugInventoryThisMonth(exportDetail.drugId);
+
+                            if (!drugInventory) {
+                                resolve({
+                                    errorMessage: `Mã thuốc ${exportDetail.drugId} không tồn. Vui lòng làm mới danh mục thuốc để cập nhật thông tin danh mục thuốc mới.`,
+                                }); 
+                                throw new Error();
+                            }
+                            let inventory = drugInventory.inventoryImportDetail - exportDetail.quantity;
+                            
+                            if (inventory > 0) {
+                                const newExportDetail = new ExportDetail()
+                                newExportDetail.export = newExport
+                                newExportDetail.import = drugInventory.importDetail.import
+                                newExportDetail.drug = drugInventory.drug
+                                newExportDetail.unitPrice = drugInventory.drug.price
+                                newExportDetail.quantity = exportDetail.quantity
+                                newExportDetail.vat = drugInventory.drug.vat
+                                newExportDetail.expiryDate = new Date(drugInventory.importDetail.expiryDate)
+
+                                drugInventory.salesQuantity += exportDetail.quantity
+                                drugInventory.inventoryQuantiy -= exportDetail.quantity
+                                drugInventory.inventoryImportDetail -= exportDetail.quantity
+                                
+                                const errors = await validate(newExportDetail)
+                                if (errors.length > 0) {
+                                    reject({ validateError: getErrors(errors) })
+                                    throw new Error();
+                                }
+
+                                await transactionalEntityManager.save(drugInventory);
+                                await transactionalEntityManager.save(newExportDetail);
+                                }
+                            else {
+                                let index: number = 0;
+                                const importDetails: ImportDetail[] =
+                                    await importService.getImportDetailsAfter(
+                                        drugInventory.drug.id,
+                                        drugInventory.importDetail.id
+                                    )
+                                const handledExportDetails: {importDetail: ImportDetail, quantity: number}[] = []
+
+                                inventory = drugInventory.inventoryImportDetail + inventory
+
+                                while (inventory < 0) {
+                                    if (index === 0){
+                                        handledExportDetails.push({
+                                            importDetail: importDetails[index],
+                                            quantity: drugInventory.inventoryImportDetail,
+                                        })  
+                                    }
+                                    else {
+                                        handledExportDetails.push({
+                                            importDetail: importDetails[index],
+                                            quantity: importDetails[index].quantity *  importDetails[index].conversionQuantity
+                                        })
+                                    }
+                                    inventory = importDetails[++index].quantity + inventory
+                                }
+                                handledExportDetails.push({
+                                    importDetail: importDetails[index],
+                                    quantity: inventory
+                                })
+
+                                drugInventory.importDetail = importDetails[index]
+                                drugInventory.inventoryImportDetail = inventory
+                                drugInventory.inventoryQuantiy = drugInventory.inventoryQuantiy - exportDetail.quantity
+                                drugInventory.salesQuantity += exportDetail.quantity
+
+                                handledExportDetails.forEach(async (handledExportDetail) => {
+                                    const newExportDetail = new ExportDetail();
+
+                                    newExportDetail.export = newExport
+                                    newExportDetail.import = handledExportDetail.importDetail.import
+                                    newExportDetail.drug = handledExportDetail.importDetail.drug
+                                    newExportDetail.unitPrice = handledExportDetail.importDetail.drug.price
+                                    newExportDetail.quantity = handledExportDetail.quantity
+                                    newExportDetail.vat = handledExportDetail.importDetail.drug.vat
+                                    newExportDetail.expiryDate = new Date(handledExportDetail.importDetail.expiryDate)
+
+                                    const errors = await validate(newExportDetail)
+
+                                    if (errors.length > 0) {
+                                        reject({ validateError: getErrors(errors) })
+                                        throw new Error();
+                                    }
+
+                                    await transactionalEntityManager.save(newExportDetail);
+                                })
+                                await transactionalEntityManager.save(drugInventory);
+                            }
+                        }
+                    })
+                    
+
+                }
+                else {
+                    reject({ errorMessage: 'Không thể cập nhật đơn hàng.' })
+                }
+            }
+            else {
+                reject({ errorMessage: 'Đơn hàng không trong thời gian có thể cập nhật.' })
+            }
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
 }
 
 const deleteExport = (exportId: number): Promise<DataOptionResponse<Export>> => {
@@ -345,9 +606,10 @@ const deleteExport = (exportId: number): Promise<DataOptionResponse<Export>> => 
 
 export default {
     getExports,
+    getTodaySalesCreatedByStaff,
     getExport,
     searchExport,
     storeExport,
-    updateExport,
+    refundExportAndCreateNewExport,
     deleteExport
 }

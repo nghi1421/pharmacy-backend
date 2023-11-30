@@ -10,3 +10,13 @@ export interface ExportData {
     exportDetails: NewExportDetailData[];
     customer: CustomerData
 }
+
+export interface EditExportData {
+    id: number
+    note: string
+    staffId: number;
+    prescriptionId: string;
+    type: number
+    customer: CustomerData
+    exportDetails: NewExportDetailData[];
+}

@@ -8,7 +8,7 @@ const login = async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const result = await authenticateService.login(username, password)
-        res.cookie("refresh-token", result.refreshToken , {
+        res.cookie("refreshToken", result.refreshToken , {
                 httpOnly: true,
                 maxAge: parseInt(config.expiryRefreshTokenCookie),
                 domain: "localhost",
@@ -20,25 +20,28 @@ const login = async (req: Request, res: Response) => {
 }
 
 const refreshToken = (req: Request, res: Response) => {
-    if (req.cookies?.jwt) {
-        const refreshToken: string = req.cookies.jwt;
+    if (req.cookies.refreshToken) {
+        const refreshToken: string = req.cookies.refreshToken;
         jwt.verify(refreshToken, config.refreshKey, (error: VerifyErrors, decoded: JwtPayload) => {
+            console.log('this is payload',decoded) 
             if (error) {
-                return res.status(406).json({message: "Xác thực thất bại."})
+                res.status(406).json({ errorMessage: "Xác thực thất bại." })
             }
             else { 
                 const accessToken = jwt.sign({ 
-                    id: decoded.id,
-                    role: decoded.role,
-                }, config.accessKey, { 
+                    userId: decoded.userId,
+                    roleId: decoded.roleId,
+                    staffId: decoded.staffId 
+                }, config.accessKey, {  
                     expiresIn: config.expiryAccessToken 
                 }); 
-                return res.json({ accessToken }); 
+                res.locals.accessToken = accessToken
             } 
         })
+        res.json({ accessToken: res.locals.accessToken }); 
     }
     else {
-        res.status(406).json({ message: 'Xác thực thất bại.' }); 
+        res.status(406).json({ errorMessage: 'Xác thực thất bại.' }); 
     } 
 }
 
@@ -50,13 +53,13 @@ const changePassword = async (req: Request, res: Response) => {
         const newPasswordConfirmation: string = req.body.confirmationPassword;
         
         if (!username || !oldPassword || !newPassword || !newPasswordConfirmation) {
-            res.status(401).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
         }
         else {
             if (newPassword !== newPasswordConfirmation) {
-                res.status(401).json({
+                res.status(400).json({
                     errorMessage: 'Mật khẩu xác nhận không hợp.'
                 })
             }
@@ -158,13 +161,13 @@ const changePasswordCustomer = async (req: Request, res: Response) => {
         const confirmationPassword: string = req.body.confirmationPassword;
         
         if (!phoneNumber || !oldPassword || !newPassword || !confirmationPassword) {
-            res.status(401).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
         }
         else {
              if (newPassword !== confirmationPassword) {
-                res.status(401).json({
+                res.status(400).json({
                     errorMessage: 'Mật khẩu xác nhận không hợp.'
                 })
             }
