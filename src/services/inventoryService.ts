@@ -26,7 +26,7 @@ const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
                 const listPrevMonthInventory = await inventoryRepository.find({
                     where: {
                         drug: { id: In(missingIds) },
-                        monthYear: getMonthYearNow()
+                        monthYear: getPreviousYearMonth()
                     }
                 })
 

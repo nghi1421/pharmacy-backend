@@ -51,7 +51,6 @@ const storeExport = async (req: Request, res: Response) => {
     try {
         const { 
             note,
-            prescriptionId,
         } = req.body
 
         const exportDate: Date = new Date(req.body.exportDate)
@@ -77,7 +76,6 @@ const storeExport = async (req: Request, res: Response) => {
             exportDate,
             type,
             staffId,
-            prescriptionId,
             customer,
             exportDetails,
         }
@@ -93,7 +91,6 @@ const updateExport = async (req: Request, res: Response) => {
     try {
         const { 
             note,
-            prescriptionId,
         } = req.body
         const exportId: number = parseInt(req.params.exportId)
         const staffId: number = parseInt(res.locals.staffId);
@@ -112,7 +109,6 @@ const updateExport = async (req: Request, res: Response) => {
             note,
             type,
             staffId,
-            prescriptionId,
             customer,
             exportDetails,
         }

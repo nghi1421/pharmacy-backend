@@ -609,8 +609,8 @@ const getNewPrescriptionId = (exportDate: Date): Promise<string> => {
         try {
             const start = new Date(exportDate.getFullYear(), exportDate.getMonth(), exportDate.getDate(), 0, 0, 0)
             const end = new Date(exportDate.getFullYear(), exportDate.getMonth(), exportDate.getDate(), 23, 59, 59)
-            const count = await exportRepository.count({ where: {exportDate: Between(start, end)}})
-            resolve(`DT${exportDate.getDate()}${exportDate.getMonth()+1}${exportDate.getFullYear()}${count+1}`)
+            const count = await exportRepository.count({ where: { exportDate: Between(start, end) } })
+            resolve(`DT${String(exportDate.getDate()).padStart(2, '0')}${String(exportDate.getMonth()+1).padStart(2, '0')}${exportDate.getFullYear()}${String(count+1).padStart(3, '00')}`)
         }
         catch (error) {
             reject(error)
