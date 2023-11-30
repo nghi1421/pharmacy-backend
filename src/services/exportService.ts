@@ -179,7 +179,7 @@ const storeExport = (data: ExportData) => {
 
             newExport.exportDate = data.exportDate;
             newExport.note = data.note;
-            newExport.prescriptionId = data.prescriptionId
+            newExport.prescriptionId = await getNewPrescriptionId(data.exportDate)
             newExport.staff = staff;
             
             newExport.type = data.type;
@@ -373,8 +373,8 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
             if (!exportData) {
                 return reject({ errorMessage: 'Không tìm thấy đơn hàng. Vui lòng làm mới.' });
             }
-            if (exportData.type === 1) {
-
+            if (exportData.type !== 1) {
+                return reject({ errorMessage: 'Bạn không có quyền cập nhật đơn hàng này.' });
             }
             if (exportData.exportDate >= start && exportData.exportDate <= end) {
                 if (data.type === 2) {
@@ -391,7 +391,7 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
 
                     newExport.exportDate = new Date();
                     newExport.note = 'Đơn xuất hoàn.'
-                    newExport.prescriptionId = data.prescriptionId
+                    newExport.prescriptionId = await getNewPrescriptionId(new Date())
                     newExport.staff = staff;
                     newExport.type = 1;
 
@@ -600,6 +600,20 @@ const deleteExport = (exportId: number): Promise<DataOptionResponse<Export>> => 
             })
         } catch (error) {
             reject(error);
+        }
+    })
+}
+
+const getNewPrescriptionId = (exportDate: Date): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const start = new Date(exportDate.getFullYear(), exportDate.getMonth(), exportDate.getDate(), 0, 0, 0)
+            const end = new Date(exportDate.getFullYear(), exportDate.getMonth(), exportDate.getDate(), 23, 59, 59)
+            const count = await exportRepository.count({ where: {exportDate: Between(start, end)}})
+            resolve(`DT${exportDate.getDate()}${exportDate.getMonth()+1}${exportDate.getFullYear()}${count+1}`)
+        }
+        catch (error) {
+            reject(error)
         }
     })
 }
