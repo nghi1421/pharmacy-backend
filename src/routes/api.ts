@@ -88,6 +88,7 @@ const routesAPI = (app: Application) => {
     router.get('/exports',[checkAccessToken, checkAdmin], exportController.getExports) 
     router.get('/exports/:exportId',[checkAccessToken], exportController.getExport)
     router.post('/exports/:exportId',[checkAccessToken], exportController.updateExport)
+    router.post('/refund-exports/:exportId',[checkAccessToken], exportController.refundExport)
     router.get('/exports/search',[checkAccessToken, checkAdmin], exportController.searchExport)
     router.post('/exports', [checkAccessToken], exportController.storeExport)
     router.get('/exports-today', [checkAccessToken], exportController.getTodaySalesCreatedByStaff)

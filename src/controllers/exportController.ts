@@ -119,6 +119,16 @@ const updateExport = async (req: Request, res: Response) => {
     }
 }
 
+const refundExport = async (req: Request, res: Response) => {
+    try {
+        const result = await exportService.refundExport(parseInt(req.params.exportId))
+        res.status(200).json(result)
+    }
+    catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 const deleteExport = async (req: Request, res: Response) => {
     try {
         const exportId = parseInt(req.params.exportId)
@@ -131,6 +141,7 @@ const deleteExport = async (req: Request, res: Response) => {
 export default {
     getExports,
     getTodaySalesCreatedByStaff,
+    refundExport,
     updateExport,
     getExport,
     searchExport,

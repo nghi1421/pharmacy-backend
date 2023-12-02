@@ -350,7 +350,7 @@ const storeExport = (data: ExportData) => {
             }
             drugCategoryCache.setDrugCategories(null)
             resolve({
-                message: 'Thêm mới thông tin phiếu nhập thành công.',
+                message: 'Thêm mới thông tin phiếu xuất thành công.',
                 data: {
                     export: { ...newExport, totalPriceWithVat, totalPrice: totalPrice},
                     exportDetail: resultDetailData
@@ -358,6 +358,51 @@ const storeExport = (data: ExportData) => {
             })
         } catch (error) {
             reject(error);
+        }
+    })
+}
+
+const refundExport = (exportId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const exportData: Export | null = await exportRepository.findOneBy({ id: exportId })
+         
+            if (!exportData) {
+                return reject({ errorMessage: 'Không tìm thấy đơn hàng. Vui lòng làm mới.' });
+            }
+            if (exportData.type !== 1) {
+                return reject({ errorMessage: 'Bạn không có quyền cập nhật đơn hàng này.' });
+            }
+            else {
+                exportData.type = 2
+                exportData.note = 'Đơn hoàn'
+
+                await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                    await transactionalEntityManager.save(exportData)
+
+                    const oldExportDetails = await exportDetailRepository.find({ where: { export: { id: exportData.id } } })
+                    for (let exportDetail of oldExportDetails) {
+                        let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drug.id);
+                        if (!drugInventory) {
+                            resolve({
+                                errorMessage: `Mã thuốc ${exportDetail.drug.id} không tồn. Vui lòng làm mới danh mục thuốc để cập nhật thông tin danh mục thuốc mới.`,
+                            });
+                            throw new Error();
+                        }
+                        drugInventory.inventoryImportDetail += exportDetail.quantity;
+                        drugInventory.salesQuantity -= exportDetail.quantity;
+                        drugInventory.inventoryQuantiy += exportDetail.quantity;
+                        await transactionalEntityManager.save(drugInventory);
+                    }
+                })
+
+                resolve({
+                    message: 'Hoàn đơn thành công.'
+                })
+            }
+        }
+        catch (error) {
+            reject(error)
         }
     })
 }
@@ -378,7 +423,7 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
             }
             if (exportData.exportDate >= start && exportData.exportDate <= end) {
                 if (data.type === 2) {
-                    exportData.note = data.note;
+                    exportData.note = 'Đơn hoàn';
                     exportData.type = data.type;
                     const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
                     if (staff === null) {
@@ -390,7 +435,7 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
                     let newExport = new Export();
 
                     newExport.exportDate = new Date();
-                    newExport.note = 'Đơn xuất hoàn.'
+                    newExport.note = data.note
                     newExport.prescriptionId = await getNewPrescriptionId(new Date())
                     newExport.staff = staff;
                     newExport.type = 1;
@@ -406,11 +451,6 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
                         return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
                     }
 
-                    const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
-
-                    if (!isEnough) {
-                        return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
-                    }
                     await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                         //old export handle
                         await transactionalEntityManager.save(exportData)
@@ -424,10 +464,19 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
                                 }); 
                                 throw new Error();
                             }
-                            drugInventory.inventoryImportDetail += exportDetail.quantity;    
+                            drugInventory.inventoryImportDetail += exportDetail.quantity; 
+                            drugInventory.salesQuantity -= exportDetail.quantity;
+                            drugInventory.inventoryQuantiy += exportDetail.quantity;
                             await transactionalEntityManager.save(drugInventory);
                         }
                         //
+                        
+                        const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
+
+                        if (!isEnough) {
+                            resolve({ errorMessage: 'Tồn kho thuốc không đủ.' })
+                            throw new Error();
+                        }
                         
                         if (customer === null) {
                             const newCustomer = new Customer()
@@ -558,8 +607,30 @@ const refundExportAndCreateNewExport = (data: EditExportData) => {
                             }
                         }
                     })
-                    
+                    const exportDetailData = await exportDetailRepository.find({ where: { export: { id: newExport.id } } })
+                    const resultDetailData = []
+                    let totalPrice: number = 0;
+                    let totalPriceWithVat: number = 0;
+                    for (let exportDetail of exportDetailData) {
+                        const price = exportDetail.unitPrice * exportDetail.quantity
+                        const priceWithVat = exportDetail.unitPrice * exportDetail.quantity * (1 + exportDetail.vat)
 
+                        resultDetailData.push({
+                            ...exportDetail,
+                                totalPrice: price,
+                            })
+                        
+                        totalPrice += price
+                        totalPriceWithVat += priceWithVat
+                    }
+                    drugCategoryCache.setDrugCategories(null)
+                    resolve({
+                        message: 'Thêm mới thông tin phiếu xuất thành công.',
+                        data: {
+                            export: { ...newExport, totalPriceWithVat, totalPrice: totalPrice},
+                            exportDetail: resultDetailData
+                        },
+                    })
                 }
                 else {
                     reject({ errorMessage: 'Không thể cập nhật đơn hàng.' })
@@ -625,5 +696,6 @@ export default {
     searchExport,
     storeExport,
     refundExportAndCreateNewExport,
+    refundExport,
     deleteExport
 }
