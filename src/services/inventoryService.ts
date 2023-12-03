@@ -1,9 +1,11 @@
-import { In, Repository } from "typeorm";
+import { In, MoreThan, Repository } from "typeorm";
 import { Inventory } from "../entity/Inventory";
 import { getMonthYearNow, getPreviousYearMonth } from "../utils/time";
 import { ImportDetail } from "../entity/ImportDetail";
 import { validateOrReject } from "class-validator";
 import { AppDataSource } from "../dataSource";
+import { ImportQuantityRequired, QuantityRequired } from "../global/interfaces/QuantityRequired";
+import { Import } from "../entity/Import";
 
 
 const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
@@ -218,6 +220,78 @@ const generateInventoryNewMonth = (prevDrugInventoryList: Inventory[]): Promise<
         }
     })
 }
+
+// const checkImportInventory = (importRequired: ImportQuantityRequired[]) => {
+//     return new Promise(async (resolve, reject) => {
+//         try {   
+//             const inventoryRepository = AppDataSource.getRepository(Inventory);
+//             const importRepository = AppDataSource.getRepository(Import);
+//             const drugIds = importRequired.map((element) => element.drugId);
+//             let listInventory: Inventory[] = await inventoryRepository.find({
+//                 where: {
+//                     drug: { id: In(drugIds) },
+//                     monthYear: getMonthYearNow()
+//                 }
+//             })
+
+//             if (listInventory.length !== importRequired.length) {
+//                 const listThisMonthExistIds: number[] = listInventory.map((invent) => invent.drug.id)
+//                 const setListThisMonthExistIds =  new Set(listThisMonthExistIds)
+//                 const missingIds = drugIds.filter((drugId) => !setListThisMonthExistIds.has(drugId))
+//                 const listPrevMonthInventory = await inventoryRepository.find({
+//                     where: {
+//                         drug: { id: In(missingIds) },
+//                         monthYear: getPreviousYearMonth()
+//                     }
+//                 })
+
+//                 if (listPrevMonthInventory.length !== missingIds.length) {
+//                     return reject({
+//                         errorMessage: `Số lượng tồn kho của thuốc không tồn tại.`
+//                     })
+//                 }
+//                 const newIvnentories = await generateInventoryNewMonth(listPrevMonthInventory)
+//                 listInventory.push(...newIvnentories)
+//             }
+
+//             importRequired.forEach(async (drugRequired) => {
+//                 const inventoryDrug: Inventory | undefined =
+//                     listInventory.find((item) => drugRequired.drugId === item.drug.id)
+                
+//                 if (inventoryDrug) {
+//                     if (inventoryDrug.importDetail.import.id === drugRequired.drugId) {
+//                         if (drugRequired.quantity > inventoryDrug.inventoryImportDetail) {
+//                             return resolve(false);
+//                         }
+//                     }
+//                     else {
+//                         const importData: Import | null = await importRepository.findOne({
+//                             where: { id: inventoryDrug.importDetail.import.id}
+//                         })
+//                         if (importData) {
+//                             if (importData.id < drugRequired.importId) {
+//                                 return resolve(false);
+//                             }
+//                             else {
+//                                 //query check import detail.
+//                             }
+//                         }
+//                         else {
+//                             return resolve(false);
+//                         }
+//                     }
+//                 }
+//                 else {
+//                     return resolve(false);
+//                 }
+//             })
+//             resolve(true)
+//         }
+//         catch (error) {
+
+//         }
+//     })
+// }
 
 export default {
     updateOrGenerateInventoryImport,

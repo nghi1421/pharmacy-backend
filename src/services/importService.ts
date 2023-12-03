@@ -147,6 +147,14 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             if (!provider) {
                 return resolve({ errorMessage: 'Thông tin công ti dược không tồn tại.' });
             }
+
+            const lastestImport: Import | null = await importRepository.findOne({ order: { importDate: 'DESC' } })
+            
+            if (lastestImport) {
+                if (lastestImport.importDate > data.importDate) {
+                    return reject({ errorMesssgae: 'Đơn hàng nhập phải được nhập sau đơn hàng nhập gần nhất.'})
+                }
+            }
             let newImport = new Import();
             newImport.provider = provider;
             newImport.staff = staff;
@@ -154,6 +162,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             newImport.maturityDate = data.maturityDate;
             newImport.paid = data.paid;
             newImport.importDate = data.importDate;
+
 
             const errors = await validate(newImport);
             if (errors.length > 0) {

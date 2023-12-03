@@ -14,6 +14,8 @@ import {
 import { Staff } from './Staff';
 import { Provider } from './Provider';
 import { typeInvalidMessage } from '../utils/helper';
+import { ImportDetail } from './ImportDetail';
+import { AppDataSource } from '../dataSource';
 
 @Entity('imports')
 export class Import {
@@ -50,4 +52,10 @@ export class Import {
     @Column()
     @UpdateDateColumn()
     updatedAt: Date
+
+    async getImportDetail() {
+        const importDetailRepository = AppDataSource.getRepository(ImportDetail)
+        const importDetails = await importDetailRepository.find({ where: { import: { id: this.id } } })
+        return importDetails
+    }
 }

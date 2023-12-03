@@ -79,6 +79,7 @@ const routesAPI = (app: Application) => {
     //Import
     router.get('/imports',[checkAccessToken, checkAdmin], importController.getImports)
     router.get('/imports/:importId',[checkAccessToken, checkAdmin], importController.getImport)
+    router.get('/imports-test/:importId', importController.getImport)
     router.get('/imports/search',[checkAccessToken, checkAdmin], importController.searchImport)
     router.post('/imports',[checkAccessToken, checkAdmin], importController.storeImport)
     router.put('/imports/:importId',[checkAccessToken, checkAdmin], importController.updateImport)

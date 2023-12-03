@@ -15,11 +15,13 @@ import { ImportDetail } from '../entity/ImportDetail';
 import inventoryService from './inventoryService'
 import drugCategoryCache from '../cache/DrugCategoryCache';
 import { QueryParam } from '../global/interfaces/QueryParam';
+import { ImportQuantityHandle, ImportQuantityRequired, QuantityRequired } from '../global/interfaces/QuantityRequired';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer);
+const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail);
 
 const getExports = (queryParams: QueryParam | undefined): Promise<DataResponse<Export>> => {
     return new Promise(async (resolve, reject) => {
@@ -181,7 +183,6 @@ const storeExport = (data: ExportData) => {
             newExport.note = data.note;
             newExport.prescriptionId = await getNewPrescriptionId(data.exportDate)
             newExport.staff = staff;
-            
             newExport.type = data.type;
 
             await validateOrReject(newExport)
@@ -195,48 +196,59 @@ const storeExport = (data: ExportData) => {
                 return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
             }
 
-            const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
-
-            if (!isEnough) {
-                return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
+            let handleExportDetail: ImportQuantityHandle[] = []
+            switch (data.type) {
+                case 1: {
+                    const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
+                    if (!isEnough) {
+                        return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
+                    }
+                    break;
+                }
+                case 3: {
+                    handleExportDetail = await checkCancelExport(data.exportDetails as ImportQuantityRequired[])
+                    break;
+                }
+                default: {
+                    return reject({errorMessage: 'Loại đơn hàng không hợp lệ.'})
+                }
             }
 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
-                if (customer === null) {
-                    const newCustomer = new Customer()
-                    newCustomer.address = data.customer.address
-                    newCustomer.name = data.customer.name
-                    newCustomer.gender = data.customer.gender
-                    newCustomer.phoneNumber = data.customer.phoneNumber
-
-                    const errors = await validate(newCustomer)
-
-                    if (errors.length > 0) {
-                        reject({ validateError: getErrors(errors) })
-                        throw new Error();
-                    }
-                    customer = await transactionalEntityManager.save(newCustomer)
-                }
-                else {
-                    customer.address = data.customer.address
-                    customer.name = data.customer.name
-                    customer.gender = data.customer.gender
-                    customer.phoneNumber = data.customer.phoneNumber
-
-                    const errors = await validate(customer)
-
-                    if (errors.length > 0) {
-                        reject({ validateError: getErrors(errors) })
-                        throw new Error();
-                    }
-
-                    customer = await transactionalEntityManager.save(customer)
-                }
-                newExport.customer = customer;
-            
-                await transactionalEntityManager.save(newExport)
-                
                 if (data.type === 1) {
+                    if (customer === null) {
+                        const newCustomer = new Customer()
+                        newCustomer.address = data.customer.address
+                        newCustomer.name = data.customer.name
+                        newCustomer.gender = data.customer.gender
+                        newCustomer.phoneNumber = data.customer.phoneNumber
+
+                        const errors = await validate(newCustomer)
+
+                        if (errors.length > 0) {
+                            reject({ validateError: getErrors(errors) })
+                            throw new Error();
+                        }
+                        customer = await transactionalEntityManager.save(newCustomer)
+                    }
+                    else {
+                        customer.address = data.customer.address
+                        customer.name = data.customer.name
+                        customer.gender = data.customer.gender
+                        customer.phoneNumber = data.customer.phoneNumber
+
+                        const errors = await validate(customer)
+
+                        if (errors.length > 0) {
+                            reject({ validateError: getErrors(errors) })
+                            throw new Error();
+                        }
+
+                        customer = await transactionalEntityManager.save(customer)
+                    }
+                    newExport.customer = customer;
+                
+                    await transactionalEntityManager.save(newExport)
                     for (let exportDetail of data.exportDetails) {
                         let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drugId);
 
@@ -290,10 +302,25 @@ const storeExport = (data: ExportData) => {
                                     })  
                                 }
                                 else {
-                                    handledExportDetails.push({
-                                        importDetail: importDetails[index],
-                                        quantity: importDetails[index].quantity *  importDetails[index].conversionQuantity
+                                    const exportDetailCancel = await exportDetailRepository.findOneBy({
+                                        import: { id: importDetails[index].import.id },
+                                        drug: { id: exportDetail.drugId },
+                                        export: { type: 3 }
                                     })
+
+                                    if (exportDetailCancel) {
+                                        handledExportDetails.push({
+                                            importDetail: importDetails[index],
+                                            quantity:
+                                                importDetails[index].quantity * importDetails[index].conversionQuantity - exportDetailCancel.quantity
+                                        })
+                                    }
+                                    else {
+                                        handledExportDetails.push({
+                                            importDetail: importDetails[index],
+                                            quantity: importDetails[index].quantity *  importDetails[index].conversionQuantity
+                                        })
+                                    }
                                 }
                                 inventory = importDetails[++index].quantity + inventory
                             }
@@ -329,6 +356,52 @@ const storeExport = (data: ExportData) => {
                             })
                             await transactionalEntityManager.save(drugInventory);
                         }
+                    }
+                }
+                else if (data.type === 3) {
+                    await transactionalEntityManager.save(newExport)
+                    for (let exportDetail of handleExportDetail) {
+                        let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drugId);
+
+                        if (!drugInventory) {
+                            resolve({
+                                errorMessage: `Mã thuốc ${exportDetail.drugId} không tồn tại. Vui lòng làm mới danh mục thuốc để cập nhật thông tin danh mục thuốc mới..`,
+                            }); 
+                            throw new Error();
+                        }
+                        const newExportDetail = new ExportDetail()
+                        newExportDetail.export = newExport
+                        newExportDetail.import = drugInventory.importDetail.import
+                        newExportDetail.drug = drugInventory.drug
+                        newExportDetail.unitPrice = drugInventory.drug.price
+                        newExportDetail.quantity = exportDetail.quantity
+                        newExportDetail.vat = drugInventory.drug.vat
+                        newExportDetail.expiryDate = new Date(drugInventory.importDetail.expiryDate)
+                        if (exportDetail.type === 'current') {
+                            drugInventory.inventoryQuantiy -= exportDetail.quantity
+                            drugInventory.brokenQuanity += exportDetail.quantity
+                            drugInventory.inventoryImportDetail -= exportDetail.quantity
+                          
+                            }
+                        else if (exportDetail.type === 'not_current'){
+                            drugInventory.inventoryQuantiy -= exportDetail.quantity
+                            drugInventory.brokenQuanity += exportDetail.quantity
+                        }
+                        else {
+                            resolve({
+                                errorMessage: `Lỗi hệ thống.`,
+                            }); 
+                            throw new Error();
+                        }
+
+                        const errors = await validate(newExportDetail)
+                        if (errors.length > 0) {
+                            reject({ validateError: getErrors(errors) })
+                            throw new Error();
+                        }
+
+                        await transactionalEntityManager.save(drugInventory);
+                        await transactionalEntityManager.save(newExportDetail);
                     }
                 }
             })
@@ -385,7 +458,7 @@ const refundExport = (exportId: number) => {
                         let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drug.id);
                         if (!drugInventory) {
                             resolve({
-                                errorMessage: `Mã thuốc ${exportDetail.drug.id} không tồn. Vui lòng làm mới danh mục thuốc để cập nhật thông tin danh mục thuốc mới.`,
+                                errorMessage: `Mã thuốc ${exportDetail.drug.id} không tồn tại. Vui lòng làm mới danh mục thuốc để cập nhật thông tin danh mục thuốc mới.`,
                             });
                             throw new Error();
                         }
@@ -687,6 +760,81 @@ const getNewPrescriptionId = (exportDate: Date): Promise<string> => {
             reject(error)
         }
     })
+}
+
+const checkCancelExport = (listQuantity: ImportQuantityRequired[]): Promise<ImportQuantityHandle[]> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const drugIds = listQuantity.map((item) => item.drugId);
+            const importDetails: ImportDetail[] = [];
+            const result: ImportQuantityHandle[] = []
+
+            for (const item of listQuantity) {
+                const importDetail = await importDetailRepository.findOneBy({ drug: { id: item.drugId }, import: { id: item.importId } });
+                if (!importDetail) {
+                    return reject({errorMessage: 'Vui lòng kiểm tra mã phiếu nhập.'})
+                }
+                else {
+                    if (importDetail.quantity * importDetail.conversionQuantity < item.quantity) {
+                        return reject({errorMessage: `Số lượng hủy với mã phiếu nhập ${importDetail.import.id} vượt quá số lượng nhập.`})
+                    }
+                    importDetails.push(importDetail);
+                }
+            }
+            const inventories: Inventory[] = []
+            for (let drugId of drugIds) {
+                const drugInventory: Inventory | null = await inventoryService.getDrugInventory(drugId)
+                if (drugInventory) {
+                    inventories.push(drugInventory)
+                }
+                else {
+                    return reject({errorMessage: `Không tìm thấy tồn kho.`})
+                }
+            }
+
+            inventories.forEach((inventory) => {
+                const importDetail = importDetails.find((detail) => detail.drug.id === inventory.drug.id);
+                const item = listQuantity.find((detail) => detail.drugId === inventory.drug.id);
+                if (importDetail) {
+                    if (importDetail.import.id < inventory.importDetail.import.id) {
+                        return reject({errorMessage: `Mã đơn nhập ${importDetail.import.id} đã được bán hết.`})
+                    }
+                    else if (importDetail.import.id === inventory.importDetail.import.id) {
+                        if (item) {
+                            if (item.quantity > inventory.inventoryImportDetail) {
+                                return reject({errorMessage: `Tồn kho đơn nhập ${importDetail.import.id} không đủ số lượng hủy.`})
+                            }
+                            else {
+                                result.push({
+                                    ...item,
+                                    type: 'current',
+                                } )
+                            }
+                        }
+                    }
+                    else {
+                        if (item) {
+                            result.push({
+                                ...item,
+                                type: 'not_current',
+                            })
+                        }
+                        else {
+                            return reject({errorMessage: 'Không tìm thấy tồn kho.'})
+                        }
+                    }
+                }
+                else {
+                    return reject({errorMessage: `Không tìm thấy tồn kho.`})
+                }
+            })
+
+            resolve(result)            
+        }   
+        catch (error) {
+            reject(error)
+        }
+    }) 
 }
 
 export default {
