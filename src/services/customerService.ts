@@ -97,6 +97,7 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
 
             newCustomer.name = data.name;
             newCustomer.phoneNumber = data.phoneNumber;
+            newCustomer.email = data.email;
             newCustomer.gender = data.gender;
             newCustomer.address = data.address
 
@@ -116,6 +117,17 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
                     value: ['Số điện thoại đã tồn tại.']
                 })
             }
+
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueCreate(customerRepository, 'email', [newCustomer.email])
+            
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+
             if (errorResponse.length > 0) {
                 return reject({validateError: errorResponse})
             }
@@ -138,12 +150,23 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
 
             customer.name = data.name;
             customer.phoneNumber = data.phoneNumber;
+            customer.email = data.email
             customer.gender = data.gender;
             customer.address = data.address;
 
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueUpdate(customerRepository, 'phone_number', [customer.phoneNumber, customer.id])
+            
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueUpdate(customerRepository, 'email', [customer.email, customer.id])
+            
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
             
             if (existsPhoneNumber) {
                 errorResponse.push({

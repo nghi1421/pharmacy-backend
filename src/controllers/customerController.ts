@@ -60,6 +60,7 @@ const storeCustomer = async (req: Request, res: Response) => {
             phoneNumber,
             address,
             gender,
+            email,
         } = req.body
 
         if (!name || !phoneNumber || !address) {
@@ -70,6 +71,7 @@ const storeCustomer = async (req: Request, res: Response) => {
         }
 
         const data: CustomerData = {
+            email,
             name,
             address,
             gender,
@@ -90,9 +92,10 @@ const updateCustomer = async (req: Request, res: Response) => {
             phoneNumber,
             address,
             gender,
+            email,
         } = req.body
 
-        if (!name || !phoneNumber || !address) {
+        if (!name || !phoneNumber || !address || !email) {
             res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
@@ -101,6 +104,7 @@ const updateCustomer = async (req: Request, res: Response) => {
 
         const data: CustomerData = {
             name,
+            email,
             address,
             gender,
             phoneNumber,

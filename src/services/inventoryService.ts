@@ -1,12 +1,10 @@
-import { In, MoreThan, Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Inventory } from "../entity/Inventory";
 import { getMonthYearNow, getPreviousYearMonth } from "../utils/time";
 import { ImportDetail } from "../entity/ImportDetail";
 import { validateOrReject } from "class-validator";
 import { AppDataSource } from "../dataSource";
-import { ImportQuantityRequired, QuantityRequired } from "../global/interfaces/QuantityRequired";
-import { Import } from "../entity/Import";
-
+import { QuantityRequired } from "../global/interfaces/QuantityRequired";
 
 const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
     const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);

@@ -9,4 +9,6 @@ export default {
     expiryRefreshTokenCookie: process.env.EXPIRY_REFRESH_TOKEN_COOKIE ?? '604800000',
     port: process.env.PORT,
     defaultPassword: process.env.DEFAULT_PASSWORD ?? '123123123',
+    email: process.env.EMAIL,
+    emailPassword: process.env.EMAIL_PASSWORD
 }

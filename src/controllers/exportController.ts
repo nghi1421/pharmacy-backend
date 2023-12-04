@@ -5,6 +5,7 @@ import { EditExportData, ExportData } from '../global/interfaces/ExportData';
 import { CustomerData } from '../global/interfaces/CustomerData';
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { getQueryParams } from '../utils/helper';
+import mailService from '../services/mailService';
 
 const getExports = async (req: Request, res: Response) => {
     try {
@@ -138,6 +139,13 @@ const deleteExport = async (req: Request, res: Response) => {
         res.status(500).send(error)
     }
 }
+
+const testSendMail = (req: Request, res: Response) => {
+    mailService.sendOtp('thanhnghi.dev@gmail.com', '002475');
+    res.json({
+        message: 'Gửi mail thành công.'
+    })
+}
 export default {
     getExports,
     getTodaySalesCreatedByStaff,
@@ -146,5 +154,6 @@ export default {
     getExport,
     searchExport,
     storeExport,
-    deleteExport
+    deleteExport,
+    testSendMail
 }

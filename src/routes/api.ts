@@ -152,6 +152,8 @@ const routesAPI = (app: Application) => {
         res.status(200).json({ message: 'Test is successful'})
     })
 
+    router.get('/test/mail', exportController.testSendMail)
+
     return app.use("/api", router);
 }
 

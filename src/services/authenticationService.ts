@@ -12,6 +12,7 @@ import { SignUpCustomerData } from '../global/interfaces/CustomerData'
 import { Role } from '../entity/Role'
 import { getErrors } from '../utils/helper'
 import { checkExistUniqueCreate } from '../utils/query'
+import mailService from './mailService'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
@@ -169,29 +170,31 @@ const loginCustomer = (username: string, password: string, deviceToken: string)
     })
 }
 
-const verifyPhoneNumber = (phoneNumber: string) => {
+const verifyEmail = (email: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            const customer: Customer | null = await customerRepository.findOneBy({ email: email });
             const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
             console.log('This is OTP CODE_______________-__:', otpCode)
             if (customer) {
                 if (customer.user) {
                     reject({
-                        errorMessage: 'Số điện thoại đã được sử dụng.'
+                        errorMessage: 'Email đã được sử dụng.'
                     })
                 }
                 else {
+                    mailService.sendOtp(customer.email, otpCode)
                     resolve({
-                        message: 'Lấy mã OTP thành công.',
+                        message: 'Gửi OTP thành công. Vui lòng kiểm tra email.',
                         otpCode,
                         data: customer,
                     })
                 }
             }
             else {
+                mailService.sendOtp(email, otpCode)
                 resolve({
-                    message: 'Lấy mã OTP thành công.',
+                    message: 'Gửi OTP thành công. Vui lòng kiểm tra email.',
                     otpCode,
                 })
             }
@@ -202,20 +205,21 @@ const verifyPhoneNumber = (phoneNumber: string) => {
     })
 }
 
-const checkAndSendOTPCode = (phoneNumber: string) => {
+const checkAndSendOTPCode = (email: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            const customer: Customer | null = await customerRepository.findOneBy({ email: email });
             const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
             console.log('This is OTP CODE_______________-__:', otpCode)
             if (customer) {
                 reject({
-                    errorMessage: 'Số điện thoại đã được sử dụng.'
+                    errorMessage: 'Email đã được sử dụng.'
                 })
             }
             else {
+                mailService.sendOtp(email, otpCode)
                 resolve({
-                    message: 'Mã OTP đã được gửi.',
+                    message: 'Gửi OTP thành công. Vui lòng kiểm tra email.',
                     otpCode,
                 })
             }
@@ -290,13 +294,35 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
 
                 newCustomer.name = data.name;
                 newCustomer.phoneNumber = data.phoneNumber;
+                newCustomer.email = data.email;
                 newCustomer.gender = data.gender;
                 newCustomer.address = data.address
 
-                const customerErrors = await validate(newCustomer)
-                
-                if (customerErrors.length > 0) {
-                    return reject({validateError: customerErrors})
+                const errors = await validate(newCustomer)
+                if (errors.length > 0) {
+                    return reject({validateError: errors})
+                }
+
+                const errorResponse = []
+                const [{ exists: existsPhoneNumber }] = await
+                    checkExistUniqueCreate(customerRepository, 'phone_number', [newCustomer.phoneNumber])
+                if (existsPhoneNumber) {
+                    errorResponse.push({
+                        key: 'phoneNumber',
+                        value: ['Số điện thoại đã tồn tại.']
+                    })
+                }
+
+                const [{ exists: existsEmail }] = await
+                    checkExistUniqueCreate(customerRepository, 'email', [newCustomer.email])
+                if (existsEmail) {
+                    errorResponse.push({
+                        key: 'email',
+                        value: ['Email đã tồn tại.']
+                    })
+                }
+                if (errorResponse.length > 0) {
+                    return reject({validateError: errorResponse})
                 }
 
                 await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
@@ -319,19 +345,20 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
     })
 }
 
-const forgotPassword = (phoneNumber: string) => {
+const forgotPassword = (email: string) => {
     return new Promise(async (resolve, reject) => {
        try {
-            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            const customer: Customer | null = await customerRepository.findOneBy({ email });
             if (customer && customer.user) {
+                const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+                mailService.sendOtp(email, otpCode)
                 resolve({
-                    otpCode: Math.floor(Math.random() * 1000000).toString().padStart(6, '0'),
+                    otpCode: otpCode,
                 })
-
             }
             else {
                 resolve({
-                    message: 'Số điện thoại không hợp lệ.'
+                    message: 'Email không hợp lệ.'
                 })
             }
         }
@@ -346,7 +373,7 @@ export default{
     changePassword,
     checkAndSendOTPCode,
     loginCustomer,
-    verifyPhoneNumber,
+    verifyEmail,
     signUpForCustomer,
     forgotPassword,
     changePasswordCustomer

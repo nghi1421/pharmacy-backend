@@ -11,6 +11,7 @@ import {
     IsNotEmpty,
     MaxLength,
     Matches,
+    IsEmail,
 } from 'class-validator';
 import { User } from './User'; 
 import { maxLengthErrorMessage, phoneNumberRegex, requiredMessage, typeInvalidMessage } from '../utils/helper';
@@ -31,7 +32,13 @@ export class Customer {
     @Matches(phoneNumberRegex, { message: typeInvalidMessage('Số điện thoại')})
     phoneNumber: string 
 
-    @Column()
+    @Column({ unique: true })
+    @IsNotEmpty({ message: requiredMessage('Email')}) 
+    @IsEmail({}, { message: typeInvalidMessage('Email')})
+    @MaxLength(255, { message: maxLengthErrorMessage('Email', 255)})
+    email: string
+
+    @Column() 
     @MaxLength(255, { message: maxLengthErrorMessage('Địa chỉ', 255) })
     address: string
 
