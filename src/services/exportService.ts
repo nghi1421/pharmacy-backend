@@ -309,11 +309,13 @@ const storeExport = (data: ExportData) => {
                                     })
 
                                     if (exportDetailCancel) {
-                                        handledExportDetails.push({
+                                        if (importDetails[index].quantity * importDetails[index].conversionQuantity - exportDetailCancel.quantity !== 0) {
+                                            handledExportDetails.push({
                                             importDetail: importDetails[index],
                                             quantity:
                                                 importDetails[index].quantity * importDetails[index].conversionQuantity - exportDetailCancel.quantity
-                                        })
+                                            })
+                                        }
                                     }
                                     else {
                                         handledExportDetails.push({
