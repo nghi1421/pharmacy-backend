@@ -22,8 +22,6 @@ type ImportDataReponse = {
     createdAt: Date
     updatedAt: Date
     provideBy: string
-    paid: number
-    maturityDate: Date
     note: string
     totalPrice: number
     totalPriceWithVat: number
@@ -54,8 +52,6 @@ export const UserRepository = importRepository.extend({
             updatedAt: myImport.updatedAt,
             createdBy: myImport.staff.name,
             provideBy: myImport.provider.name,
-            paid: myImport.paid,
-            maturityDate: myImport.maturityDate,
             note: myImport.note,
             totalPrice,
             totalPriceWithVat,

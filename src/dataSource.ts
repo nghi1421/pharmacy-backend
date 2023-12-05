@@ -15,6 +15,8 @@ import { ExportDetail } from './entity/ExportDetail'
 import { Role } from './entity/Role'
 import { TypeByUse } from './entity/TypeByUse'
 import { Inventory } from './entity/Inventory'
+import { Trouble } from './entity/Trouble'
+import { TroubleDetail } from './entity/TroubleDetail'
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -38,7 +40,9 @@ const AppDataSource = new DataSource({
     ExportDetail,
     Role,
     TypeByUse,
-    Inventory
+    Inventory,
+    Trouble,
+    TroubleDetail
   ],
   namingStrategy: new SnakeNamingStrategy(),
 })
