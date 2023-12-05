@@ -16,6 +16,7 @@ import inventoryService from './inventoryService'
 import drugCategoryCache from '../cache/DrugCategoryCache';
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { ImportQuantityHandle, ImportQuantityRequired, QuantityRequired } from '../global/interfaces/QuantityRequired';
+import redisClient from '../config/redis';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
@@ -302,18 +303,17 @@ const storeExport = (data: ExportData) => {
                                     })  
                                 }
                                 else {
-                                    const exportDetailCancel = await exportDetailRepository.findOneBy({
-                                        import: { id: importDetails[index].import.id },
-                                        drug: { id: exportDetail.drugId },
-                                        export: { type: 3 }
-                                    })
+                                    const brokenHistory = await redisClient.get(`broken-${importDetails[index].import.id}-${exportDetail.drugId}`)
 
-                                    if (exportDetailCancel) {
-                                        if (importDetails[index].quantity * importDetails[index].conversionQuantity - exportDetailCancel.quantity !== 0) {
+                                    if (brokenHistory) {
+                                        await redisClient.del(`broken-${importDetails[index].import.id}-${exportDetail.drugId}`)
+
+                                        const quantityCanceled: number = parseInt(brokenHistory);
+                                        if (importDetails[index].quantity * importDetails[index].conversionQuantity - quantityCanceled > 0) {
                                             handledExportDetails.push({
-                                            importDetail: importDetails[index],
-                                            quantity:
-                                                importDetails[index].quantity * importDetails[index].conversionQuantity - exportDetailCancel.quantity
+                                                importDetail: importDetails[index],
+                                                quantity:
+                                                    importDetails[index].quantity * importDetails[index].conversionQuantity - quantityCanceled
                                             })
                                         }
                                     }
@@ -324,13 +324,20 @@ const storeExport = (data: ExportData) => {
                                         })
                                     }
                                 }
-                                inventory = importDetails[++index].quantity + inventory
+                                index++;
+                                const brokenHistory = await redisClient.get(`broken-${importDetails[index].import.id}-${exportDetail.drugId}`)
+                                if (brokenHistory) {
+                                    inventory = importDetails[index].quantity * importDetails[index].conversionQuantity - parseInt(brokenHistory) + inventory
+                                }
+                                else {
+                                    inventory = importDetails[index].quantity * importDetails[index].conversionQuantity + inventory
+                                }
                             }
                             handledExportDetails.push({
                                 importDetail: importDetails[index],
                                 quantity: inventory
                             })
-
+                            
                             drugInventory.importDetail = importDetails[index]
                             drugInventory.inventoryImportDetail = inventory
                             drugInventory.inventoryQuantiy = drugInventory.inventoryQuantiy - exportDetail.quantity
@@ -371,6 +378,12 @@ const storeExport = (data: ExportData) => {
                             }); 
                             throw new Error();
                         }
+                        const brokenHistory = await redisClient.get(`broken-${exportDetail.importId}-${exportDetail.drugId}`)
+
+                        if (brokenHistory) {
+                            await redisClient.del(`broken-${exportDetail.importId}-${exportDetail.drugId}`)
+                        }
+
                         const newExportDetail = new ExportDetail()
                         newExportDetail.export = newExport
                         newExportDetail.import = drugInventory.importDetail.import
@@ -383,9 +396,14 @@ const storeExport = (data: ExportData) => {
                             drugInventory.inventoryQuantiy -= exportDetail.quantity
                             drugInventory.brokenQuanity += exportDetail.quantity
                             drugInventory.inventoryImportDetail -= exportDetail.quantity
-                          
+                        }
+                        else if (exportDetail.type === 'not_current') {
+                            if (brokenHistory) {
+                                await redisClient.set(`broken-${exportDetail.importId}-${exportDetail.drugId}`, parseInt(brokenHistory) + exportDetail.quantity)
                             }
-                        else if (exportDetail.type === 'not_current'){
+                            else {
+                                await redisClient.set(`broken-${exportDetail.importId}-${exportDetail.drugId}`, exportDetail.quantity)
+                            }
                             drugInventory.inventoryQuantiy -= exportDetail.quantity
                             drugInventory.brokenQuanity += exportDetail.quantity
                         }
@@ -794,7 +812,7 @@ const checkCancelExport = (listQuantity: ImportQuantityRequired[]): Promise<Impo
                 }
             }
 
-            inventories.forEach((inventory) => {
+            inventories.forEach(async (inventory) => {
                 const importDetail = importDetails.find((detail) => detail.drug.id === inventory.drug.id);
                 const item = listQuantity.find((detail) => detail.drugId === inventory.drug.id);
                 if (importDetail) {
@@ -806,16 +824,22 @@ const checkCancelExport = (listQuantity: ImportQuantityRequired[]): Promise<Impo
                             if (item.quantity > inventory.inventoryImportDetail) {
                                 return reject({errorMessage: `Tồn kho đơn nhập ${importDetail.import.id} không đủ số lượng hủy.`})
                             }
-                            else {
-                                result.push({
-                                    ...item,
-                                    type: 'current',
-                                } )
-                            }
+                            result.push({
+                                ...item,
+                                type: 'current',
+                            } )
+                        }
+                        else {
+                            return reject({errorMessage: 'Không tìm thấy tồn kho.'})
                         }
                     }
                     else {
                         if (item) {
+                            const broken = await redisClient.get(`broken-${importDetail.import.id}-${inventory.drug.id}`)
+                            const brokenQuanity = broken ? parseInt(broken) : 0
+                            if (item.quantity > importDetail.quantity * importDetail.conversionQuantity - brokenQuanity) {
+                                return reject({errorMessage: `Tồn kho đơn nhập ${importDetail.import.id} không đủ số lượng hủy.`})
+                            }
                             result.push({
                                 ...item,
                                 type: 'not_current',

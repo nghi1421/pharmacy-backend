@@ -91,8 +91,8 @@ const loginCustomer = async (req: Request, res: Response) => {
 
 const verifyPhoneNumber = async (req: Request, res: Response) => {
     try {
-        const { phoneNumber } = req.body
-        const result = await authenticateService.verifyPhoneNumber(phoneNumber)
+        const { email } = req.body
+        const result = await authenticateService.verifyEmail(email)
         res.json(result)
     } catch (error: unknown) {
         res.status(500).json(error)
@@ -101,15 +101,13 @@ const verifyPhoneNumber = async (req: Request, res: Response) => {
 
 const checkAndSendOTPCode = async (req: Request, res: Response) => {
     try {
-        const { phoneNumber } = req.body
-        const result = await authenticateService.checkAndSendOTPCode(phoneNumber)
+        const { email } = req.body
+        const result = await authenticateService.checkAndSendOTPCode(email)
         res.json(result)
     } catch (error: unknown) {
         res.status(500).json(error)
     }
 }
-
-
 
 const signUpForCustomer = async (req: Request, res: Response) => {
     try {
@@ -119,6 +117,7 @@ const signUpForCustomer = async (req: Request, res: Response) => {
             confirmationPassword,
             name,
             phoneNumber,
+            email,
             address,
             gender,
             deviceToken
@@ -127,6 +126,7 @@ const signUpForCustomer = async (req: Request, res: Response) => {
         const data: SignUpCustomerData = {
             username,
             password,
+            email,
             confirmationPassword,
             name,
             phoneNumber,

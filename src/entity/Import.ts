@@ -37,14 +37,6 @@ export class Import {
     @Column({ type: 'text', nullable: true })
     note!: string
 
-    @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, nullable: true})
-    @IsNotEmpty()
-    paid: number
- 
-    @Column({ name: 'maturity_date', nullable: true, type: 'date' })
-    @IsDate({ message: typeInvalidMessage('Ngày đáo hạn')})
-    maturityDate: Date
-
     @Column()
     @CreateDateColumn()
     createdAt: Date

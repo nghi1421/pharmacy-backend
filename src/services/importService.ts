@@ -159,10 +159,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             newImport.provider = provider;
             newImport.staff = staff;
             newImport.note = data.note;
-            newImport.maturityDate = data.maturityDate;
-            newImport.paid = data.paid;
             newImport.importDate = data.importDate;
-
 
             const errors = await validate(newImport);
             if (errors.length > 0) {

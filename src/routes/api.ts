@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application } from 'express';
 import authenticateController from '../controllers/authenticateController';
 import staffController from '../controllers/staffController';
 import userController from '../controllers/userController';
@@ -82,7 +82,6 @@ const routesAPI = (app: Application) => {
     router.get('/imports-test/:importId', importController.getImport)
     router.get('/imports/search',[checkAccessToken, checkAdmin], importController.searchImport)
     router.post('/imports',[checkAccessToken, checkAdmin], importController.storeImport)
-    router.put('/imports/:importId',[checkAccessToken, checkAdmin], importController.updateImport)
     router.delete('/imports/:importId',[checkAccessToken, checkAdmin], importController.deleteImport)
 
     //Export
@@ -105,54 +104,10 @@ const routesAPI = (app: Application) => {
     router.post('/mobile/login', authenticateController.loginCustomer)
     router.post('/mobile/verify-phone-number', authenticateController.verifyPhoneNumber)
     router.post('/mobile/check-send-otp', authenticateController.checkAndSendOTPCode)
-    
     router.post('/mobile/sign-up', authenticateController.signUpForCustomer)
     router.post('/mobile/change-password', authenticateController.changePasswordCustomer)
     router.get('/mobile/histories/:phoneNumber', historyController.getHistory)
     router.post('/mobile/update-profile/:customerId', customerController.updateCustomer)
-    
-
-    router.post('/test-login', (req: Request, res: Response) => {
-        res.cookie("token", "this is a secret token", {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60 * 24 * 14,
-                domain: "localhost",
-            })
-    })
-
-    router.post('/test-logout', (req: Request, res: Response) => {
-        res.cookie("refresh-token", null, {
-            httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 14,
-            domain: "localhost",
-        })
-        .send({
-            authenticated: false,
-            message: "Logout Successful."
-        });
-    })
-
-    router.post('/test-auth', (req: Request, res: Response) => {
-        console.log(req.cookies)
-        console.log(req.cookies?.token)
-        if (req.cookies?.token === "this is a secret token") {
-            res.send({isAuthenticated: true})
-        } else {
-            res.send({isAuthenticated: false})
-        }
-    })
-
-    router.get('/check-middleware', [checkAccessToken, checkAdmin], (req: Request, res: Response) => {
-        res.status(200).json({
-            message: 'Your access is accepted!'
-        })
-    })
-
-    router.get('/test-api', (req: Request, res: Response) => {
-        res.status(200).json({ message: 'Test is successful'})
-    })
-
-    router.get('/test/mail', exportController.testSendMail)
 
     return app.use("/api", router);
 }
