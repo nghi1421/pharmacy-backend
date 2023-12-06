@@ -17,6 +17,7 @@ import drugCategoryCache from '../cache/DrugCategoryCache';
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { ImportQuantityHandle, ImportQuantityRequired, QuantityRequired } from '../global/interfaces/QuantityRequired';
 import redisClient from '../config/redis';
+import { NewExportDetailData } from '../global/interfaces/ExportDetailData';
 
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export);
 const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getRepository(ExportDetail);
@@ -167,16 +168,14 @@ const searchExport = (query: Object): Promise<DataResponse<Export>> => {
     })
 }
 
-const storeExport = (data: ExportData) => {
+const storeExport = (data: ExportData<NewExportDetailData>) => {
     return new Promise(async (resolve, reject) => {
         try {
             const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
             if (staff === null) {
                 return reject({ errorMessage: 'Thông tin nhân viên không tồn tại.' });
             }
-
             let customer: Customer|null = await customerRepository.findOneBy({ phoneNumber: data.customer.phoneNumber });
-            
 
             let newExport = new Export();
 
@@ -197,24 +196,16 @@ const storeExport = (data: ExportData) => {
                 return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
             }
 
-            let handleExportDetail: ImportQuantityHandle[] = []
-            switch (data.type) {
-                case 1: {
-                    const isEnough = await inventoryService.checkInventory(data.exportDetails as QuantityRequired[])
-                    if (!isEnough) {
-                        return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
-                    }
-                    break;
-                }
-                case 3: {
-                    handleExportDetail = await checkCancelExport(data.exportDetails as ImportQuantityRequired[])
-                    break;
-                }
-                default: {
-                    return reject({errorMessage: 'Loại đơn hàng không hợp lệ.'})
+            if (data.type === 1) {
+                const isEnough = await inventoryService.checkInventory(data.exportDetails)
+                if (!isEnough) {
+                    return resolve({ errorMessage: 'Tồn kho thuốc không đủ.'})
                 }
             }
-
+            else {
+                return reject({errorMessage: 'Loại đơn hàng không hợp lệ.'})
+            }
+           
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                 if (data.type === 1) {
                     if (customer === null) {
@@ -367,7 +358,74 @@ const storeExport = (data: ExportData) => {
                         }
                     }
                 }
-                else if (data.type === 3) {
+            })
+            const exportDetailData = await exportDetailRepository.find({ where: { export: { id: newExport.id } } })
+            const resultDetailData = []
+            let totalPrice: number = 0;
+            let totalPriceWithVat: number = 0;
+            for (let exportDetail of exportDetailData) {
+                const price = exportDetail.unitPrice * exportDetail.quantity
+                const priceWithVat = exportDetail.unitPrice * exportDetail.quantity * (1 + exportDetail.vat)
+
+                resultDetailData.push({
+                    ...exportDetail,
+                        totalPrice: price,
+                    })
+                
+                totalPrice += price
+                totalPriceWithVat += priceWithVat
+            }
+            drugCategoryCache.setDrugCategories(null)
+            resolve({
+                message: 'Thêm mới thông tin phiếu xuất thành công.',
+                data: {
+                    export: { ...newExport, totalPriceWithVat, totalPrice: totalPrice},
+                    exportDetail: resultDetailData
+                },
+            })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+const storeCancelExport = (data: ExportData<ImportQuantityRequired>) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
+            if (staff === null) {
+                return reject({ errorMessage: 'Thông tin nhân viên không tồn tại.' });
+            }
+            let newExport = new Export();
+
+            newExport.exportDate = data.exportDate;
+            newExport.note = data.note;
+            newExport.prescriptionId = await getNewPrescriptionId(data.exportDate)
+            newExport.staff = staff;
+            newExport.type = data.type;
+
+            await validateOrReject(newExport)
+
+            const errors = await validate(newExport);
+            if (errors.length > 0) {
+                return reject({ validateError: getErrors(errors) });
+            }
+
+            if (data.exportDetails.length === 0) {
+                return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
+            }
+
+            let handleExportDetail: ImportQuantityHandle[] = []
+            
+            if (data.type === 3) {
+                handleExportDetail = await checkCancelExport(data.exportDetails)
+            }
+            else {
+                return reject({errorMessage: 'Loại đơn hàng không hợp lệ.'})
+            }
+
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                if (data.type === 3) {
                     await transactionalEntityManager.save(newExport)
                     for (let exportDetail of handleExportDetail) {
                         let drugInventory: Inventory | null = await inventoryService.getDrugInventoryThisMonth(exportDetail.drugId);
@@ -866,6 +924,7 @@ const checkCancelExport = (listQuantity: ImportQuantityRequired[]): Promise<Impo
 export default {
     getExports,
     getTodaySalesCreatedByStaff,
+    storeCancelExport,
     getExport,
     searchExport,
     storeExport,

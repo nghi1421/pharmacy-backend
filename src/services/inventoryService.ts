@@ -5,8 +5,9 @@ import { ImportDetail } from "../entity/ImportDetail";
 import { validateOrReject } from "class-validator";
 import { AppDataSource } from "../dataSource";
 import { QuantityRequired } from "../global/interfaces/QuantityRequired";
+import { NewExportDetailData } from "../global/interfaces/ExportDetailData";
 
-const checkInventory = (listQuantity: QuantityRequired[]): Promise<boolean> => {
+const checkInventory = (listQuantity: NewExportDetailData[]): Promise<boolean> => {
     const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
 
     return new Promise(async (resolve, reject) => {

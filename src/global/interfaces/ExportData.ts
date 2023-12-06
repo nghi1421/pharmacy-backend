@@ -1,12 +1,12 @@
 import { CustomerData } from "./CustomerData";
 import { NewExportDetailData } from "./ExportDetailData";
 
-export interface ExportData {
+export interface ExportData<T> {
     exportDate: Date;
     staffId: number;
     note: string;
     type: number;
-    exportDetails: NewExportDetailData[];
+    exportDetails: T[];
     customer: CustomerData
 }
 
@@ -18,3 +18,4 @@ export interface EditExportData {
     customer: CustomerData
     exportDetails: NewExportDetailData[];
 }
+

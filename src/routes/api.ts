@@ -14,6 +14,7 @@ import { checkAccessToken } from '../middlewares/checkAccessToken';
 import { checkAdmin } from '../middlewares/checkAdmin';
 import statisticsController from '../controllers/statisticsController';
 import historyController from '../controllers/historyController';
+import troubleController from '../controllers/troubleController';
 
 const router = express.Router();
 
@@ -99,6 +100,8 @@ const routesAPI = (app: Application) => {
     router.get('/statistics-today',[checkAccessToken, checkAdmin], statisticsController.getStatisticsToday)
     router.get('/statistics',[checkAccessToken, checkAdmin], statisticsController.getStatistics)
     
+    //Trouble
+    router.get('/troubles/:batchId/:drugId', troubleController.getHistoryBatchTrouble)
 
     //MOBLE ROUTE
     router.post('/mobile/login', authenticateController.loginCustomer)

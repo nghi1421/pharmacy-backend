@@ -6,6 +6,7 @@ import { CustomerData } from '../global/interfaces/CustomerData';
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { getQueryParams } from '../utils/helper';
 import mailService from '../services/mailService';
+import { ImportQuantityRequired, QuantityRequired } from '../global/interfaces/QuantityRequired';
 
 const getExports = async (req: Request, res: Response) => {
     try {
@@ -57,7 +58,8 @@ const storeExport = async (req: Request, res: Response) => {
         const exportDate: Date = new Date(req.body.exportDate)
         const staffId: number = parseInt(res.locals.staffId);
         const type: number = parseInt(req.body.type)
-        const exportDetails: NewExportDetailData[] = req.body.exportDetails
+
+        const exportDetails: NewExportDetailData[]= req.body.exportDetails
         const customer: CustomerData = req.body.customer
         if (exportDetails.length === 0) {
             res.status(400).json({
@@ -72,7 +74,7 @@ const storeExport = async (req: Request, res: Response) => {
             return;
         }
 
-        const data: ExportData = {
+        const data: ExportData<NewExportDetailData> = {
             note,
             exportDate,
             type,
@@ -84,6 +86,47 @@ const storeExport = async (req: Request, res: Response) => {
         const result = await exportService.storeExport(data);
         res.status(200).json(result);
     } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+const storeCancelExport = async (req: Request, res: Response) => {
+    try {
+        const { 
+            note,
+        } = req.body
+
+        const exportDate: Date = new Date(req.body.exportDate)
+        const staffId: number = parseInt(res.locals.staffId);
+        const type: number = parseInt(req.body.type)
+        const exportDetails: ImportQuantityRequired[] = req.body.exportDetails
+        const customer: CustomerData = req.body.customer
+        if (exportDetails.length === 0) {
+            res.status(400).json({
+                errorMessage: 'Vui lòng chọn danh mục thuốc khi thêm phiếu xuất.',
+            })
+            return;
+        }
+        if (!exportDate || !staffId) {
+            res.status(400).json({
+                errorMessage: 'Thiếu tham số đầu vào.',
+            })
+            return;
+        }
+
+        const data: ExportData<ImportQuantityRequired> = {
+            note,
+            exportDate,
+            type,
+            staffId,
+            customer,
+            exportDetails,
+        }
+
+        const result = await exportService.storeCancelExport(data);
+        res.status(200).json(result);
+    }
+    catch (error) {
         res.status(500).send(error)
     }
 }
@@ -150,6 +193,7 @@ export default {
     getExports,
     getTodaySalesCreatedByStaff,
     refundExport,
+    storeCancelExport,
     updateExport,
     getExport,
     searchExport,
