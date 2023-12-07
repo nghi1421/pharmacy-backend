@@ -1,4 +1,4 @@
-import { In, Repository } from "typeorm";
+import { In, Like, Repository } from "typeorm";
 import { Inventory } from "../entity/Inventory";
 import { getMonthYearNow, getPreviousYearMonth } from "../utils/time";
 import { ImportDetail } from "../entity/ImportDetail";
@@ -6,6 +6,64 @@ import { validateOrReject } from "class-validator";
 import { AppDataSource } from "../dataSource";
 import { QuantityRequired } from "../global/interfaces/QuantityRequired";
 import { NewExportDetailData } from "../global/interfaces/ExportDetailData";
+import { QueryParam } from "../global/interfaces/QueryParam";
+import { DataAndCount, getDataAndCount, getMetaData } from "../utils/helper";
+
+const getInventories = (queryParams: QueryParam) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const inventoryRepository = AppDataSource.getRepository(Inventory)
+            const search  = queryParams.searchColumns.map((param) => {
+            const object:any = {}
+                object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
+            )
+            
+            const order: any = {}
+            switch (queryParams.orderBy) {
+                case 'use': {
+                    order['type'] = { id: queryParams.orderDirection }
+                    break;
+                }
+                
+                case 'formatedPrice': {
+                    order['price'] = queryParams.orderDirection
+                    break;
+                }
+            
+                default: {
+                    order[queryParams.orderBy] = queryParams.orderDirection
+                }
+            }
+
+            const result: DataAndCount = await getDataAndCount(queryParams, inventoryRepository, search, order);
+
+            const data = result.data.map((inventory: Inventory) => {
+                return {
+                    drugId: inventory.drug.id,
+                    name: inventory.drug.name,
+                    minimalUnit: inventory.drug.minimalUnit,
+                    inventory: inventory.inventoryQuantiy,
+                    salesQuantity: inventory.salesQuantity,
+                    brokenQuantity: inventory.brokenQuanity,
+                    importQuantity: inventory.importQuantity,
+                    importSelling: inventory.importDetail.import,
+                    expiryDateSelling: inventory.importDetail.expiryDate,
+                }
+            })
+
+            resolve({
+                message: 'Lấy thông tin danh mục thuốc thành công.',
+                data,
+                meta: await getMetaData(queryParams, result.total),
+            })
+        }
+        catch (error) {
+            reject(error);
+        }
+    })
+}
 
 const checkInventory = (listQuantity: NewExportDetailData[]): Promise<boolean> => {
     const inventoryRepository: Repository<Inventory> = AppDataSource.getRepository(Inventory);
@@ -293,6 +351,7 @@ const generateInventoryNewMonth = (prevDrugInventoryList: Inventory[]): Promise<
 // }
 
 export default {
+    getInventories,
     updateOrGenerateInventoryImport,
     getDrugInventory,
     getDrugInventoryPreviousMonth,

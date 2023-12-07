@@ -15,6 +15,7 @@ import { checkAdmin } from '../middlewares/checkAdmin';
 import statisticsController from '../controllers/statisticsController';
 import historyController from '../controllers/historyController';
 import troubleController from '../controllers/troubleController';
+import inventoryController from '../controllers/inventoryController';
 
 const router = express.Router();
 
@@ -93,8 +94,10 @@ const routesAPI = (app: Application) => {
     router.get('/exports/search',[checkAccessToken, checkAdmin], exportController.searchExport)
     router.post('/exports', [checkAccessToken], exportController.storeExport)
     router.get('/exports-today', [checkAccessToken], exportController.getTodaySalesCreatedByStaff)
-    
     router.delete('/exports/:exportId',[checkAccessToken, checkAdmin], exportController.deleteExport)
+
+    //Inventory
+    router.get('/inventories', [checkAccessToken, checkAdmin], inventoryController.getInventories)
 
     //Statistics
     router.get('/statistics-today',[checkAccessToken, checkAdmin], statisticsController.getStatisticsToday)

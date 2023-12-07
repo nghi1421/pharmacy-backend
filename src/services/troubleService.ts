@@ -170,7 +170,7 @@ const storeTrouble = (data: TroubleData) => {
                 const inventory = JSON.parse(importQuantity)
                 if (inventory.length > 0) {
                     //handle cancel batch drug category error
-                    
+
                 }
             })
             
@@ -183,5 +183,6 @@ const storeTrouble = (data: TroubleData) => {
 
 export default {
     getTroubles,
-    getHistoryBatchTrouble
+    getHistoryBatchTrouble,
+    storeTrouble
 }
