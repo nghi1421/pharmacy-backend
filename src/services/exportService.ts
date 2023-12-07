@@ -885,7 +885,7 @@ const checkCancelExport = (listQuantity: ImportQuantityRequired[]): Promise<Impo
                             result.push({
                                 ...item,
                                 type: 'current',
-                            } )
+                            })
                         }
                         else {
                             return reject({errorMessage: 'Không tìm thấy tồn kho.'})

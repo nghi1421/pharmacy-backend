@@ -6,7 +6,7 @@ import { CustomerData } from '../global/interfaces/CustomerData';
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { getQueryParams } from '../utils/helper';
 import mailService from '../services/mailService';
-import { ImportQuantityRequired, QuantityRequired } from '../global/interfaces/QuantityRequired';
+import { ImportQuantityRequired } from '../global/interfaces/QuantityRequired';
 
 const getExports = async (req: Request, res: Response) => {
     try {

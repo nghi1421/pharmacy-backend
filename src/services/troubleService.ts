@@ -1,6 +1,6 @@
-import { In, Like, Repository } from "typeorm"
+import { EntityManager, In, Like, Repository } from "typeorm"
 import { QueryParam } from "../global/interfaces/QueryParam"
-import { DataAndCount, getDataAndCount, getMetaData } from "../utils/helper"
+import { DataAndCount, getDataAndCount, getErrors, getMetaData } from "../utils/helper"
 import { Trouble } from "../entity/Trouble"
 import { AppDataSource } from "../dataSource"
 import { ImportDetail } from "../entity/ImportDetail"
@@ -11,6 +11,7 @@ import { TroubleData } from "../global/interfaces/TroubleData"
 import { Staff } from "../entity/Staff"
 import { DrugCategory } from "../entity/DrugCategory"
 import inventoryService from "./inventoryService"
+import { validate } from "class-validator"
 
 const troubleRepository: Repository<Trouble> = AppDataSource.getRepository(Trouble)
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail)
@@ -103,8 +104,6 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                     }
                 }
                     
-                console.log('handleImports', handleImports)
-                
                 exportDetails.forEach((exportDetail: ExportDetail) => {
                     historySales.push({
                         exportId: exportDetail.export.id,
@@ -158,6 +157,22 @@ const storeTrouble = (data: TroubleData) => {
             newTrouble.troubleDate = data.troubleDate
             newTrouble.batchId = data.batchId
 
+            const errors = await validate(newTrouble);
+
+            if (errors.length > 0) {
+                reject({ validateError: getErrors(errors) })
+                throw new Error();
+            }
+
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                await transactionalEntityManager.save(newTrouble)
+                const importQuantity = await redisClient.hGet(`trouble-list:${data.batchId}-${data.drugId}`, 'inventory')
+                const inventory = JSON.parse(importQuantity)
+                if (inventory.length > 0) {
+                    //handle cancel batch drug category error
+                    
+                }
+            })
             
         }
         catch (error) {
