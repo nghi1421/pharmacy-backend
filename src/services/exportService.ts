@@ -228,7 +228,7 @@ const storeExport = (data: ExportData<NewExportDetailData>) => {
                         customer.name = data.customer.name
                         customer.gender = data.customer.gender
                         customer.phoneNumber = data.customer.phoneNumber
-
+                        customer.email = data.customer.email
                         const errors = await validate(customer)
 
                         if (errors.length > 0) {

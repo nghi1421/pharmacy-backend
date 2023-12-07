@@ -21,21 +21,7 @@ const getInventories = (queryParams: QueryParam) => {
             )
             
             const order: any = {}
-            switch (queryParams.orderBy) {
-                case 'use': {
-                    order['type'] = { id: queryParams.orderDirection }
-                    break;
-                }
-                
-                case 'formatedPrice': {
-                    order['price'] = queryParams.orderDirection
-                    break;
-                }
-            
-                default: {
-                    order[queryParams.orderBy] = queryParams.orderDirection
-                }
-            }
+                order[queryParams.orderBy] = queryParams.orderDirection
 
             const result: DataAndCount = await getDataAndCount(queryParams, inventoryRepository, search, order);
 

@@ -1,4 +1,4 @@
-import { EntityManager, In, Like, Repository } from "typeorm"
+import { EntityManager, Like, Repository } from "typeorm"
 import { QueryParam } from "../global/interfaces/QueryParam"
 import { DataAndCount, getDataAndCount, getErrors, getMetaData } from "../utils/helper"
 import { Trouble } from "../entity/Trouble"
@@ -57,16 +57,29 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                     }
                 }
             })
+            const drugCategory = await drugCategoryRepository.findOneBy({ id: drugId})
+
+            if (!drugCategory) {
+                reject({ errorMessage: 'Mã danh mục thuốc không tồn tại.' })
+            }
 
             let historySales: TroubleHistorySales[] = []
             if (importDetails.length > 0) {
                 const importIds = importDetails.map((importDetail: ImportDetail) => importDetail.import.id)
                 const inventoryDrug = await inventoryService.getDrugInventory(drugId)
-                const exportDetails = await exportDetailRepository.find({
-                    where: {
-                        import: { id: In(importIds) }
-                    }
-                })
+                
+                let exportDetails: ExportDetail[] = []
+
+                for await (let importId of importIds) {
+                    const exportDetail = await exportDetailRepository.find({
+                        where: {
+                            import: { id: importId },
+                            drug: { id: drugId},
+                            export: { type: 1 }
+                        }
+                    })
+                    exportDetails = exportDetails.concat(exportDetail)
+                }
 
                 const handleImportIds = importIds.filter(importId => inventoryDrug && inventoryDrug.importDetail.import.id >= importId)
                 console.log('importIds', importIds)
@@ -116,7 +129,8 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                 await redisClient.hSet(`trouble-list:${batchId}-${drugId}`, {
                     provider: JSON.stringify(importDetails[0].import.provider),
                     historySales: JSON.stringify(historySales),
-                    inventoryImport: JSON.stringify(handleImports)
+                    inventoryImport: JSON.stringify(handleImports),
+                    drugCategory: JSON.stringify(drugCategory),
                 })
 
                 resolve({
@@ -125,6 +139,7 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                         provider: importDetails[0].import.provider,
                         historySales: historySales,
                         inventoryImport: handleImports,
+                        drugCategory: drugCategory,
                     }
                 })
             }

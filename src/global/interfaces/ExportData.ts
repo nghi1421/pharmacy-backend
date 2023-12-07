@@ -7,7 +7,7 @@ export interface ExportData<T> {
     note: string;
     type: number;
     exportDetails: T[];
-    customer: CustomerData
+    customer: CustomerData;
 }
 
 export interface EditExportData {
