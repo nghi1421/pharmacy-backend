@@ -213,6 +213,7 @@ const storeExport = (data: ExportData<NewExportDetailData>) => {
                         newCustomer.address = data.customer.address
                         newCustomer.name = data.customer.name
                         newCustomer.gender = data.customer.gender
+                        newCustomer.email = data.customer.email
                         newCustomer.phoneNumber = data.customer.phoneNumber
 
                         const errors = await validate(newCustomer)

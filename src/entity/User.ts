@@ -36,8 +36,7 @@ export class User {
     @IsNotEmpty()
     role: Role
 
-    @Column({ nullable: true})
-    @Length(1, 1000)
+    @Column({ nullable: true })
     deviceToken!: string
 
     @Column()

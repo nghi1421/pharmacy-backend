@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import jwt, { JwtPayload, VerifyErrors } from 'jsonwebtoken'
 import config from '../config/config'
 import { SignUpCustomerData } from '../global/interfaces/CustomerData'
+import { ProfileData } from '../global/interfaces/ProfileData'
 
 const login = async (req: Request, res: Response) => {
     try {
@@ -183,6 +184,35 @@ const changePasswordCustomer = async (req: Request, res: Response) => {
     }
 }
 
+const updateProfile = async (req: Request, res: Response) => {
+    try {
+        let { 
+            name,
+            phoneNumber,
+            email,
+            dob,
+            address,
+            gender,
+        } = req.body
+
+        const data: ProfileData = {
+            id: res.locals.staffId,
+            name,
+            email,
+            dob,
+            address,
+            gender: parseInt(gender),
+            phoneNumber,
+        }
+
+        const result = await authenticateService.updateProfile(data);
+        res.status(200).json(result)
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
+
 export default {
     login,
     refreshToken,
@@ -192,5 +222,6 @@ export default {
     forgotPassword,
     signUpForCustomer,
     checkAndSendOTPCode,
-    changePasswordCustomer
+    changePasswordCustomer,
+    updateProfile
 }

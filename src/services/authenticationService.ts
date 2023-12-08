@@ -11,8 +11,9 @@ import { Customer } from '../entity/Customer'
 import { SignUpCustomerData } from '../global/interfaces/CustomerData'
 import { Role } from '../entity/Role'
 import { getErrors } from '../utils/helper'
-import { checkExistUniqueCreate } from '../utils/query'
+import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../utils/query'
 import mailService from './mailService'
+import { ProfileData } from '../global/interfaces/ProfileData'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
@@ -74,7 +75,11 @@ const changePassword =
                     user.password = newPassword;
                     user.hashPasswrod();
 
-                    await validateOrReject(user);
+                    const errors = await validate(user);
+                    if (errors.length > 0) {
+                        return reject({validateError: getErrors(errors)})
+                    }
+
                     await userRepository.save(user);
 
                     resolve({
@@ -87,7 +92,7 @@ const changePassword =
                 }
             }
         } catch (error) {
-            reject({errorMessage: error})
+            reject(error)
         }
     })
     }
@@ -104,7 +109,6 @@ const changePasswordCustomer =
                 const user = customer.user
                 if (user) {
                     if (user.checkPassword(oldPassword)) {
-                        console.log(user);
                         user.password = newPassword;
                         user.hashPasswrod();
 
@@ -368,9 +372,66 @@ const forgotPassword = (email: string) => {
     })
 }
 
+const updateProfile = (data: ProfileData) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const staff: Staff | null = await staffRepository.findOneBy({ id: data.id })
+            if (!staff) {
+                return reject({ errorMessage: 'Nhân viên không tồn tại.'})
+            }
+            staff.name = data.name
+            staff.email = data.email
+            staff.phoneNumber = data.phoneNumber
+            staff.gender = data.gender
+            if (data.dob) {
+                 staff.dob = new Date(data.dob)
+            }
+            staff.address = data.address
+
+            const errors = await validate(staff)
+            if (errors.length > 0) {
+                return reject({validateError: errors})
+            }
+
+            const errorResponse = []
+            const [{ exists: existsPhoneNumber }] = await
+                checkExistUniqueUpdate(staffRepository, 'phone_number', [data.phoneNumber, staff.id])
+            const [{ exists: existsEmail }] = await
+                checkExistUniqueUpdate(staffRepository, 'email', [data.email, staff.id])
+            
+            if (existsPhoneNumber) {
+                errorResponse.push({
+                    key: 'phoneNumber',
+                    value: ['Số điện thoại đã tồn tại.']
+                })
+            }
+            if (existsEmail) {
+                errorResponse.push({
+                    key: 'email',
+                    value: ['Email đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({validateError: errorResponse})
+            }
+
+            await staffRepository.save(staff)
+            resolve({
+                message: 'Cập nhật thông tin thành công.',
+                data: staff
+            })
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export default{
     login,
     changePassword,
+    updateProfile,
     checkAndSendOTPCode,
     loginCustomer,
     verifyEmail,
