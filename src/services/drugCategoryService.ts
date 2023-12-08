@@ -21,12 +21,16 @@ const getDrugCategories = (queryParams: QueryParam | undefined): Promise<DataRes
     return new Promise(async (resolve, reject) => {
         try {
             if (queryParams) {
-                const search  = queryParams.searchColumns.map((param) => {
-                const object:any = {}
-                    object[param] = Like(`%${queryParams.searchTerm}%`)
-                        return object
+                const search = queryParams.searchColumns.map((param) => {
+                    const object: any = {}
+                    if (param === 'id') {
+                        object[param] = queryParams.searchTerm
                     }
-                )
+                    else {
+                        object[param] = Like(`%${queryParams.searchTerm}%`)
+                    }
+                    return object
+                })
                 
                 const order: any = {}
                 switch (queryParams.orderBy) {

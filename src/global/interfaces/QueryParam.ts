@@ -5,4 +5,6 @@ export interface QueryParam {
     orderDirection: 'ASC' | 'DESC';
     searchTerm: string;
     searchColumns: string[]
+    filterValue: string
+    filterColumn: string
 }

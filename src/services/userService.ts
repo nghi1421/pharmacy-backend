@@ -17,12 +17,16 @@ const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
 const getUsers = (queryParams: QueryParam): Promise<DataResponse<User>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const search  = queryParams.searchColumns.map((param) => {
-                const object:any = {}
-                    object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
+            const search = queryParams.searchColumns.map((param) => {
+                const object: any = {}
+                if (param === 'id') {
+                    object[param] = queryParams.searchTerm
                 }
-            )
+                else {
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                }
+                return object
+            })
             
             const order: any = {}
             if (queryParams.orderBy === 'role') {

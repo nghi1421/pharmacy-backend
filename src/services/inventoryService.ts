@@ -8,20 +8,57 @@ import { QuantityRequired } from "../global/interfaces/QuantityRequired";
 import { NewExportDetailData } from "../global/interfaces/ExportDetailData";
 import { QueryParam } from "../global/interfaces/QueryParam";
 import { DataAndCount, getDataAndCount, getMetaData } from "../utils/helper";
+import dayjs from "dayjs";
 
 const getInventories = (queryParams: QueryParam) => {
     return new Promise(async (resolve, reject) => {
         try {
             const inventoryRepository = AppDataSource.getRepository(Inventory)
-            const search  = queryParams.searchColumns.map((param) => {
-            const object:any = {}
-                object[param] = Like(`%${queryParams.searchTerm}%`)
-                    return object
+            const search: any = {}
+            if (queryParams.searchTerm.trim().length > 0) {
+                search['drug'] = {
+                    id: queryParams.searchTerm
                 }
-            )
-            
+            }
+            if (queryParams.filterColumn) {
+                search['monthYear'] = Like(`%${queryParams.filterValue}%`)
+            }
+            else {
+                search['monthYear'] = Like(`%${dayjs().format('MMYYYY')}%`)
+            }
+
             const order: any = {}
-                order[queryParams.orderBy] = queryParams.orderDirection
+
+            switch (queryParams.orderBy) {
+                case 'drugId': {
+                    order['drug'] = { id: queryParams.orderDirection }
+                    break;
+                }
+                case 'name': {
+                    order['drug'] = { name: queryParams.orderDirection }
+                    break;
+                }
+                case 'salesQuantity': {
+                    order['salesQuantity'] = queryParams.orderDirection
+                    break;
+                }
+                case 'brokenQuantity': {
+                    order['brokenQuantity'] = queryParams.orderDirection
+                    break;
+                }
+                case 'importQuantity': {
+                    order['importQuantity'] = queryParams.orderDirection
+                    break;
+                }
+                case 'inventory': {
+                    order['inventoryQuantiy'] = queryParams.orderDirection
+                    break;
+                }
+                case 'expiryDate': {
+                    order['importDetail'] = { expiryDate: queryParams.orderDirection}
+                    break;
+                }
+            }
 
             const result: DataAndCount = await getDataAndCount(queryParams, inventoryRepository, search, order);
 

@@ -49,7 +49,7 @@ export const getDataAndCount = async (
     let result, total
     return new Promise(async (resolve, reject) => {
          try {
-            if (queryParams.searchColumns.length !== 0 && queryParams.searchTerm.length !== 0) {
+            if ( Object.keys(search).length > 0 ) {
                 [result, total] = await repository.findAndCount({
                     where: search,
                     take: queryParams.perPage,
@@ -62,9 +62,8 @@ export const getDataAndCount = async (
                     take: queryParams.perPage,
                     skip: ((queryParams.page - 1) * queryParams.perPage),
                     order,
-                    cache: true
                 })
-            }      
+            }
             resolve({
                 data: result,
                 total
@@ -87,7 +86,9 @@ export const getQueryParams = (req: Request): Promise<QueryParam> => {
                 searchTerm,
                 searchColumns,
                 orderBy,
-                orderDirection
+                orderDirection,
+                filterColumn,
+                filterValue
             } = req.query
 
             const queryParams: QueryParam = {
@@ -99,7 +100,9 @@ export const getQueryParams = (req: Request): Promise<QueryParam> => {
                     .map((value) => value.trim()).filter((value) => value)
                     : [],
                 orderBy: orderBy as string,
-                orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC')
+                orderDirection: ((orderDirection as 'asc' | 'desc').toUpperCase() as 'ASC' | 'DESC'),
+                filterColumn: filterColumn as string,
+                filterValue: filterValue as string
             }
 
             resolve(queryParams)
