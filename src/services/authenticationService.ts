@@ -353,10 +353,13 @@ const forgotPassword = (email: string) => {
     return new Promise(async (resolve, reject) => {
        try {
             const customer: Customer | null = await customerRepository.findOneBy({ email });
-            if (customer && customer.user) {
+            const staff: Staff | null = await staffRepository.findOneBy({ email });
+           
+            if ((customer && customer.user) || (staff && staff.user)) {
                 const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
                 mailService.sendOtp(email, otpCode)
                 resolve({
+                    message: 'Gửi OTP thành công. Vui lòng kiểm tra email.',
                     otpCode: otpCode,
                 })
             }
@@ -428,10 +431,43 @@ const updateProfile = (data: ProfileData) => {
     })
 }
 
+const setNewPassword = (password: string, email: string) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const customer: Customer | null = await customerRepository.findOneBy({ email });
+            const staff: Staff | null = await staffRepository.findOneBy({ email });
+           
+            if ((customer && customer.user) || (staff && staff.user)) {
+                let user = customer ? customer.user : undefined
+                user = !user && staff ? staff.user : undefined
+
+                if (!user) {
+                    return reject({errorMessage: 'Không tìm thấy tài khoản.'})
+                }
+                user.password = password;
+                user.hashPasswrod();
+                await userRepository.save(user);
+                resolve({
+                    message: 'Thiết lập mật khẩu mới thành công.',
+                })
+            }
+            else {
+                resolve({
+                    message: 'Email không hợp lệ.'
+                })
+            }
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export default{
     login,
     changePassword,
     updateProfile,
+    setNewPassword,
     checkAndSendOTPCode,
     loginCustomer,
     verifyEmail,

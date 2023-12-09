@@ -24,9 +24,10 @@ const routesAPI = (app: Application) => {
     router.post('/login', authenticateController.login)
     router.post('/refresh-token', authenticateController.refreshToken)
     router.post('/change-password', [checkAccessToken], authenticateController.changePassword)
-    router.post('/update-profile', [checkAccessToken], authenticateController.updateProfile)
-    router.post('/forgot-password', authenticateController.changePassword)
-
+    router.put('/update-profile', [checkAccessToken], authenticateController.updateProfile)
+    router.post('/forgot-password', authenticateController.forgotPassword)
+    router.post('/set-new-password', authenticateController.setNewPassword)
+    
     //Role
     router.get('/roles',[checkAccessToken, checkAdmin], roleController.getRoles)
 

@@ -146,10 +146,10 @@ const signUpForCustomer = async (req: Request, res: Response) => {
 
 const forgotPassword = async (req: Request, res: Response) => {
     try {
-        const { phoneNumber } = req.body
-        const result = await authenticateService.forgotPassword(phoneNumber)
+        const email = req.body.email
+        const result = await authenticateService.forgotPassword(email)
         res.json(result)
-    } catch (error: unknown) {
+    } catch (error) {
         res.status(500).json(error)
     }
 }
@@ -213,10 +213,33 @@ const updateProfile = async (req: Request, res: Response) => {
     }
 }
 
+const setNewPassword = async (req: Request, res: Response) => {
+    try {
+        const {
+            password,
+            confirmationPassword,
+            email
+        } = req.body
+
+        if (confirmationPassword !== password) {
+            res.status(400).json({ errorMessage: 'Xác nhận mật khẩu không khớp.' })
+            return
+        }
+        else {
+            const result = await authenticateService.setNewPassword(password, email)
+            res.status(200).json(result)
+        }
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
+
 export default {
     login,
     refreshToken,
     changePassword,
+    setNewPassword,
     loginCustomer,
     verifyPhoneNumber,
     forgotPassword,
