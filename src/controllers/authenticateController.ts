@@ -147,7 +147,8 @@ const signUpForCustomer = async (req: Request, res: Response) => {
 const forgotPassword = async (req: Request, res: Response) => {
     try {
         const email = req.body.email
-        const result = await authenticateService.forgotPassword(email)
+        const isCustomer = req.query.isCustomer
+        const result = await authenticateService.forgotPassword(email, isCustomer ? true: false)
         res.json(result)
     } catch (error) {
         res.status(500).json(error)
@@ -221,12 +222,14 @@ const setNewPassword = async (req: Request, res: Response) => {
             email
         } = req.body
 
+        const isCustomer = req.query.isCustomer
+
         if (confirmationPassword !== password) {
             res.status(400).json({ errorMessage: 'Xác nhận mật khẩu không khớp.' })
             return
         }
         else {
-            const result = await authenticateService.setNewPassword(password, email)
+            const result = await authenticateService.setNewPassword(password, email, isCustomer ? true : false)
             res.status(200).json(result)
         }
     }

@@ -349,25 +349,47 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
     })
 }
 
-const forgotPassword = (email: string) => {
+const forgotPassword = (email: string, isCustomer: boolean) => {
     return new Promise(async (resolve, reject) => {
        try {
-            const customer: Customer | null = await customerRepository.findOneBy({ email });
-            const staff: Staff | null = await staffRepository.findOneBy({ email });
-           
-            if ((customer && customer.user) || (staff && staff.user)) {
-                const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-                mailService.sendOtp(email, otpCode)
-                resolve({
-                    message: 'Gửi OTP thành công. Vui lòng kiểm tra email.',
-                    otpCode: otpCode,
-                })
+            let user
+            if (isCustomer) {
+                const customer: Customer | null = await customerRepository.findOneBy({ email });
+                if (customer && customer.user) {
+                    user = customer ? customer.user : undefined
+                }
+                else {
+                    return reject({
+                        errorMessage: 'Email không tồn tại.'
+                    })
+                }
             }
             else {
-                resolve({
-                    message: 'Email không hợp lệ.'
-                })
-            }
+                const staff: Staff | null = await staffRepository.findOne({
+                    relations: {
+                        user: true
+                    },
+                    where: { email }
+                });
+                console.log(staff)
+                if (staff && staff.user) {
+                    user =  staff ? staff.user : undefined
+                }
+                else {
+                    return reject({
+                        errorMessage: 'Email không tồn tại.'
+                    })
+                }
+           }
+           if (!user) {
+                return reject({errorMessage: 'Không tìm thấy tài khoản.'})
+           }
+            const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+            mailService.sendOtp(email, otpCode)
+            resolve({
+                message: 'Gửi OTP thành công. Vui lòng kiểm tra email.',
+                otpCode: otpCode,
+            })
         }
         catch (error) {
             reject(error)
@@ -431,33 +453,49 @@ const updateProfile = (data: ProfileData) => {
     })
 }
 
-const setNewPassword = (password: string, email: string) => {
+const setNewPassword = (password: string, email: string, isCustomer: boolean) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const customer: Customer | null = await customerRepository.findOneBy({ email });
-            const staff: Staff | null = await staffRepository.findOneBy({ email });
-           
-            if ((customer && customer.user) || (staff && staff.user)) {
-                let user = customer ? customer.user : undefined
-                if (!user) {
-                    user = staff ? staff.user : undefined
+            let user
+            if (isCustomer) {
+                const customer: Customer | null = await customerRepository.findOneBy({ email });
+                if (customer && customer.user) {
+                    user = customer ? customer.user : undefined
                 }
-
-                if (!user) {
-                    return reject({errorMessage: 'Không tìm thấy tài khoản.'})
+                else {
+                    return reject({
+                        errorMessage: 'Email không tồn tại.'
+                    })
                 }
-                user.password = password;
-                user.hashPasswrod();
-                await userRepository.save(user);
-                resolve({
-                    message: 'Thiết lập mật khẩu mới thành công.',
-                })
             }
             else {
-                resolve({
-                    message: 'Email không hợp lệ.'
-                })
+                const staff: Staff | null = await staffRepository.findOne({
+                    relations: {
+                        user: true
+                    },
+                    where: { email }
+                });
+                if (staff && staff.user) {
+                    user =  staff ? staff.user : undefined
+                }
+                else {
+                    return reject({
+                        errorMessage: 'Email không tồn tại.'
+                    })
+                }
             }
+            if (!user) {
+                return reject({errorMessage: 'Không tìm thấy tài khoản.'})
+            }
+            user.password = password;
+            user.hashPasswrod();
+
+            await validateOrReject(user);
+            await userRepository.save(user);
+            resolve({
+                message: 'Thiết lập mật khẩu mới thành công.',
+            })
+
         }
         catch (error) {
             reject(error)
