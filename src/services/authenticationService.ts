@@ -439,7 +439,9 @@ const setNewPassword = (password: string, email: string) => {
            
             if ((customer && customer.user) || (staff && staff.user)) {
                 let user = customer ? customer.user : undefined
-                user = !user && staff ? staff.user : undefined
+                if (!user) {
+                    user = staff ? staff.user : undefined
+                }
 
                 if (!user) {
                     return reject({errorMessage: 'Không tìm thấy tài khoản.'})
