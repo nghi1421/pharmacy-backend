@@ -15,6 +15,7 @@ import { validate } from "class-validator"
 import { Export } from "../entity/Export"
 import { Import } from "../entity/Import"
 import { Inventory } from "../entity/Inventory"
+import { TroubleDetail } from "../entity/TroubleDetail"
 
 const troubleRepository: Repository<Trouble> = AppDataSource.getRepository(Trouble)
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail)
@@ -22,6 +23,8 @@ const exportDetailRepository: Repository<ExportDetail> = AppDataSource.getReposi
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
 const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getRepository(DrugCategory)
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import)
+const exportRepository: Repository<Export> = AppDataSource.getRepository(Export)
+const troubleDetailRepository: Repository<TroubleDetail> = AppDataSource.getRepository(TroubleDetail)
 
 const getTroubles = (queryParams: QueryParam) => {
     return new Promise(async (resolve, reject) => {
@@ -53,6 +56,37 @@ const getTroubles = (queryParams: QueryParam) => {
 const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
     return new Promise(async (resolve, reject) => {
         try {
+            const trouble: Trouble | null = await troubleRepository.findOneBy({
+                batchId: batchId,
+                drug: {
+                    id: drugId
+                }
+            })
+
+            const drugCategory = await drugCategoryRepository.findOneBy({ id: drugId })
+
+            if (!drugCategory) {
+                reject({ errorMessage: 'Mã danh mục thuốc không tồn tại.' })
+            }
+
+            if (trouble) {
+                const data = await redisClient.hGetAll(`trouble-list:${batchId}-${drugId}`)
+                const importQuantity = JSON.parse(data.importQuantity)
+                const historySales = JSON.parse(data.historySales)
+                const provider = JSON.parse(data.provider)
+                const drugCategory = JSON.parse(data.drugCategory)
+
+                return resolve({
+                    message: 'Lấy thông tin sự cố thành công.',
+                    data: {
+                        provider: provider,
+                        historySales: historySales,
+                        inventoryImport: importQuantity,
+                        drugCategory: drugCategory,
+                        trouble
+                    }
+                })
+            }
             const importDetails = await importDetailRepository.find({
                 where: {
                     batchId: batchId,
@@ -61,11 +95,6 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                     }
                 }
             })
-            const drugCategory = await drugCategoryRepository.findOneBy({ id: drugId })
-
-            if (!drugCategory) {
-                reject({ errorMessage: 'Mã danh mục thuốc không tồn tại.' })
-            }
 
             let historySales: TroubleHistorySales[] = []
             if (importDetails.length > 0) {
@@ -235,6 +264,10 @@ const storeTrouble = (data: TroubleData) => {
                 }
             })
 
+            resolve({
+                message: 'Tạo sự cố thành công.',
+                data: newTrouble
+            })
         }
         catch (error) {
             reject(error);
@@ -242,8 +275,74 @@ const storeTrouble = (data: TroubleData) => {
     })
 }
 
+const backDrugCategory = (exportId: number, troubleId: number, recoveryTime: Date, quantity: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const exportData: Export | null = await exportRepository.findOneBy({ id: exportId });
+            const trouble: Trouble | null = await troubleRepository.findOneBy({ id: troubleId });
+            const troubleDetail = await troubleDetailRepository.findOneBy({
+                trouble: { id: troubleId },
+                export: { id: exportId },
+            })
+            if (!exportData) {
+                return reject({ errorMessage: 'Không tìm thấy phiếu mua hàng.' })
+            }
+            if (!trouble) {
+                return reject({ errorMessage: 'Không tìm thấy sự cố.' })
+            }
+
+
+
+            if (troubleDetail) {
+                troubleDetail.quantity = quantity
+                troubleDetail.recoveryTime = recoveryTime;
+                await troubleDetailRepository.save(troubleDetail)
+                resolve({
+                    message: 'Thu hồi thuốc thành công.',
+                    data: troubleDetail,
+                })
+            }
+            else {
+                const newTroubleDetail = new TroubleDetail();
+
+                newTroubleDetail.export = exportData;
+                newTroubleDetail.trouble = trouble;
+                newTroubleDetail.recoveryTime = recoveryTime;
+                newTroubleDetail.quantity = quantity
+
+                await troubleDetailRepository.save(newTroubleDetail)
+                resolve({
+                    message: 'Thu hồi thuốc thành công.',
+                    data: newTroubleDetail,
+                })
+            }
+            const data = await redisClient.hGetAll(`trouble-list:${trouble.batchId}-${trouble.drug.id}`)
+            const historySales = JSON.parse(data.historySales)
+
+            const newHistorySales = historySales.map((history: any) => {
+                return history.exportId === exportId ? {
+                    ...history,
+                    quantityBack: quantity,
+                    recoveryTime: recoveryTime
+                } : history
+            })
+
+            await redisClient.hSet(`trouble-list:${trouble.batchId}-${trouble.drug.id}`, {
+                provider: data.provider,
+                historySales: JSON.stringify(newHistorySales),
+                inventoryImport: data.inventoryImport,
+                drugCategory: data.drugCategory,
+            })
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export default {
     getTroubles,
+    backDrugCategory,
     getHistoryBatchTrouble,
     storeTrouble
 }
