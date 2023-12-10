@@ -27,85 +27,86 @@ const routesAPI = (app: Application) => {
     router.put('/update-profile', [checkAccessToken], authenticateController.updateProfile)
     router.post('/forgot-password', authenticateController.forgotPassword)
     router.post('/set-new-password', authenticateController.setNewPassword)
-    
+
     //Role
-    router.get('/roles',[checkAccessToken, checkAdmin], roleController.getRoles)
+    router.get('/roles', [checkAccessToken, checkAdmin], roleController.getRoles)
 
     //User
     router.get('/users', [checkAccessToken, checkAdmin], userController.getUsers)
     router.post('/users', [checkAccessToken, checkAdmin], userController.storeUser)
-    router.put('/users/:userId',[checkAccessToken, checkAdmin], userController.updateUser)
-    router.delete('/users/:userId',[checkAccessToken, checkAdmin], userController.deleteUser)
+    router.put('/users/:userId', [checkAccessToken, checkAdmin], userController.updateUser)
+    router.delete('/users/:userId', [checkAccessToken, checkAdmin], userController.deleteUser)
 
     //Staff
-    router.get('/staffs',[checkAccessToken, checkAdmin], staffController.getStaffs)
-    router.get('/staffs/:staffId',[checkAccessToken, checkAdmin], staffController.getStaff)
-    router.post('/staffs',[checkAccessToken, checkAdmin], staffController.storeStaff)
-    router.post('/staffs/:staffId/update-status',[checkAccessToken, checkAdmin], staffController.updateStaffStatus)
-    router.put('/staffs/:staffId',[checkAccessToken, checkAdmin], staffController.updateStaff)
-    router.delete('/staffs/:staffId',[checkAccessToken, checkAdmin], staffController.deleteStaff)
+    router.get('/staffs', [checkAccessToken, checkAdmin], staffController.getStaffs)
+    router.get('/staffs/:staffId', [checkAccessToken, checkAdmin], staffController.getStaff)
+    router.post('/staffs', [checkAccessToken, checkAdmin], staffController.storeStaff)
+    router.post('/staffs/:staffId/update-status', [checkAccessToken, checkAdmin], staffController.updateStaffStatus)
+    router.put('/staffs/:staffId', [checkAccessToken, checkAdmin], staffController.updateStaff)
+    router.delete('/staffs/:staffId', [checkAccessToken, checkAdmin], staffController.deleteStaff)
 
     //Position
-    router.get('/positions',[checkAccessToken, checkAdmin], positionController.getPositions)
-    router.get('/positions/:positionId',[checkAccessToken, checkAdmin], positionController.getPosition)
-    router.post('/positions',[checkAccessToken, checkAdmin], positionController.storePosition)
-    router.put('/positions/:positionId',[checkAccessToken, checkAdmin], positionController.updatePosition)
-    router.delete('/positions/:positionId',[checkAccessToken, checkAdmin], positionController.deletePosition)
+    router.get('/positions', [checkAccessToken, checkAdmin], positionController.getPositions)
+    router.get('/positions/:positionId', [checkAccessToken, checkAdmin], positionController.getPosition)
+    router.post('/positions', [checkAccessToken, checkAdmin], positionController.storePosition)
+    router.put('/positions/:positionId', [checkAccessToken, checkAdmin], positionController.updatePosition)
+    router.delete('/positions/:positionId', [checkAccessToken, checkAdmin], positionController.deletePosition)
 
     //Customer
-    router.get('/customers',[checkAccessToken, checkAdmin], customerController.getCustomers)
-    router.post('/customers/search-by-phone-number',[checkAccessToken], customerController.getCustomerByPhoneNumber)
-    router.get('/customers/:customerId',[checkAccessToken, checkAdmin], customerController.getCustomer)
-    router.post('/customers',[checkAccessToken, checkAdmin], customerController.storeCustomer)
-    router.put('/customers/:customerId',[checkAccessToken, checkAdmin], customerController.updateCustomer)
-    router.delete('/customers/:customerId',[checkAccessToken, checkAdmin], customerController.deleteCustomer)
+    router.get('/customers', [checkAccessToken, checkAdmin], customerController.getCustomers)
+    router.post('/customers/search-by-phone-number', [checkAccessToken], customerController.getCustomerByPhoneNumber)
+    router.get('/customers/:customerId', [checkAccessToken, checkAdmin], customerController.getCustomer)
+    router.post('/customers', [checkAccessToken, checkAdmin], customerController.storeCustomer)
+    router.put('/customers/:customerId', [checkAccessToken, checkAdmin], customerController.updateCustomer)
+    router.delete('/customers/:customerId', [checkAccessToken, checkAdmin], customerController.deleteCustomer)
 
     //Type by use
-    router.get('/type-by-uses',[checkAccessToken, checkAdmin], typeByUseController.getTypeByUses)
-    router.get('/type-by-uses/:typeId',[checkAccessToken, checkAdmin], typeByUseController.getTypeByUse)
-    router.post('/type-by-uses',[checkAccessToken, checkAdmin], typeByUseController.storeTypeByUse)
-    router.put('/type-by-uses/:typeId',[checkAccessToken, checkAdmin], typeByUseController.updateTypeByUse)
-    router.delete('/type-by-uses/:typeId',[checkAccessToken, checkAdmin], typeByUseController.deleteTypeByUse)
+    router.get('/type-by-uses', [checkAccessToken, checkAdmin], typeByUseController.getTypeByUses)
+    router.get('/type-by-uses/:typeId', [checkAccessToken, checkAdmin], typeByUseController.getTypeByUse)
+    router.post('/type-by-uses', [checkAccessToken, checkAdmin], typeByUseController.storeTypeByUse)
+    router.put('/type-by-uses/:typeId', [checkAccessToken, checkAdmin], typeByUseController.updateTypeByUse)
+    router.delete('/type-by-uses/:typeId', [checkAccessToken, checkAdmin], typeByUseController.deleteTypeByUse)
 
     //Drug category
-    router.get('/drug-categories',[checkAccessToken], drugCategoryController.getDrugCategories)
-    router.get('/drug-categories/:drugId',[checkAccessToken, checkAdmin], drugCategoryController.getDrugCategory)
-    router.post('/drug-categories',[checkAccessToken, checkAdmin], drugCategoryController.storeDrugCategory)
-    router.put('/drug-categories/:drugCategoryId',[checkAccessToken, checkAdmin], drugCategoryController.updateDrugCategory)
-    router.delete('/drug-categories/:drugCategoryId',[checkAccessToken, checkAdmin], drugCategoryController.deleteDrugCategory)
+    router.get('/drug-categories', [checkAccessToken], drugCategoryController.getDrugCategories)
+    router.get('/drug-categories/:drugId', [checkAccessToken, checkAdmin], drugCategoryController.getDrugCategory)
+    router.post('/drug-categories', [checkAccessToken, checkAdmin], drugCategoryController.storeDrugCategory)
+    router.put('/drug-categories/:drugCategoryId', [checkAccessToken, checkAdmin], drugCategoryController.updateDrugCategory)
+    router.delete('/drug-categories/:drugCategoryId', [checkAccessToken, checkAdmin], drugCategoryController.deleteDrugCategory)
 
     //Provider
-    router.get('/providers',[checkAccessToken, checkAdmin], providerController.getProviders)
-    router.get('/providers/:providerId',[checkAccessToken, checkAdmin], providerController.getProvider)
-    router.post('/providers',[checkAccessToken, checkAdmin], providerController.storeProvider)
-    router.put('/providers/:providerId',[checkAccessToken, checkAdmin], providerController.updateProvider)
-    router.delete('/providers/:providerId',[checkAccessToken, checkAdmin], providerController.deleteProvider)
+    router.get('/providers', [checkAccessToken, checkAdmin], providerController.getProviders)
+    router.get('/providers/:providerId', [checkAccessToken, checkAdmin], providerController.getProvider)
+    router.post('/providers', [checkAccessToken, checkAdmin], providerController.storeProvider)
+    router.put('/providers/:providerId', [checkAccessToken, checkAdmin], providerController.updateProvider)
+    router.delete('/providers/:providerId', [checkAccessToken, checkAdmin], providerController.deleteProvider)
 
     //Import
-    router.get('/imports',[checkAccessToken, checkAdmin], importController.getImports)
-    router.get('/imports/:importId',[checkAccessToken, checkAdmin], importController.getImport)
+    router.get('/imports', [checkAccessToken, checkAdmin], importController.getImports)
+    router.get('/imports/:importId', [checkAccessToken, checkAdmin], importController.getImport)
     router.get('/imports-test/:importId', importController.getImport)
-    router.get('/imports/search',[checkAccessToken, checkAdmin], importController.searchImport)
-    router.post('/imports',[checkAccessToken, checkAdmin], importController.storeImport)
-    router.delete('/imports/:importId',[checkAccessToken, checkAdmin], importController.deleteImport)
+    router.get('/imports/search', [checkAccessToken, checkAdmin], importController.searchImport)
+    router.post('/imports', [checkAccessToken, checkAdmin], importController.storeImport)
+    router.delete('/imports/:importId', [checkAccessToken, checkAdmin], importController.deleteImport)
 
     //Export
-    router.get('/exports',[checkAccessToken, checkAdmin], exportController.getExports) 
-    router.get('/exports/:exportId',[checkAccessToken], exportController.getExport)
-    router.post('/exports/:exportId',[checkAccessToken], exportController.updateExport)
-    router.post('/refund-exports/:exportId',[checkAccessToken], exportController.refundExport)
-    router.get('/exports/search',[checkAccessToken, checkAdmin], exportController.searchExport)
+    router.get('/exports', [checkAccessToken, checkAdmin], exportController.getExports)
+    router.get('/exports/:exportId', [checkAccessToken], exportController.getExport)
+    router.post('/exports/:exportId', [checkAccessToken], exportController.updateExport)
+    router.post('/refund-exports/:exportId', [checkAccessToken], exportController.refundExport)
+    router.post('/create-cancel-export', [checkAccessToken], exportController.storeCancelExport)
+    router.get('/exports/search', [checkAccessToken, checkAdmin], exportController.searchExport)
     router.post('/exports', [checkAccessToken], exportController.storeExport)
     router.get('/exports-today', [checkAccessToken], exportController.getTodaySalesCreatedByStaff)
-    router.delete('/exports/:exportId',[checkAccessToken, checkAdmin], exportController.deleteExport)
+    router.delete('/exports/:exportId', [checkAccessToken, checkAdmin], exportController.deleteExport)
 
     //Inventory
     router.get('/inventories', [checkAccessToken, checkAdmin], inventoryController.getInventories)
 
     //Statistics
-    router.get('/statistics-today',[checkAccessToken, checkAdmin], statisticsController.getStatisticsToday)
-    router.get('/statistics',[checkAccessToken, checkAdmin], statisticsController.getStatistics)
-    
+    router.get('/statistics-today', [checkAccessToken, checkAdmin], statisticsController.getStatisticsToday)
+    router.get('/statistics', [checkAccessToken, checkAdmin], statisticsController.getStatistics)
+
     //Trouble
     router.get('/troubles/:batchId/:drugId', troubleController.getHistoryBatchTrouble)
 
