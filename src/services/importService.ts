@@ -1,5 +1,5 @@
 import { Import } from '../entity/Import'
-import { AppDataSource } from '../dataSource' 
+import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Staff } from '../entity/Staff';
@@ -25,23 +25,23 @@ const getImports = (queryParams: QueryParam): Promise<DataResponse<Import>> => {
     return new Promise(async (resolve, reject) => {
         try {
             if (queryParams) {
-                const search  = queryParams.searchColumns.map((param) => {
-                    const object:any = {}
-                        object[param] = Like(`%${queryParams.searchTerm}%`)
-                        return object
-                    }
+                const search = queryParams.searchColumns.map((param) => {
+                    const object: any = {}
+                    object[param] = Like(`%${queryParams.searchTerm}%`)
+                    return object
+                }
                 )
-                
+
                 const order: any = {}
                 order[queryParams.orderBy] = queryParams.orderDirection
 
                 const result: DataAndCount = await getDataAndCount(queryParams, importRepository, search, order);
-        
+
                 resolve({
                     message: 'Lấy thông tin phiếu nhập hàng thành công.',
                     data: result.data,
                     meta: await getMetaData(queryParams, result.total)
-                })    
+                })
             }
             else {
                 const data: Import[] = await importRepository.find();
@@ -60,7 +60,7 @@ const getImports = (queryParams: QueryParam): Promise<DataResponse<Import>> => {
 const getImport = (importId: number) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const importData: null | Import = await importRepository.findOneBy({ id: importId});
+            const importData: null | Import = await importRepository.findOneBy({ id: importId });
             if (importData) {
                 const importDetails = await importDetailRepository.find({ where: { import: { id: importData.id } } })
                 const resultDetailData = []
@@ -71,9 +71,9 @@ const getImport = (importId: number) => {
                     const priceWithVat = importDetail.unitPrice * importDetail.quantity * (1 + importDetail.vat)
 
                     resultDetailData.push({
-                            ...importDetail,
-                        })
-                    
+                        ...importDetail,
+                    })
+
                     totalPrice += price
                     totalPriceWithVat += priceWithVat
                 }
@@ -82,8 +82,8 @@ const getImport = (importId: number) => {
                     data: {
                         import: {
                             ...importData,
-                             totalPriceWithVat,
-                             totalPrice: totalPrice,
+                            totalPriceWithVat,
+                            totalPrice: totalPrice,
                             vatValue: totalPriceWithVat - totalPrice
                         },
                         importDetail: resultDetailData
@@ -125,7 +125,7 @@ const getImportDetailsAfter = (drugId: number, importDetailId: number): Promise<
 const searchImport = (query: Object): Promise<DataResponse<Import>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const imports = await importRepository.find({ where: query});
+            const imports = await importRepository.find({ where: query });
             resolve({
                 message: 'Search imports successfully',
                 data: imports
@@ -148,11 +148,13 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                 return resolve({ errorMessage: 'Thông tin công ti dược không tồn tại.' });
             }
 
-            const lastestImport: Import | null = await importRepository.findOne({ order: { importDate: 'DESC' } })
-            
+            const lastestImport: Import[] = await importRepository.find({ order: { importDate: 'DESC' } })
+
+            console.log(lastestImport)
+
             if (lastestImport) {
-                if (lastestImport.importDate > data.importDate) {
-                    return reject({ errorMesssgae: 'Đơn hàng nhập phải được nhập sau đơn hàng nhập gần nhất.'})
+                if (lastestImport[0].importDate > data.importDate) {
+                    return reject({ errorMessage: 'Đơn hàng nhập phải được nhập sau đơn hàng nhập gần nhất.' })
                 }
             }
             let newImport = new Import();
@@ -165,16 +167,15 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             if (errors.length > 0) {
                 return reject({ validateError: getErrors(errors) });
             }
-            
+
             let drugIds: number[] = data.importDetails.map((importDetail: NewImportDetailData) => importDetail.drugId)
             const drugCategories: DrugCategory[] = await drugRepository.find({ where: { id: In(drugIds) } });
             if (drugCategories.length == 0) {
-                return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.'})
+                return resolve({ errorMessage: 'Vui lòng chọn danh mục thuốc.' })
             }
 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                 await transactionalEntityManager.save(newImport)
-
                 for (let importDetail of data.importDetails) {
                     let drug: DrugCategory | undefined = drugCategories.find(
                         (drug: DrugCategory) => drug.id === importDetail.drugId
@@ -183,7 +184,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                     if (!drug) {
                         resolve({
                             errorMessage: `Mã thuốc ${importDetail.drugId} không tồn tại. Vui lòng làm mới danh mục thuốc để cập nhật thông tin.`,
-                        }); 
+                        });
                         throw new Error();
                     }
                     drug.price = calculateUnitPrice(importDetail.unitPrice, drug.conversionQuantity);
@@ -197,7 +198,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
                     newImportDetail.vat = drug.vat
                     newImportDetail.conversionQuantity = drug.conversionQuantity
                     newImportDetail.expiryDate = new Date(importDetail.expiryDate)
-                    
+
                     const errors = await validate(newImportDetail)
                     if (errors.length > 0) {
                         reject({ validateError: getErrors(errors) })
@@ -213,6 +214,7 @@ const storeImport = (data: ImportData): Promise<DataOptionResponse<Import>> => {
             })
         }
         catch (error) {
+            console.log("Error________________________________-", error)
             reject(error);
         }
     })
@@ -230,12 +232,12 @@ const deleteImport = (importId: number): Promise<DataOptionResponse<Import>> => 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                 const importDetail = await importDetailRepository.find({
                     where: {
-                        import: { 
+                        import: {
                             id: myImport.id,
                         },
                     },
                 })
-            
+
                 await transactionalEntityManager.getRepository(ImportDetail).remove(importDetail);
 
                 await transactionalEntityManager.getRepository(Import).delete(importId);

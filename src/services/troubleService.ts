@@ -82,9 +82,6 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                 }
 
                 const handleImportIds = importIds.filter(importId => inventoryDrug && inventoryDrug.importDetail.import.id >= importId)
-                console.log('importIds', importIds)
-                console.log('handleImportIds', handleImportIds)
-                console.log(inventoryDrug)
                 const handleImports = []
                 
                 for await (let importId of handleImportIds) {
@@ -104,14 +101,16 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                             handleImports.push({ 
                                 importId,
                                 importDate: importDetail.import.importDate,
-                                inventory: importDetail.quantity * importDetail.conversionQuantity - brokenQuantity
+                                inventory: importDetail.quantity * importDetail.conversionQuantity - brokenQuantity,
+                                status: 'not_current'
                             }) 
                         }
                         else {
                             handleImports.push({ 
                                 importId,
                                 importDate: inventoryDrug.importDetail.import.importDate,
-                                inventory: inventoryDrug.inventoryImportDetail
+                                inventory: inventoryDrug.inventoryImportDetail,
+                                status: 'current'
                             }) 
                         }
                     }
@@ -181,7 +180,7 @@ const storeTrouble = (data: TroubleData) => {
 
             await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                 await transactionalEntityManager.save(newTrouble)
-                const importQuantity = await redisClient.hGet(`trouble-list:${data.batchId}-${data.drugId}`, 'inventory')
+                const importQuantity = await redisClient.hGet(`trouble-list:${data.batchId}-${data.drugId}`, 'inventoryImport')
                 const inventory = JSON.parse(importQuantity)
                 if (inventory.length > 0) {
                     //handle cancel batch drug category error
