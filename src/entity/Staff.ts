@@ -69,7 +69,7 @@ export class Staff {
     @IsNotEmpty({ message: requiredMessage('Trạng thái')})
     isWorking: boolean
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, { eager: true})
     @JoinColumn()
     user: User
 

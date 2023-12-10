@@ -29,6 +29,11 @@ const login = async (username: string, password: string): Promise<LoginResponse>
                 reject({errorMessage: 'Thông tin nhân viên không tồn tại.'})
                 return
             }
+
+            if (!staff.isWorking) {
+                reject({errorMessage: 'Bạn đã nghỉ việc không thể đăng nhập.'})
+                return
+            }
             const accessToken = jwt.sign({
                 userId: user.id,
                 roleId: user.role.id,

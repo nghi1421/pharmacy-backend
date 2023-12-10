@@ -4,12 +4,13 @@ import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { Position } from '../entity/Position';
 import { StaffData } from '../global/interfaces/StaffData';
-import { Like, Repository } from 'typeorm';
+import { EntityManager, Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { GetDataResponse } from '../global/interfaces/GetDataResponse';
 import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../utils/helper';
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../utils/query';
 import { QueryParam } from '../global/interfaces/QueryParam';
+import { User } from '../entity/User';
 
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const positionRepository: Repository<Position> = AppDataSource.getRepository(Position);
@@ -253,15 +254,21 @@ const deleteStaff = (staffId: number): Promise<DataOptionResponse<Staff>> => {
                     errorMessage: 'Thông tin nhân viên không tồn tại. Vui lòng làm mới trang.'
                 })
             }
+            const user: User|null = staff.user
+            await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                await transactionalEntityManager.remove(staff);
 
-            await staffRepository.delete(staffId);
+                if (user) {
+                    await transactionalEntityManager.remove(user)
+                }
+            })
 
             resolve({
                 message: 'Xóa thông tin nhân viên thành công.',
                 data: staff
             })
         } catch (error) {
-            reject({errorMessage: 'Nhân viên đã có hành động trên hệ thông. Không thể xóa thông tin nhân viên này.'});
+            reject(error);
         }
     })
 }

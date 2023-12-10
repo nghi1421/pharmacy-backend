@@ -21,16 +21,15 @@ const storeUser = async (req: Request, res: Response) => {
     try {
         let { 
             username,
-            password,
         } = req.body
         const roleId = parseInt(req.body.roleId)
-        const isDefaulPassword: boolean = req.body.defaultPassword === 1
+        const staffId = parseInt(req.body.staffId)
         const data: UserData = {
             username,
-            password,
             roleId,
+            staffId,
         }
-        const result: DataOptionResponse<User> = await userService.storeUser(data, isDefaulPassword);
+        const result: DataOptionResponse<User> = await userService.storeUser(data);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)
@@ -39,22 +38,17 @@ const storeUser = async (req: Request, res: Response) => {
 
 const updateUser = async (req: Request, res: Response) => {
     try {
-        const { 
+        let { 
             username,
         } = req.body
-        
-        const roleId = parseInt(req.body.role_id)
-        const isResetPassword: boolean = req.body.reset_password === 1
-        const password = ''
-
+        const roleId = parseInt(req.body.roleId)
+        const staffId = parseInt(req.body.staffId)
         const data: UserData = {
             username,
-            password,
             roleId,
+            staffId,
         }
-
-        const userId: number = parseInt(req.params.UserId);
-        const result: DataOptionResponse<User> = await userService.updateUser(data, userId, isResetPassword);
+        const result: DataOptionResponse<User> = await userService.updateUser(data);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).send(error)

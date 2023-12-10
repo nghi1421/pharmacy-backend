@@ -1,17 +1,20 @@
 import { User } from '../entity/User'
 import { AppDataSource } from '../dataSource' 
 import { DataResponse } from '../global/interfaces/DataResponse';
-import { validate, validateOrReject } from "class-validator"
+import { validate } from "class-validator"
 import { Like, Repository } from 'typeorm';
 import { DataOptionResponse } from '../global/interfaces/DataOptionResponse';
 import { UserData } from '../global/interfaces/UserData';
 import { Role } from '../entity/Role';
-import config from '../config/config'
 import { QueryParam } from '../global/interfaces/QueryParam';
 import { DataAndCount, getDataAndCount, getErrors, getMetaData } from '../utils/helper';
 import { checkExistUniqueCreate } from '../utils/query';
+import generatePassword from 'generate-password'
+import mailService from './mailService';
+import { Staff } from '../entity/Staff';
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
+const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
 const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
 
 const getUsers = (queryParams: QueryParam): Promise<DataResponse<User>> => {
@@ -50,21 +53,29 @@ const getUsers = (queryParams: QueryParam): Promise<DataResponse<User>> => {
 }
 
 const storeUser =
-    (data: UserData, isDefaultPassword: boolean): Promise<DataOptionResponse<User>> => {
+    (data: UserData): Promise<DataOptionResponse<User>> => {
     return new Promise(async (resolve, reject) => {
         try {
             let newUser = new User();
             const role: Role|null = await roleRepository.findOneBy({ id: data.roleId });
 
-            if (role === null) {
+            const staff: Staff|null = await staffRepository.findOneBy({ id: data.staffId });
+            if (!staff) {
+                return reject({
+                    errorMessge: 'Thông tin nhân viên không tồn tại, vui lòng kiểm tra.',
+                });
+            }
+            if (!role) {
                 return reject({
                     errorMessge: 'Thông tin quyền không tồn tại.',
                 });
             }
-
+            const newPassword =  generatePassword.generate({
+                length: 10,
+            })
             newUser.role = role;
             newUser.username = data.username;
-            newUser.password = isDefaultPassword ? config.defaultPassword : data.password
+            newUser.password = newPassword
             newUser.hashPasswrod();
 
             const errors = await validate(newUser)
@@ -87,8 +98,11 @@ const storeUser =
             if (errorResponse.length > 0) {
                 return reject({validateError: errorResponse})
             }
-
+            mailService.sendAccount(staff.email, data.username, newPassword)
             await userRepository.save(newUser)
+
+            staff.user = newUser
+            await staffRepository.save(staff)
             resolve({
                 message: 'Thêm tài khoản thành công.',
                 data: newUser
@@ -100,37 +114,31 @@ const storeUser =
 }
 
 const updateUser =
-    (data: UserData, userId: number, isResetPassword: boolean): Promise<DataOptionResponse<User>> => {
+    (data: UserData): Promise<DataOptionResponse<User>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let user: User|null = await userRepository.findOneBy({ id: userId });
-            const role: Role | null = await roleRepository.findOneBy({ id: data.roleId });
+            let user: User|null = await userRepository.findOneBy({ username: data.username });
+            const role: Role|null = await roleRepository.findOneBy({ id: data.roleId });
             
-            if (user === null) {
+            if (!user) {
                 return reject({
-                    errorMessge: 'User not found.',
+                    errorMessge: 'Tài khoản không tồn tại.',
                 });
             }
             if (user.role.id !== data.roleId) {
-                if (role === null) {
+                if (!role) {
                     return reject({
-                        errorMessge: 'Role not found.',
+                        errorMessge: 'Quyền không tồn tại.',
                     });
                 }
                 user.role = role;
             }
-            if (isResetPassword) {
-                user.password = config.defaultPassword;
-                user.hashPasswrod();
-            }
 
-            user.username = data.username;
-
-            await validateOrReject(user)
-
+            user.username = data.username
+            
             await userRepository.save(user)
             resolve({
-                message: 'Update user successfully',
+                message: 'Cập nhật tài khoản thành công.',
                 data: user
             })
         } catch (error) {

@@ -94,6 +94,14 @@ const updateStaff = async (req: Request, res: Response) => {
 
         const positionId: number = parseInt(req.body.positionId);
         const staffId: number = parseInt(req.params.staffId);
+
+        if (staffId == res.locals.staffId) {
+            res.status(400).json({
+                errorMessage: 'Không thể cho nghỉ việc bản thân.'
+            })
+            return;
+        }
+
         if (!positionId || !staffId) {
             res.status(200).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
@@ -115,8 +123,15 @@ const updateStaff = async (req: Request, res: Response) => {
 const updateStaffStatus = async (req: Request, res: Response) => {
     try {
         const staffId: number = parseInt(req.params.staffId);
+        if (staffId == res.locals.staffId) {
+            res.status(400).json({
+                errorMessage: 'Hành động bị từ chối.'
+            })
+            return;
+        }
+
         if (!staffId) {
-            res.status(200).json({
+            res.status(400).json({
                 errorMessage: 'Thiếu tham số đầu vào.'
             })
             return;
