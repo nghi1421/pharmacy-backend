@@ -72,7 +72,7 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
 
             if (trouble) {
                 const data = await redisClient.hGetAll(`trouble-list:${batchId}-${drugId}`)
-                const importQuantity = JSON.parse(data.importQuantity)
+                const inventoryImport = JSON.parse(data.inventoryImport)
                 const historySales = JSON.parse(data.historySales)
                 const provider = JSON.parse(data.provider)
                 const drugCategory = JSON.parse(data.drugCategory)
@@ -82,7 +82,7 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                     data: {
                         provider: provider,
                         historySales: historySales,
-                        inventoryImport: importQuantity,
+                        inventoryImport: inventoryImport,
                         drugCategory: drugCategory,
                         trouble
                     }
@@ -256,11 +256,16 @@ const storeTrouble = (data: TroubleData) => {
                             drugInventory.inventoryImportDetail -= inventory.inventory
                         }
                         else {
-                            await redisClient.set(`broken-${inventory.importId}-${data.drugId}`, inventory.inventory)
+                            if (brokenHistory) {
+                                await redisClient.set(`broken-${inventory.importId}-${data.drugId}`, inventory.inventory + parseInt(brokenHistory))
+                            }
+                            else {
+                                await redisClient.set(`broken-${inventory.importId}-${data.drugId}`, inventory.inventory)
+                            }
                             drugInventory.inventoryQuantiy -= inventory.inventory
                             drugInventory.brokenQuanity += inventory.inventory
                         }
-
+                        await transactionalEntityManager.save(drugInventory);
                         await transactionalEntityManager.save(newExportDetail);
                     }
                 }
