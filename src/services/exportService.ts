@@ -435,10 +435,6 @@ const storeCancelExport = (data: ExportData<ImportQuantityRequired>) => {
                     }
                     const brokenHistory = await redisClient.get(`broken-${exportDetail.importId}-${exportDetail.drugId}`)
 
-                    if (brokenHistory) {
-                        await redisClient.del(`broken-${exportDetail.importId}-${exportDetail.drugId}`)
-                    }
-
                     const newExportDetail = new ExportDetail()
                     newExportDetail.export = newExport
                     newExportDetail.import = drugInventory.importDetail.import

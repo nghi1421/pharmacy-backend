@@ -16,6 +16,7 @@ import statisticsController from '../controllers/statisticsController';
 import historyController from '../controllers/historyController';
 import troubleController from '../controllers/troubleController';
 import inventoryController from '../controllers/inventoryController';
+import redis from '../config/redis';
 
 const router = express.Router();
 
@@ -108,7 +109,7 @@ const routesAPI = (app: Application) => {
     router.get('/statistics', [checkAccessToken, checkAdmin], statisticsController.getStatistics)
 
     //Trouble
-    router.get('/troubles/:batchId/:drugId', troubleController.getHistoryBatchTrouble)
+    router.get('/troubles/:batchId/:drugId', [checkAccessToken, checkAdmin], troubleController.getHistoryBatchTrouble)
 
     //MOBLE ROUTE
     router.post('/mobile/login', authenticateController.loginCustomer)

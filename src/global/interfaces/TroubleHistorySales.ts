@@ -3,6 +3,7 @@ import { DrugCategory } from "../../entity/DrugCategory";
 
 export interface TroubleHistorySales {
     exportId: number
+    exportDate: Date
     customer: Customer
     quantity: number
     drug: DrugCategory

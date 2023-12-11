@@ -16,6 +16,7 @@ import { Export } from "../entity/Export"
 import { Import } from "../entity/Import"
 import { Inventory } from "../entity/Inventory"
 import { TroubleDetail } from "../entity/TroubleDetail"
+import { SendNotificationData } from "../global/interfaces/SendNotificationData"
 
 const troubleRepository: Repository<Trouble> = AppDataSource.getRepository(Trouble)
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail)
@@ -114,12 +115,12 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                     exportDetails = exportDetails.concat(exportDetail)
                 }
 
-                const handleImportIds = importIds.filter(importId => inventoryDrug && inventoryDrug.importDetail.import.id >= importId)
+                const handleImportIds = importIds.filter(importId => inventoryDrug && inventoryDrug.importDetail.import.id <= importId)
                 const handleImports = []
 
                 for await (let importId of handleImportIds) {
                     if (inventoryDrug) {
-                        if (inventoryDrug.importDetail.import.id > importId) {
+                        if (inventoryDrug.importDetail.import.id < importId) {
                             const importDetail = await importDetailRepository.findOneBy({
                                 import: { id: importId },
                                 drug: { id: drugId }
@@ -128,7 +129,7 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                             if (!importDetail) {
                                 return reject({ errorMessage: 'Không tìm thấy chi tiết nhập tương ứng.' })
                             }
-                            const brokenHistory = await redisClient.get(`broken-${importDetail.import.id}-${drugId}`)
+                            const brokenHistory = await redisClient.get(`broken-${importId}-${drugId}`)
                             const brokenQuantity = brokenHistory ? parseInt(brokenHistory) : 0
 
                             handleImports.push({
@@ -148,10 +149,11 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                         }
                     }
                 }
-
+                console.log('HANDLE IMPORTS', handleImports)
                 exportDetails.forEach((exportDetail: ExportDetail) => {
                     historySales.push({
                         exportId: exportDetail.export.id,
+                        exportDate: exportDetail.export.exportDate,
                         customer: exportDetail.export.customer,
                         quantity: exportDetail.quantity,
                         drug: exportDetail.drug,
@@ -333,6 +335,17 @@ const backDrugCategory = (exportId: number, troubleId: number, recoveryTime: Dat
                 inventoryImport: data.inventoryImport,
                 drugCategory: data.drugCategory,
             })
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
+const sendNotification = (data: SendNotificationData[]) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+
         }
         catch (error) {
             reject(error)

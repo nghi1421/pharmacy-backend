@@ -10,6 +10,7 @@ import {
 import {
     IsDate,
     MaxLength,
+    ValidateIf,
 } from 'class-validator';
 import { Staff } from './Staff';
 import { Customer } from './Customer';
@@ -34,7 +35,8 @@ export class Export {
 
     @Column({ type: 'varchar', length: 20, nullable: true })
     @MaxLength(20, { message: maxLengthErrorMessage('Mã toa thuốc', 20) })
-    prescriptionId: string
+    @ValidateIf((_, value) => value)
+    prescriptionId!: string
 
     @Column({ type: 'tinyint', default: 1 })
     type: number
