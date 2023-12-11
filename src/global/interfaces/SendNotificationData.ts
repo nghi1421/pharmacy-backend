@@ -1,5 +1,4 @@
 export interface SendNotificationData {
-    exportId: number
-    email: string
-    quantity: number
+    exportIds: number[],
+    troubleId: number,
 }

@@ -53,8 +53,21 @@ const backDrugCategory = async (req: Request, res: Response) => {
     }
 }
 
+const sendNotification = async (req: Request, res: Response) => {
+    try {
+        const exportIds = req.body.exportIds
+        const troubleId = parseInt(req.body.troubleId)
+        const result = await troubleService.sendNotification({ exportIds, troubleId });
+        res.json(result)
+    }
+    catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 export default {
     getHistoryBatchTrouble,
     storeTrouble,
-    backDrugCategory
+    backDrugCategory,
+    sendNotification
 }

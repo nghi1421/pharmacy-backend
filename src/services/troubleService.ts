@@ -17,6 +17,7 @@ import { Import } from "../entity/Import"
 import { Inventory } from "../entity/Inventory"
 import { TroubleDetail } from "../entity/TroubleDetail"
 import { SendNotificationData } from "../global/interfaces/SendNotificationData"
+import mailService from "./mailService"
 
 const troubleRepository: Repository<Trouble> = AppDataSource.getRepository(Trouble)
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail)
@@ -298,8 +299,6 @@ const backDrugCategory = (exportId: number, troubleId: number, recoveryTime: Dat
                 return reject({ errorMessage: 'Không tìm thấy sự cố.' })
             }
 
-
-
             if (troubleDetail) {
                 troubleDetail.quantity = quantity
                 troubleDetail.recoveryTime = recoveryTime;
@@ -347,10 +346,72 @@ const backDrugCategory = (exportId: number, troubleId: number, recoveryTime: Dat
     })
 }
 
-const sendNotification = (data: SendNotificationData[]) => {
+const sendNotification = (data: SendNotificationData) => {
     return new Promise(async (resolve, reject) => {
         try {
+            const exports = await exportRepository.find({ where: { id: In(data.exportIds) } })
+            const trouble = await troubleRepository.findOneBy({ id: data.troubleId })
 
+            if (!trouble) {
+                return reject({
+                    errorMessage: 'Không tìm thấy không tin sự cố.'
+                })
+            }
+            if (exports.length === 0) {
+                return reject({
+                    errorMessage: 'Vui lòng chọn đơn hàng cần gửi thông báo.'
+                })
+            }
+
+            const historySalesJson = await redisClient.hGet(`trouble-list:${trouble.batchId}-${trouble.drug.id}`, 'historySales')
+            const historySales = JSON.parse(historySalesJson)
+
+            const selectedHistories = historySales.filter((history: any) => {
+                return data.exportIds.includes(history.exportId)
+            })
+
+            const handleDataNoti: any[] = []
+
+            selectedHistories.forEach((selectedHistory: any) => {
+                const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportData)
+
+                const findData = handleDataNoti.find(data => data.email === exportData?.customer.email)
+
+                if (findData) {
+                    handleDataNoti.map((data) => {
+                        return data.email === exportData?.customer.email
+                            ? {
+                                exportData: [...data.exportData, {
+                                    quantity: selectedHistory.quantity,
+                                    quantityBack: selectedHistory.quantityBack,
+                                    exportDate: exportData?.exportDate,
+                                    exportId: selectedHistory.exportId,
+                                }],
+                                email: exportData?.customer.email
+                            }
+                            : data
+                    })
+                }
+                else {
+                    handleDataNoti.push({
+                        exportData: [{
+                            quantity: selectedHistory.quantity,
+                            quantityBack: selectedHistory.quantityBack,
+                            exportDate: exportData?.exportDate,
+                            exportId: selectedHistory.exportId,
+                        }],
+                        email: exportData?.customer.email
+                    })
+                }
+            })
+
+            handleDataNoti.forEach((dataNoti: any) => {
+                mailService.sendNotification(dataNoti.email, dataNoti.exportData)
+            })
+
+            resolve({
+                message: 'Gửi thông báo khách hàng thành công.'
+            })
         }
         catch (error) {
             reject(error)
@@ -360,6 +421,7 @@ const sendNotification = (data: SendNotificationData[]) => {
 
 export default {
     getTroubles,
+    sendNotification,
     backDrugCategory,
     getHistoryBatchTrouble,
     storeTrouble
