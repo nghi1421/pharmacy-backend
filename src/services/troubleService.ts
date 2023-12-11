@@ -373,23 +373,16 @@ const sendNotification = (data: SendNotificationData) => {
             const handleDataNoti: any[] = []
 
             selectedHistories.forEach((selectedHistory: any) => {
-                const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportData)
+                const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportId)
 
-                const findData = handleDataNoti.find(data => data.email === exportData?.customer.email)
+                const index = handleDataNoti.findIndex(data => data.email === exportData?.customer.email)
 
-                if (findData) {
-                    handleDataNoti.map((data) => {
-                        return data.email === exportData?.customer.email
-                            ? {
-                                exportData: [...data.exportData, {
-                                    quantity: selectedHistory.quantity,
-                                    quantityBack: selectedHistory.quantityBack,
-                                    exportDate: exportData?.exportDate,
-                                    exportId: selectedHistory.exportId,
-                                }],
-                                email: exportData?.customer.email
-                            }
-                            : data
+                if (index != -1) {
+                    handleDataNoti[index].exportData.push({
+                        quantity: selectedHistory.quantity,
+                        quantityBack: selectedHistory.quantityBack,
+                        exportDate: exportData?.exportDate,
+                        exportId: selectedHistory.exportId,
                     })
                 }
                 else {
@@ -405,6 +398,7 @@ const sendNotification = (data: SendNotificationData) => {
                 }
             })
 
+            console.log(handleDataNoti)
             handleDataNoti.forEach((dataNoti: any) => {
                 mailService.sendNotification(dataNoti.email, dataNoti.exportData)
             })

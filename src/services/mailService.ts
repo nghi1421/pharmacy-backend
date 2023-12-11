@@ -68,6 +68,9 @@ const sendNotification = (receiver: string, tableData: any[]) => {
     });
 
     const tableHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
         <style>
             table {
                 border-collapse: collapse;
@@ -82,6 +85,8 @@ const sendNotification = (receiver: string, tableData: any[]) => {
             background-color: #f2f2f2;
             }
         </style>
+        </head>
+        <body>
         <h3>Thông báo thu hồi thuốc</h3>
         <p>Hệ thống cửa hàng nhận được thông báo từ công ti dược sản xuất và cung cấp thuốc lô thuốc mà khách hàng đã mua
         nằm trong là lô thuốc lỗi. Quý khách vui lòng không sử dụng thuốc dưới mọi hình thức và hoàn trả thuốc (kèm theo hóa đơn mua
@@ -105,6 +110,8 @@ const sendNotification = (receiver: string, tableData: any[]) => {
             </tr>
             `).join('')}
         </table>
+        </body>
+        </html>
         `;
 
     let mailOptions = {
