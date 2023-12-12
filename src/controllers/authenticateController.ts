@@ -105,7 +105,7 @@ const checkAndSendOTPCode = async (req: Request, res: Response) => {
         const { email } = req.body
         const result = await authenticateService.checkAndSendOTPCode(email)
         res.json(result)
-    } catch (error: unknown) {
+    } catch (error) {
         res.status(500).json(error)
     }
 }

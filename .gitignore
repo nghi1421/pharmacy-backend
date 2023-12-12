@@ -12,3 +12,5 @@ build/**/*
 package-lock.json
 
 test.http
+
+src/firebase.json

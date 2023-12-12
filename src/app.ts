@@ -5,6 +5,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import config from './config/config'
+import './config/firebase'
 
 const app = express();
 
@@ -15,7 +16,7 @@ let corsOptions = {
 
 app.use(helmet())
 app.use(cors(corsOptions));
-app.use(cookieParser()); 
+app.use(cookieParser());
 app.use(bodyParser.json());
 
 routesAPI(app)

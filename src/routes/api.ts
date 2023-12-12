@@ -16,6 +16,7 @@ import statisticsController from '../controllers/statisticsController';
 import historyController from '../controllers/historyController';
 import troubleController from '../controllers/troubleController';
 import inventoryController from '../controllers/inventoryController';
+import admin from 'firebase-admin'
 
 const router = express.Router();
 
@@ -113,6 +114,11 @@ const routesAPI = (app: Application) => {
     router.post('/back-drug-category', [checkAccessToken, checkAdmin], troubleController.backDrugCategory)
     router.post('/send-notification', [checkAccessToken, checkAdmin], troubleController.sendNotification)
 
+    router.get('/test', (req, res) => {
+        res.json({
+            message: 'test message'
+        })
+    })
     //MOBLE ROUTE
     router.post('/mobile/login', authenticateController.loginCustomer)
     router.post('/mobile/verify-email', authenticateController.verifyEmail)
@@ -121,6 +127,24 @@ const routesAPI = (app: Application) => {
     router.post('/mobile/change-password', authenticateController.changePasswordCustomer)
     router.get('/mobile/histories/:phoneNumber', historyController.getHistory)
     router.post('/mobile/update-profile/:customerId', customerController.updateCustomer)
+    router.get('/mobile/notification', (req, res) => {
+        const otp = '002141';
+
+        const message = {
+            data: {
+                otp: otp
+            },
+            token: 'dtbCoYAxT9qp12iUqXYqlk:APA91bEBG_j8MK0r0tGlyRhNZvZn6uWRJ1nMw7SvD1U2yudNx1Gf3HwoGIRUrlicoyxMmG7lHoSqJBlfzT5bhmqnRYfiYjCj-24MeI4H5HzsErlF_rPZ5hg6jS2nRcN45_Mw1FpfRiPb'
+        };
+        console.log(123);
+        admin.messaging().send(message).then((response) => {
+            console.log('Successfully sent message:', response);
+        })
+            .catch((error) => {
+                console.log('Error sending message:', error);
+            });
+        res.json({ status: 'success' })
+    });
 
     return app.use("/api", router);
 }
