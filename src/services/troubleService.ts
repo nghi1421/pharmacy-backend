@@ -18,6 +18,7 @@ import { Inventory } from "../entity/Inventory"
 import { TroubleDetail } from "../entity/TroubleDetail"
 import { SendNotificationData } from "../global/interfaces/SendNotificationData"
 import mailService from "./mailService"
+import { Customer } from "../entity/Customer"
 
 const troubleRepository: Repository<Trouble> = AppDataSource.getRepository(Trouble)
 const importDetailRepository: Repository<ImportDetail> = AppDataSource.getRepository(ImportDetail)
@@ -27,6 +28,7 @@ const drugCategoryRepository: Repository<DrugCategory> = AppDataSource.getReposi
 const importRepository: Repository<Import> = AppDataSource.getRepository(Import)
 const exportRepository: Repository<Export> = AppDataSource.getRepository(Export)
 const troubleDetailRepository: Repository<TroubleDetail> = AppDataSource.getRepository(TroubleDetail)
+const customerRepository: Repository<Customer> = AppDataSource.getRepository(Customer)
 
 const getTroubles = (queryParams: QueryParam) => {
     return new Promise(async (resolve, reject) => {
@@ -78,11 +80,18 @@ const getHistoryBatchTrouble = (batchId: string, drugId: number) => {
                 const provider = JSON.parse(data.provider)
                 const drugCategory = JSON.parse(data.drugCategory)
 
+                const customerIds = historySales.map((sale: any) => sale.customer.id)
+                const customers = await customerRepository.find({ where: { id: In(customerIds) } });
+
+                const newHistorySales = historySales.map((sale: any) => {
+                    const customer = customers.find((cus) => cus.id === sale.customer.id)
+                    return { ...sale, customer: customer }
+                })
                 return resolve({
                     message: 'Lấy thông tin sự cố thành công.',
                     data: {
                         provider: provider,
-                        historySales: historySales,
+                        historySales: newHistorySales,
                         inventoryImport: inventoryImport,
                         drugCategory: drugCategory,
                         trouble
@@ -373,28 +382,30 @@ const sendNotification = (data: SendNotificationData) => {
             const handleDataNoti: any[] = []
 
             selectedHistories.forEach((selectedHistory: any) => {
-                const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportId)
+                if (selectedHistory.quantityBack && selectedHistory.quantity !== selectedHistory.quantityBack) {
+                    const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportId)
 
-                const index = handleDataNoti.findIndex(data => data.email === exportData?.customer.email)
+                    const index = handleDataNoti.findIndex(data => data.email === exportData?.customer.email)
 
-                if (index != -1) {
-                    handleDataNoti[index].exportData.push({
-                        quantity: selectedHistory.quantity,
-                        quantityBack: selectedHistory.quantityBack,
-                        exportDate: exportData?.exportDate,
-                        exportId: selectedHistory.exportId,
-                    })
-                }
-                else {
-                    handleDataNoti.push({
-                        exportData: [{
+                    if (index != -1) {
+                        handleDataNoti[index].exportData.push({
                             quantity: selectedHistory.quantity,
                             quantityBack: selectedHistory.quantityBack,
                             exportDate: exportData?.exportDate,
                             exportId: selectedHistory.exportId,
-                        }],
-                        email: exportData?.customer.email
-                    })
+                        })
+                    }
+                    else {
+                        handleDataNoti.push({
+                            exportData: [{
+                                quantity: selectedHistory.quantity,
+                                quantityBack: selectedHistory.quantityBack,
+                                exportDate: exportData?.exportDate,
+                                exportId: selectedHistory.exportId,
+                            }],
+                            email: exportData?.customer.email
+                        })
+                    }
                 }
             })
 

@@ -8,7 +8,7 @@ dayjs.extend(customParseFormat)
 const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
 const imoportDetailRepository = AppDataSource.getRepository(ImportDetail)
 
-const getStatisticsToday =  () => {
+const getStatisticsToday = () => {
     return new Promise(async (resolve, reject) => {
         try {
             const exportDetails = await exportDetailRepository
@@ -20,7 +20,7 @@ const getStatisticsToday =  () => {
                     endDate: new Date(dayjs().endOf('day').format('YYYY-MM-DD HH:mm:ss')),
                 })
                 .getMany();
-            
+
             const salesCount = exportDetails.reduce((sum, exportDetail) => {
                 return sum += exportDetail.quantity
             }, 0)
@@ -53,7 +53,7 @@ const getStatistics = (startDate: string, endDate: string) => {
         try {
             const start = dayjs(startDate, 'DD-MM-YYYY')
             const end = dayjs(endDate, 'DD-MM-YYYY')
-            
+
             if (end.diff(start, 'day') < 0) {
                 return reject({
                     errorMessage: 'Thời gian thông kê không hợp lệ'
@@ -64,13 +64,14 @@ const getStatistics = (startDate: string, endDate: string) => {
                 .innerJoinAndSelect('exportDetail.drug', 'drug')
                 .innerJoinAndSelect('exportDetail.export', 'export')
                 .innerJoinAndSelect('export.customer', 'customer')
-                .where('export.exportDate BETWEEN :startDate AND :endDate', {
+                .where('export.exportDate BETWEEN :startDate AND :endDate AND export.type = :type', {
                     startDate: new Date(start.startOf('day').format('YYYY-MM-DD HH:mm:ss')),
                     endDate: new Date(end.endOf('day').format('YYYY-MM-DD HH:mm:ss')),
+                    type: 1
                 })
                 .orderBy('export.exportDate')
                 .getMany();
-            
+
             const importDetails = await imoportDetailRepository
                 .createQueryBuilder('importDetail')
                 .innerJoinAndSelect('importDetail.import', 'import')
@@ -80,7 +81,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                 })
                 .orderBy('import.importDate')
                 .getMany();
-            
+
             let salesCountList = []
             let salesEarningsList = []
             let customerPurchasesList = []
@@ -110,7 +111,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
                                 : sale
-                                )
+                            )
                         }
                         else {
                             topSales.push({
@@ -123,11 +124,11 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(new Set(customerPurchases).size)
+                    customerPurchasesList.push(customerPurchases.length)
                     date = date.add(1, 'hour')
                 }
             }
-            else if (end.diff(start, 'day') <= 30){
+            else if (end.diff(start, 'day') <= 30) {
                 let date = start
                 let indexExportDetail = 0
                 for (let i = 0; i < end.diff(start, 'day') + 1; i++) {
@@ -147,7 +148,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
                                 : sale
-                                )
+                            )
                         }
                         else {
                             topSales.push({
@@ -160,8 +161,8 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(new Set(customerPurchases).size)
-                    
+                    customerPurchasesList.push(customerPurchases.length)
+
                     date = date.add(1, 'day')
                 }
             }
@@ -181,11 +182,11 @@ const getStatistics = (startDate: string, endDate: string) => {
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
                         customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
-                         if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
+                        if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
                                 : sale
-                                )
+                            )
                         }
                         else {
                             topSales.push({
@@ -198,8 +199,8 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(new Set(customerPurchases).size)
-                   
+                    customerPurchasesList.push(customerPurchases.length)
+
                     date = date.add(1, 'month')
                 }
             }
@@ -223,7 +224,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
                                 : sale
-                                )
+                            )
                         }
                         else {
                             topSales.push({
@@ -236,8 +237,8 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(new Set(customerPurchases).size)
-                    
+                    customerPurchasesList.push(customerPurchases.length)
+
                     date = date.add(1, 'year')
                 }
             }
@@ -250,8 +251,8 @@ const getStatistics = (startDate: string, endDate: string) => {
             const customerPurchases = exportDetails.map((exportDetail) => {
                 return exportDetail.export.customer.id
             })
-            const importQuantity = importDetails.reduce((total, exportDetail) => {
-                return total += exportDetail.quantity
+            const importQuantity = importDetails.reduce((total, importDetail) => {
+                return total += importDetail.quantity * importDetail.conversionQuantity
             }, 0)
 
             resolve({
@@ -263,7 +264,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     customerPurchasesList,
                     salesCount,
                     salesEarnings,
-                    customerPurchases: new Set(customerPurchases).size,
+                    customerPurchases: customerPurchases.length,
                     importQuantity
                 },
                 message: 'Lấy thông tin thống kê thành công.'
