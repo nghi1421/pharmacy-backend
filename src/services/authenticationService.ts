@@ -22,16 +22,16 @@ const roleRepository: Repository<Role> = AppDataSource.getRepository(Role)
 
 const login = async (username: string, password: string): Promise<LoginResponse> => {
     return new Promise(async (resolve, reject) => {
-        const user: User|null = await userRepository.findOneBy({ username: username })
+        const user: User | null = await userRepository.findOneBy({ username: username })
         if (user !== null && user.checkPassword(password)) {
-            const staff: Staff|null = await staffRepository.findOneBy({ user: { id: user.id }});
+            const staff: Staff | null = await staffRepository.findOneBy({ user: { id: user.id } });
             if (!staff) {
-                reject({errorMessage: 'Thông tin nhân viên không tồn tại.'})
+                reject({ errorMessage: 'Thông tin nhân viên không tồn tại.' })
                 return
             }
 
             if (!staff.isWorking) {
-                reject({errorMessage: 'Bạn đã nghỉ việc không thể đăng nhập.'})
+                reject({ errorMessage: 'Bạn đã nghỉ việc không thể đăng nhập.' })
                 return
             }
             const accessToken = jwt.sign({
@@ -56,7 +56,7 @@ const login = async (username: string, password: string): Promise<LoginResponse>
                     },
                     accessToken,
                 },
-                refreshToken 
+                refreshToken
             })
         }
         else {
@@ -69,55 +69,22 @@ const login = async (username: string, password: string): Promise<LoginResponse>
 
 const changePassword =
     (username: string, newPassword: string, oldPassword: string): Promise<DataOptionResponse<User>> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const user: User | null = await userRepository.findOneBy({ username: username });
-            
-            if (!user) {
-                reject({ errorMessage: 'Tên đăng nhập hoặc mật khẩu không khớp.' });
-            } else {
-                if (user.checkPassword(oldPassword)) {
-                    user.password = newPassword;
-                    user.hashPasswrod();
+        return new Promise(async (resolve, reject) => {
+            try {
+                const user: User | null = await userRepository.findOneBy({ username: username });
 
-                    const errors = await validate(user);
-                    if (errors.length > 0) {
-                        return reject({validateError: getErrors(errors)})
-                    }
-
-                    await userRepository.save(user);
-
-                    resolve({
-                        message: 'Đổi mật khẩu thành công.',
-                        data: user,
-                    })
-                }
-                else {
-                    reject({ errorMessage: 'Mật khẩu không hợp lệ.' });
-                }
-            }
-        } catch (error) {
-            reject(error)
-        }
-    })
-    }
-
-const changePasswordCustomer =
-    (phoneNumber: string, newPassword: string, oldPassword: string): Promise<DataOptionResponse<User>> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
-            
-            if (!customer) {
-                reject({ errorMessage: 'Số điện thoại không tồn tại.' });
-            } else {
-                const user = customer.user
-                if (user) {
+                if (!user) {
+                    reject({ errorMessage: 'Tên đăng nhập hoặc mật khẩu không khớp.' });
+                } else {
                     if (user.checkPassword(oldPassword)) {
                         user.password = newPassword;
                         user.hashPasswrod();
 
-                        await validateOrReject(user);
+                        const errors = await validate(user);
+                        if (errors.length > 0) {
+                            return reject({ validateError: getErrors(errors) })
+                        }
+
                         await userRepository.save(user);
 
                         resolve({
@@ -129,24 +96,57 @@ const changePasswordCustomer =
                         reject({ errorMessage: 'Mật khẩu không hợp lệ.' });
                     }
                 }
-                else {
-                    reject({ errorMessage: 'Khách hàng chưa tạo tài khoản.'})
-                }
+            } catch (error) {
+                reject(error)
             }
-        } catch (error) {
-            reject(error)
-        }
-    })
-}
+        })
+    }
+
+const changePasswordCustomer =
+    (phoneNumber: string, newPassword: string, oldPassword: string): Promise<DataOptionResponse<User>> => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+
+                if (!customer) {
+                    reject({ errorMessage: 'Số điện thoại không tồn tại.' });
+                } else {
+                    const user = customer.user
+                    if (user) {
+                        if (user.checkPassword(oldPassword)) {
+                            user.password = newPassword;
+                            user.hashPasswrod();
+
+                            await validateOrReject(user);
+                            await userRepository.save(user);
+
+                            resolve({
+                                message: 'Đổi mật khẩu thành công.',
+                                data: user,
+                            })
+                        }
+                        else {
+                            reject({ errorMessage: 'Mật khẩu không hợp lệ.' });
+                        }
+                    }
+                    else {
+                        reject({ errorMessage: 'Khách hàng chưa tạo tài khoản.' })
+                    }
+                }
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
 
 const loginCustomer = (username: string, password: string, deviceToken: string)
     : Promise<LoginCustomerResponse> => {
     return new Promise(async (resolve, reject) => {
-        const user: User|null = await userRepository.findOneBy({ username: username })
+        const user: User | null = await userRepository.findOneBy({ username: username })
         if (user !== null && user.checkPassword(password)) {
-            const customer: Customer|null = await customerRepository.findOneBy({ user: { id: user.id }});
+            const customer: Customer | null = await customerRepository.findOneBy({ user: { id: user.id } });
             if (!customer) {
-                reject({errorMessage: 'Thông tin khách hàng không tồn tại.'})
+                reject({ errorMessage: 'Thông tin khách hàng không tồn tại.' })
                 return
             }
             const accessToken = jwt.sign({
@@ -169,7 +169,7 @@ const loginCustomer = (username: string, password: string, deviceToken: string)
                     }
                 },
                 accessToken,
-        })
+            })
         }
         else {
             reject({
@@ -249,43 +249,43 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
             }
 
             const newUser = new User();
-                const role: Role|null = await roleRepository.findOneBy({ id: 3 });
+            const role: Role | null = await roleRepository.findOneBy({ id: 3 });
 
-                if (role === null) {
-                    return reject({
-                        errorMessge: 'Thông tin quyền không tồn tại.',
-                    });
-                }
-
-                newUser.role = role;
-                newUser.username = data.username;
-                newUser.password = data.password;
-                newUser.deviceToken = data.deviceToken;
-                newUser.hashPasswrod();
-
-                const errors = await validate(newUser)
-            
-                if (errors.length > 0) {
-                    return reject({validateError: getErrors(errors)})
-                }
-
-                const errorResponse = []
-                const [{ exists: existsUsername }] = await
-                    checkExistUniqueCreate(userRepository, 'username', data.username)
-
-                if (existsUsername) {
-                    errorResponse.push({
-                        key: 'username',
-                        value: ['Tên đăng nhập đã tồn tại.']
-                    })
-                }
-
-                if (errorResponse.length > 0) {
-                    return reject({validateError: errorResponse})
+            if (role === null) {
+                return reject({
+                    errorMessge: 'Thông tin quyền không tồn tại.',
+                });
             }
-            
-            const customer: Customer | null = await customerRepository.findOneBy({ phoneNumber: data.phoneNumber })
-            
+
+            newUser.role = role;
+            newUser.username = data.username;
+            newUser.password = data.password;
+            newUser.deviceToken = data.deviceToken;
+            newUser.hashPasswrod();
+
+            const errors = await validate(newUser)
+
+            if (errors.length > 0) {
+                return reject({ validateError: getErrors(errors) })
+            }
+
+            const errorResponse = []
+            const [{ exists: existsUsername }] = await
+                checkExistUniqueCreate(userRepository, 'username', data.username)
+
+            if (existsUsername) {
+                errorResponse.push({
+                    key: 'username',
+                    value: ['Tên đăng nhập đã tồn tại.']
+                })
+            }
+
+            if (errorResponse.length > 0) {
+                return reject({ validateError: errorResponse })
+            }
+
+            const customer: Customer | null = await customerRepository.findOneBy({ email: data.email })
+
             if (customer) {
                 await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
                     const user = await transactionalEntityManager.save(newUser)
@@ -297,7 +297,7 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
                     message: 'Đăng ký thành công.',
                     data: customer
                 })
-            } 
+            }
             else {
                 let newCustomer = new Customer();
 
@@ -309,7 +309,7 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
 
                 const errors = await validate(newCustomer)
                 if (errors.length > 0) {
-                    return reject({validateError: errors})
+                    return reject({ validateError: errors })
                 }
 
                 const errorResponse = []
@@ -331,7 +331,7 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
                     })
                 }
                 if (errorResponse.length > 0) {
-                    return reject({validateError: errorResponse})
+                    return reject({ validateError: errorResponse })
                 }
 
                 await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
@@ -346,7 +346,7 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
                     data: customer
                 })
             }
-            
+
         }
         catch (error) {
             reject(error)
@@ -356,7 +356,7 @@ const signUpForCustomer = (data: SignUpCustomerData) => {
 
 const forgotPassword = (email: string, isCustomer: boolean) => {
     return new Promise(async (resolve, reject) => {
-       try {
+        try {
             let user
             if (isCustomer) {
                 const customer: Customer | null = await customerRepository.findOneBy({ email });
@@ -378,17 +378,17 @@ const forgotPassword = (email: string, isCustomer: boolean) => {
                 });
                 console.log(staff)
                 if (staff && staff.user) {
-                    user =  staff ? staff.user : undefined
+                    user = staff ? staff.user : undefined
                 }
                 else {
                     return reject({
                         errorMessage: 'Email không tồn tại.'
                     })
                 }
-           }
-           if (!user) {
-                return reject({errorMessage: 'Không tìm thấy tài khoản.'})
-           }
+            }
+            if (!user) {
+                return reject({ errorMessage: 'Không tìm thấy tài khoản.' })
+            }
             const otpCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
             mailService.sendOtp(email, otpCode)
             resolve({
@@ -407,20 +407,20 @@ const updateProfile = (data: ProfileData) => {
         try {
             const staff: Staff | null = await staffRepository.findOneBy({ id: data.id })
             if (!staff) {
-                return reject({ errorMessage: 'Nhân viên không tồn tại.'})
+                return reject({ errorMessage: 'Nhân viên không tồn tại.' })
             }
             staff.name = data.name
             staff.email = data.email
             staff.phoneNumber = data.phoneNumber
             staff.gender = data.gender
             if (data.dob) {
-                 staff.dob = new Date(data.dob)
+                staff.dob = new Date(data.dob)
             }
             staff.address = data.address
 
             const errors = await validate(staff)
             if (errors.length > 0) {
-                return reject({validateError: errors})
+                return reject({ validateError: errors })
             }
 
             const errorResponse = []
@@ -428,7 +428,7 @@ const updateProfile = (data: ProfileData) => {
                 checkExistUniqueUpdate(staffRepository, 'phone_number', [data.phoneNumber, staff.id])
             const [{ exists: existsEmail }] = await
                 checkExistUniqueUpdate(staffRepository, 'email', [data.email, staff.id])
-            
+
             if (existsPhoneNumber) {
                 errorResponse.push({
                     key: 'phoneNumber',
@@ -443,7 +443,7 @@ const updateProfile = (data: ProfileData) => {
             }
 
             if (errorResponse.length > 0) {
-                return reject({validateError: errorResponse})
+                return reject({ validateError: errorResponse })
             }
 
             await staffRepository.save(staff)
@@ -481,7 +481,7 @@ const setNewPassword = (password: string, email: string, isCustomer: boolean) =>
                     where: { email }
                 });
                 if (staff && staff.user) {
-                    user =  staff ? staff.user : undefined
+                    user = staff ? staff.user : undefined
                 }
                 else {
                     return reject({
@@ -490,7 +490,7 @@ const setNewPassword = (password: string, email: string, isCustomer: boolean) =>
                 }
             }
             if (!user) {
-                return reject({errorMessage: 'Không tìm thấy tài khoản.'})
+                return reject({ errorMessage: 'Không tìm thấy tài khoản.' })
             }
             user.password = password;
             user.hashPasswrod();
@@ -508,7 +508,7 @@ const setNewPassword = (password: string, email: string, isCustomer: boolean) =>
     })
 }
 
-export default{
+export default {
     login,
     changePassword,
     updateProfile,

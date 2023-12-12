@@ -115,7 +115,7 @@ const routesAPI = (app: Application) => {
 
     //MOBLE ROUTE
     router.post('/mobile/login', authenticateController.loginCustomer)
-    router.post('/mobile/verify-phone-number', authenticateController.verifyPhoneNumber)
+    router.post('/mobile/verify-email', authenticateController.verifyEmail)
     router.post('/mobile/check-send-otp', authenticateController.checkAndSendOTPCode)
     router.post('/mobile/sign-up', authenticateController.signUpForCustomer)
     router.post('/mobile/change-password', authenticateController.changePasswordCustomer)

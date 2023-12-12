@@ -10,7 +10,7 @@ const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
 
 const getHistory = (phoneNumber: string) => {
     return new Promise(async (resolve, reject) => {
-        try {   
+        try {
             let exports: Export[] = await exportRepository.find({
                 where: {
                     customer: {
@@ -27,7 +27,7 @@ const getHistory = (phoneNumber: string) => {
                 let historyData: HistoryData[] = []
 
                 for (let exportData of exports) {
-                    const exportDetails = await exportDetailRepository.find({ 
+                    const exportDetails = await exportDetailRepository.find({
                         where: {
                             export: {
                                 id: exportData.id
@@ -42,24 +42,24 @@ const getHistory = (phoneNumber: string) => {
                         const priceWithVat = exportDetail.unitPrice * exportDetail.quantity * (1 + exportDetail.vat)
 
                         historiyDetails.push({
-                                drugName: exportDetail.drug.name,
-                                quantity: formatNumber(exportDetail.quantity),
-                                unitPrice: formatCurrency(exportDetail.unitPrice),
-                            }
+                            drugName: exportDetail.drug.name,
+                            quantity: formatNumber(exportDetail.quantity),
+                            unitPrice: formatCurrency(exportDetail.unitPrice),
+                        }
                         )
-                        
+
                         totalPrice += price
                         totalPriceWithVat += priceWithVat
                     }
-                    
-                    if (currentTitle === dayjs(exports[0].exportDate).format('MM/YYYY')) {
+
+                    if (currentTitle === dayjs(exportData.exportDate).format('MM/YYYY')) {
                         historyData.push({
                             id: exportData.id,
                             staffName: exportData.staff.name,
                             time: dayjs(exportData.exportDate).format('DD/MM/YYYY HH:mm:ss'),
-                            total: formatCurrency(totalPriceWithVat),   
+                            total: formatCurrency(totalPriceWithVat),
                             totalWithoutVat: formatCurrency(totalPrice),
-                            vat: formatCurrency(totalPriceWithVat-totalPrice),
+                            vat: formatCurrency(totalPriceWithVat - totalPrice),
                             prescriptionId: exportData.prescriptionId,
                             historyDetail: historiyDetails
                         })
@@ -69,8 +69,18 @@ const getHistory = (phoneNumber: string) => {
                             title: currentTitle,
                             histories: historyData,
                         })
-                        historiyDetails = []
-                        currentTitle = dayjs(exports[0].exportDate).format('MM/YYYY')
+                        historyData = []
+                        historyData.push({
+                            id: exportData.id,
+                            staffName: exportData.staff.name,
+                            time: dayjs(exportData.exportDate).format('DD/MM/YYYY HH:mm:ss'),
+                            total: formatCurrency(totalPriceWithVat),
+                            totalWithoutVat: formatCurrency(totalPrice),
+                            vat: formatCurrency(totalPriceWithVat - totalPrice),
+                            prescriptionId: exportData.prescriptionId,
+                            historyDetail: historiyDetails
+                        })
+                        currentTitle = dayjs(exportData.exportDate).format('MM/YYYY')
                     }
                 }
                 histories.push({
@@ -79,7 +89,7 @@ const getHistory = (phoneNumber: string) => {
                 })
             }
             resolve({
-                data: histories.map(history => { return { ...history, title: `Tháng ${history.title}`}}),
+                data: histories.map(history => { return { ...history, title: `Tháng ${history.title}` } }),
                 message: 'Lấy thông tin lịch sử mua hàng của khách hàng thành công.'
             })
         }
