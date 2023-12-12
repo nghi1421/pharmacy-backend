@@ -411,7 +411,7 @@ const sendNotification = (data: SendNotificationData) => {
 
             console.log(handleDataNoti)
             handleDataNoti.forEach((dataNoti: any) => {
-                mailService.sendNotification(dataNoti.email, dataNoti.exportData)
+                mailService.sendNotification(dataNoti.email, dataNoti.exportData, trouble)
             })
 
             resolve({

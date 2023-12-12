@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import config from '../config/config';
 import dayjs from 'dayjs';
 import { formatNumber } from '../utils/format';
-import { DrugCategory } from '../entity/DrugCategory';
+import { Trouble } from '../entity/Trouble';
 
 const sendOtp = (receiver: string, otp: string) => {
     let transporter = nodemailer.createTransport({
@@ -59,7 +59,7 @@ const sendAccount = (receiver: string, username: string, password: string) => {
     });
 }
 
-const sendNotification = (receiver: string, tableData: any[], drug: DrugCategory) => {
+const sendNotification = (receiver: string, tableData: any[], trouble: Trouble) => {
     let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -89,7 +89,8 @@ const sendNotification = (receiver: string, tableData: any[], drug: DrugCategory
         </head>
         <body>
         <h3>Thông báo thu hồi thuốc</h3>
-        <p>Hệ thống cửa hàng nhận được thông báo từ công ti dược sản xuất và cung cấp thuốc lô thuốc <b>${drug.name}</b> mà khách hàng đã mua
+        <p>Hệ thống cửa hàng nhận được thông báo từ công ti dược sản xuất và cung cấp thuốc lô thuốc mã <b>${trouble.batchId}</b> thuộc danh mục
+        thuốc <b>${trouble.drug.name}</b> mà khách hàng đã mua
         nằm trong là lô thuốc lỗi. Quý khách vui lòng không sử dụng thuốc dưới mọi hình thức và hoàn trả thuốc (kèm theo hóa đơn mua
             thuốc) để được hoàn tiền danh mục thuốc lỗi. Nếu quý khách đã sử dụng thuốc vui lòng theo dõi sức khỏe trong 24 giờ tới, nếu có bất
             cứ biểu hiện bất thường quý khách vui lòng đến trung tâm y tế gần nhất để theo dõi sức khỏe. Xin cảm ơn quý khác.
@@ -106,8 +107,8 @@ const sendNotification = (receiver: string, tableData: any[], drug: DrugCategory
             <tr>
                 <td>${data.exportId}</td>
                 <td>${dayjs(data.exportDate).format('DD/MM/YYYY HH:mm:ss')}</td>
-                <td>${formatNumber(data.quantity)} ${drug.minimalUnit}</td>
-                <td>${data.quantityBack ? formatNumber(data.quantityBack) : 0}  ${drug.minimalUnit}</td>
+                <td>${formatNumber(data.quantity)} ${trouble.drug.minimalUnit}</td>
+                <td>${data.quantityBack ? formatNumber(data.quantityBack) : 0}  ${trouble.drug.minimalUnit}</td>
             </tr>
             `).join('')}
         </table>
