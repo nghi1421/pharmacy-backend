@@ -8,6 +8,8 @@ import config from './config/config'
 import './config/firebase'
 import { createServer } from "http";
 import { Socket, Server } from "socket.io";
+import { checkTokenSocket } from './middlewares/checkTokenSocket';
+import chatService from './services/chatService';
 
 const app = express();
 const httpServer = createServer(app);
@@ -35,33 +37,10 @@ app.get('/', (req: Request, res: Response) => {
 
 io
   .use((socket: Socket, next: NextFunction) => {
-    const { token } = socket.handshake.query;
-    if (token === 'my token') {
-      console.log('authenticated success')
-      next();
-    }
-    else {
-      console.log('authenticated failed')
-      const err: any = new Error("not authorized");
-      err.data = { content: "Authenticate failed" };
-      next(err)
-    }
+    checkTokenSocket(socket, next)
   })
   .on("connection", (socket: Socket) => {
-    console.log('A user connected');
-
-    socket.on('login', (roomId) => {
-      socket.join(roomId);
-    });
-
-    socket.on('chat message', (roomId, message) => {
-
-      io.to(roomId).emit('message', `${roomId}: ${message}`);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
+    chatService.handleSocket(socket, io)
   });
 
 httpServer.listen(config.port, () => {
