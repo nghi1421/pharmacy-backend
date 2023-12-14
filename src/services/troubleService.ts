@@ -382,31 +382,31 @@ const sendNotification = (data: SendNotificationData) => {
             const handleDataNoti: any[] = []
 
             selectedHistories.forEach((selectedHistory: any) => {
-                if (selectedHistory.quantityBack && selectedHistory.quantity !== selectedHistory.quantityBack) {
-                    const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportId)
+                // if (selectedHistory.quantityBack && selectedHistory.quantity !== selectedHistory.quantityBack) {
+                const exportData = exports.find((myExport: Export) => myExport.id === selectedHistory.exportId)
 
-                    const index = handleDataNoti.findIndex(data => data.email === exportData?.customer.email)
+                const index = handleDataNoti.findIndex(data => data.email === exportData?.customer.email)
 
-                    if (index != -1) {
-                        handleDataNoti[index].exportData.push({
+                if (index != -1) {
+                    handleDataNoti[index].exportData.push({
+                        quantity: selectedHistory.quantity,
+                        quantityBack: selectedHistory.quantityBack,
+                        exportDate: exportData?.exportDate,
+                        exportId: selectedHistory.exportId,
+                    })
+                }
+                else {
+                    handleDataNoti.push({
+                        exportData: [{
                             quantity: selectedHistory.quantity,
                             quantityBack: selectedHistory.quantityBack,
                             exportDate: exportData?.exportDate,
                             exportId: selectedHistory.exportId,
-                        })
-                    }
-                    else {
-                        handleDataNoti.push({
-                            exportData: [{
-                                quantity: selectedHistory.quantity,
-                                quantityBack: selectedHistory.quantityBack,
-                                exportDate: exportData?.exportDate,
-                                exportId: selectedHistory.exportId,
-                            }],
-                            email: exportData?.customer.email
-                        })
-                    }
+                        }],
+                        email: exportData?.customer.email
+                    })
                 }
+                // }
             })
 
             console.log(handleDataNoti)

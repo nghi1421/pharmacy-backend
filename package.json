@@ -23,6 +23,7 @@
     "@types/helmet": "^4.0.0",
     "@types/jsonwebtoken": "^9.0.3",
     "@types/nodemailer": "^6.4.14",
+    "@types/socket.io": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "concurrently": "^8.2.1",
@@ -49,6 +50,7 @@
     "nodemon": "^3.0.1",
     "redis": "^4.6.10",
     "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.7.2",
     "typeorm": "^0.3.17",
     "typeorm-naming-strategies": "^4.1.0"
   }
