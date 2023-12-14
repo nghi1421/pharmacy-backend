@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import { DataSource } from 'typeorm'
-import {User} from './entity/User'
+import { User } from './entity/User'
 import 'dotenv/config'
 import { Staff } from './entity/Staff'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
@@ -17,6 +17,8 @@ import { TypeByUse } from './entity/TypeByUse'
 import { Inventory } from './entity/Inventory'
 import { Trouble } from './entity/Trouble'
 import { TroubleDetail } from './entity/TroubleDetail'
+import { Message } from './entity/Message'
+import { Room } from './entity/Room'
 
 const AppDataSource = new DataSource({
   type: "mysql",
@@ -42,7 +44,9 @@ const AppDataSource = new DataSource({
     TypeByUse,
     Inventory,
     Trouble,
-    TroubleDetail
+    TroubleDetail,
+    Room,
+    Message
   ],
   namingStrategy: new SnakeNamingStrategy(),
 })
