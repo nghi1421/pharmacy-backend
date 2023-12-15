@@ -3,3 +3,8 @@ export interface DataOptionResponse<T> {
     data?: T;
     errorMessage?: string
 }
+
+export interface GetDataResponse<T> {
+    message: string;
+    data: T
+}

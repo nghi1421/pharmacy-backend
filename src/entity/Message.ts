@@ -5,6 +5,7 @@ import {
     ManyToOne,
 } from 'typeorm';
 import { Room } from './Room';
+import { BoolBitTransformer } from '../global/classes/BoolBitTransformer';
 
 @Entity('messages')
 export class Message {
@@ -19,4 +20,7 @@ export class Message {
 
     @ManyToOne(() => Room, (room) => room.messages)
     room: Room
+
+    @Column({ type: 'bit', default: true, transformer: new BoolBitTransformer() })
+    fromCustomer: boolean
 }

@@ -17,6 +17,7 @@ import historyController from '../controllers/historyController';
 import troubleController from '../controllers/troubleController';
 import inventoryController from '../controllers/inventoryController';
 import admin from 'firebase-admin'
+import chatController from '../controllers/chatController';
 
 const router = express.Router();
 
@@ -114,6 +115,7 @@ const routesAPI = (app: Application) => {
     router.post('/back-drug-category', [checkAccessToken, checkAdmin], troubleController.backDrugCategory)
     router.post('/send-notification', [checkAccessToken, checkAdmin], troubleController.sendNotification)
 
+
     router.get('/test', (req, res) => {
         res.json({
             message: 'test message'
@@ -127,6 +129,7 @@ const routesAPI = (app: Application) => {
     router.post('/mobile/change-password', authenticateController.changePasswordCustomer)
     router.get('/mobile/histories/:phoneNumber', historyController.getHistory)
     router.post('/mobile/update-profile/:customerId', customerController.updateCustomer)
+    router.get('/mobile/messages/:roomId', chatController.getMessagesFromRoomId)
     router.get('/mobile/notification', (req, res) => {
         const otp = '002141';
 

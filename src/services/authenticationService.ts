@@ -14,6 +14,7 @@ import { getErrors } from '../utils/helper'
 import { checkExistUniqueCreate, checkExistUniqueUpdate } from '../utils/query'
 import mailService from './mailService'
 import { ProfileData } from '../global/interfaces/ProfileData'
+import { Room } from '../entity/Room'
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User)
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff)
@@ -156,20 +157,52 @@ const loginCustomer = (username: string, password: string, deviceToken: string)
             }, config.accessKey, { expiresIn: config.expiryRefreshToken });
 
             user.deviceToken = deviceToken
-            await userRepository.save(user);
 
-            resolve({
-                response: {
-                    message: 'Đăng nhập thành công.',
-                    data: {
-                        id: user.id,
-                        username: user.username,
-                        customer: customer,
-                        role: user.role
-                    }
-                },
-                accessToken,
+            const room = await AppDataSource.getRepository(Room).findOneBy({
+                user: { id: user.id }
             })
+            if (!room) {
+                const newRoom = new Room()
+                newRoom.user = user
+                newRoom.name = customer.name
+                newRoom.recent = new Date();
+
+                await AppDataSource.transaction(async (transactionalEntityManager: EntityManager) => {
+                    await transactionalEntityManager.save(newRoom);
+                    await transactionalEntityManager.save(user);
+                })
+                resolve({
+                    response: {
+                        message: 'Đăng nhập thành công.',
+                        data: {
+                            id: user.id,
+                            roomId: newRoom.id,
+                            username: user.username,
+                            customer: customer,
+                            role: user.role
+                        },
+                        accessToken,
+                    },
+                    accessToken,
+                })
+            }
+            else {
+                await userRepository.save(user);
+                resolve({
+                    response: {
+                        message: 'Đăng nhập thành công.',
+                        data: {
+                            id: user.id,
+                            roomId: room.id,
+                            username: user.username,
+                            customer: customer,
+                            role: user.role
+                        },
+                        accessToken,
+                    },
+                    accessToken,
+                })
+            }
         }
         else {
             reject({
