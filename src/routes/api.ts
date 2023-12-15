@@ -115,6 +115,8 @@ const routesAPI = (app: Application) => {
     router.post('/back-drug-category', [checkAccessToken, checkAdmin], troubleController.backDrugCategory)
     router.post('/send-notification', [checkAccessToken, checkAdmin], troubleController.sendNotification)
 
+    //Chat
+    router.get('/messages', [checkAccessToken, checkAdmin], chatController.getMessages)
 
     router.get('/test', (req, res) => {
         res.json({

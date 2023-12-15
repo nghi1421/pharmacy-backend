@@ -12,6 +12,17 @@ const getMessagesFromRoomId = async (req: Request, res: Response) => {
     }
 }
 
+const getMessages = async (req: Request, res: Response) => {
+    try {
+        const result = await chatService.getMessages()
+        res.status(200).json(result)
+    }
+    catch (error) {
+        res.status(500).json(error)
+    }
+}
+
 export default {
-    getMessagesFromRoomId
+    getMessagesFromRoomId,
+    getMessages
 }
