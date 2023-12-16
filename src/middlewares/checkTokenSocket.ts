@@ -16,6 +16,7 @@ export const checkTokenSocket = (socket: Socket, next: NextFunction) => {
             }
             else {
                 if (payload.roleId == 1) {
+                    console.log('authenticated::::::::::success',)
                     next()
                 }
                 else {

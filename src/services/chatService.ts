@@ -17,7 +17,7 @@ const getMessages = () => {
                 relations: {
                     messages: true
                 },
-                order: { recent: 'DESC', messages: { id: 'DESC' } }
+                order: { recent: 'DESC', messages: { id: 'ASC' } }
             });
 
             resolve({
@@ -116,6 +116,17 @@ const handleSocket = (socket: Socket, io: Server<DefaultEventsMap, DefaultEvents
         socket.join(roomId.toString());
     });
 
+    socket.on('leave-room', (roomId: number) => {
+        socket.leave(roomId.toString());
+    });
+
+    socket.on('join-list-room', (listRoom: number[]) => {
+        listRoom.forEach((roomId: number) => {
+            socket.join(roomId.toString());
+            console.log('Joined room: ', roomId)
+        })
+    })
+
     socket.on('get-messages', async (roomId) => {
         getMessages()
             .then(data => {
@@ -144,17 +155,15 @@ const handleSocket = (socket: Socket, io: Server<DefaultEventsMap, DefaultEvents
                     if (customer && customer.user) {
                         storeMessage(roomId, message, customer.user.username, true)
                             .then((data) => {
-                                console.log('emit message', data)
-                                io.to(roomId).emit('message', message, true, data.data.time, data.data.id)
+                                io.to(roomId.toString()).emit('message', data.data, true)
                             })
                     }
-
                 })
         }
         else {
             storeMessage(roomId, message, username, false)
                 .then((data) => {
-                    io.to(roomId).emit('message', message, false, data.data.time, data.data.id);
+                    io.to(roomId.toString()).emit('message', data.data, false);
                 })
         }
     });
