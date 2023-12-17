@@ -19,7 +19,7 @@ const getUsers = async (req: Request, res: Response) => {
 
 const storeUser = async (req: Request, res: Response) => {
     try {
-        let { 
+        let {
             username,
         } = req.body
         const roleId = parseInt(req.body.roleId)
@@ -38,7 +38,7 @@ const storeUser = async (req: Request, res: Response) => {
 
 const updateUser = async (req: Request, res: Response) => {
     try {
-        let { 
+        let {
             username,
         } = req.body
         const roleId = parseInt(req.body.roleId)
@@ -65,9 +65,20 @@ const deleteUser = async (req: Request, res: Response) => {
     }
 }
 
+const deleteUserByStaffId = async (req: Request, res: Response) => {
+    try {
+        const staffId: number = parseInt(req.params.staffId)
+        const result = await userService.deleteUserByStaffId(staffId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 export default {
     getUsers,
     storeUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    deleteUserByStaffId
 }

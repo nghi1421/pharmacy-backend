@@ -38,6 +38,7 @@ const routesAPI = (app: Application) => {
     router.post('/users', [checkAccessToken, checkAdmin], userController.storeUser)
     router.put('/users/:userId', [checkAccessToken, checkAdmin], userController.updateUser)
     router.delete('/users/:userId', [checkAccessToken, checkAdmin], userController.deleteUser)
+    router.delete('/users/revoke/:staffId', [checkAccessToken, checkAdmin], userController.deleteUserByStaffId)
 
     //Staff
     router.get('/staffs', [checkAccessToken, checkAdmin], staffController.getStaffs)
@@ -131,6 +132,7 @@ const routesAPI = (app: Application) => {
     router.post('/mobile/change-password', authenticateController.changePasswordCustomer)
     router.get('/mobile/histories/:phoneNumber', historyController.getHistory)
     router.post('/mobile/update-profile/:customerId', customerController.updateCustomer)
+    router.get('/mobile/statistics/:customerId', statisticsController.getStatisticsCustomer)
     router.get('/mobile/messages/:roomId', chatController.getMessagesFromRoomId)
     router.get('/mobile/notification', (req, res) => {
         const otp = '002141';

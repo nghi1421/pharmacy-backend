@@ -3,10 +3,13 @@ import { AppDataSource } from "../dataSource"
 import { ExportDetail } from "../entity/ExportDetail"
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { ImportDetail } from "../entity/ImportDetail"
+import { Customer } from "../entity/Customer"
+import { Between } from "typeorm"
 
 dayjs.extend(customParseFormat)
 const exportDetailRepository = AppDataSource.getRepository(ExportDetail)
 const imoportDetailRepository = AppDataSource.getRepository(ImportDetail)
+const customerRepository = AppDataSource.getRepository(Customer)
 
 const getStatisticsToday = () => {
     return new Promise(async (resolve, reject) => {
@@ -249,7 +252,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                 return total += exportDetail.quantity * exportDetail.unitPrice
             }, 0)
             const customerPurchases = exportDetails.map((exportDetail) => {
-                return exportDetail.export.customer.id
+                return exportDetail.export.id
             })
             const importQuantity = importDetails.reduce((total, importDetail) => {
                 return total += importDetail.quantity * importDetail.conversionQuantity
@@ -264,7 +267,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     customerPurchasesList,
                     salesCount,
                     salesEarnings,
-                    customerPurchases: customerPurchases.length,
+                    customerPurchases: new Set(customerPurchases).size,
                     importQuantity
                 },
                 message: 'Lấy thông tin thống kê thành công.'
@@ -276,7 +279,49 @@ const getStatistics = (startDate: string, endDate: string) => {
     })
 }
 
+const getStatisticCustomer = (customerId: number) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const customer = await customerRepository.findOneBy({ id: customerId })
+            if (!customer) {
+                return reject({
+                    errorMessage: 'Không tìm thấy không tin khách hàng'
+                })
+            }
+            const now = new Date();
+            let start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+            let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+            const exportDetails = await exportDetailRepository.find({
+                where: {
+                    export: {
+                        customer: { id: customer.id },
+                        exportDate: Between(start, end),
+                        type: 1,
+                    }
+                }
+            })
+            const bought = exportDetails.reduce((total, exportDetail) => {
+                return total += exportDetail.quantity * exportDetail.unitPrice
+            }, 0)
+
+            const customerPurchases = exportDetails.map((exportDetail) => {
+                return exportDetail.export.id
+            })
+
+            resolve({
+                count: new Set(customerPurchases).size,
+                buy: bought
+            })
+        }
+        catch (error) {
+            reject(error)
+        }
+    })
+}
+
 export default {
     getStatisticsToday,
-    getStatistics
+    getStatistics,
+    getStatisticCustomer
 }
