@@ -156,15 +156,19 @@ const deleteUserByStaffId = (staffId: number): Promise<DataOptionResponse<Staff>
                 id: staffId
             })
 
-            if (!staff || !staff?.user) {
+            if (!staff || !staff.user) {
                 return reject({
                     errorMessage: 'Không tìm thấy tài khoản người dùng.'
                 })
             }
 
-            staff.user = null
+            await AppDataSource
+                .createQueryBuilder()
+                .relation(Staff, "user")
+                .of(staff)
+                .set(null)
+
             await userRepository.delete(staff.user.id);
-            await staffRepository.save(staff);
 
             resolve({
                 message: 'Thu hồi và xóa tài khoản thành công.',
@@ -182,14 +186,20 @@ const deleteUser = (userId: number): Promise<DataOptionResponse<User>> => {
             let user: User = await userRepository.findOneByOrFail({ id: userId });
             const staff = await staffRepository.findOneBy({ user: { id: user.id } })
             if (staff) {
-                staff.user = null
-                await staffRepository.save(staff);
+                await AppDataSource
+                    .createQueryBuilder()
+                    .relation(Staff, "user")
+                    .of(staff)
+                    .set(null)
             }
             else {
                 const customer = await customerRepository.findOneBy({ user: { id: user.id } })
                 if (customer) {
-                    customer.user = null
-                    await customerRepository.save(customer);
+                    await AppDataSource
+                        .createQueryBuilder()
+                        .relation(Customer, "user")
+                        .of(customer)
+                        .set(null)
                 }
             }
 
