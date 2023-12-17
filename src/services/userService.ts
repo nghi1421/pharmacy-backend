@@ -13,6 +13,7 @@ import generatePassword from 'generate-password'
 import mailService from './mailService';
 import { Staff } from '../entity/Staff';
 import { Customer } from '../entity/Customer';
+import config from '../config/config';
 
 const userRepository: Repository<User> = AppDataSource.getRepository(User);
 const staffRepository: Repository<Staff> = AppDataSource.getRepository(Staff);
@@ -215,10 +216,31 @@ const deleteUser = (userId: number): Promise<DataOptionResponse<User>> => {
     })
 }
 
+const resetPassword = (userId: number): Promise<DataOptionResponse<User>> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user: User = await userRepository.findOneByOrFail({ id: userId });
+
+            user.password = config.defaultPassword
+            user.hashPasswrod()
+
+            await userRepository.save(user);
+
+            resolve({
+                message: 'Reset mật khẩu tài khoản thành công.',
+                data: user
+            })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
 export default {
     getUsers,
     storeUser,
     updateUser,
     deleteUserByStaffId,
-    deleteUser
+    deleteUser,
+    resetPassword
 }

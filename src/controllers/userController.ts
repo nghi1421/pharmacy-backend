@@ -75,10 +75,21 @@ const deleteUserByStaffId = async (req: Request, res: Response) => {
     }
 }
 
+const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const userId: number = parseInt(req.params.userId)
+        const result = await userService.resetPassword(userId);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 export default {
     getUsers,
     storeUser,
     updateUser,
     deleteUser,
-    deleteUserByStaffId
+    deleteUserByStaffId,
+    resetPassword
 }

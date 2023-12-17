@@ -38,6 +38,7 @@ const routesAPI = (app: Application) => {
     router.post('/users', [checkAccessToken, checkAdmin], userController.storeUser)
     router.put('/users/:userId', [checkAccessToken, checkAdmin], userController.updateUser)
     router.delete('/users/:userId', [checkAccessToken, checkAdmin], userController.deleteUser)
+    router.post('/reset-password/:userId', [checkAccessToken, checkAdmin], userController.resetPassword)
     router.delete('/users/revoke/:staffId', [checkAccessToken, checkAdmin], userController.deleteUserByStaffId)
 
     //Staff
