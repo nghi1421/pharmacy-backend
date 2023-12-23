@@ -20,6 +20,20 @@ const login = async (req: Request, res: Response) => {
     }
 }
 
+const logout = (req: Request, res: Response) => {
+    try {
+        res.clearCookie('refreshToken');
+        res.status(200).json({
+            message: 'Đăng xuất thành công.'
+        })
+    }
+    catch (error) {
+        res.status(500).json({
+            errorMessage: 'Lỗi server, vui lòng kiểm tra.'
+        })
+    }
+}
+
 const refreshToken = (req: Request, res: Response) => {
     if (req.cookies.refreshToken) {
         const refreshToken: string = req.cookies.refreshToken;
@@ -241,6 +255,7 @@ const setNewPassword = async (req: Request, res: Response) => {
 
 export default {
     login,
+    logout,
     refreshToken,
     changePassword,
     setNewPassword,

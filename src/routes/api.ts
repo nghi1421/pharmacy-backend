@@ -24,6 +24,7 @@ const router = express.Router();
 const routesAPI = (app: Application) => {
     //Authentication
     router.post('/login', authenticateController.login)
+    router.post('/logout', authenticateController.logout)
     router.post('/refresh-token', authenticateController.refreshToken)
     router.post('/change-password', [checkAccessToken], authenticateController.changePassword)
     router.put('/update-profile', [checkAccessToken], authenticateController.updateProfile)
