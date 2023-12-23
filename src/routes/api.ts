@@ -135,6 +135,8 @@ const routesAPI = (app: Application) => {
     router.post('/mobile/update-profile/:customerId', customerController.updateCustomer)
     router.get('/mobile/statistics/:customerId', statisticsController.getStatisticsCustomer)
     router.get('/mobile/messages/:roomId', chatController.getMessagesFromRoomId)
+    router.post('/mobile/forgot-password', authenticateController.forgotPassword)
+    router.post('/mobile/set-new-password', authenticateController.setNewPassword)
     router.get('/mobile/notification', (req, res) => {
         const otp = '002141';
 

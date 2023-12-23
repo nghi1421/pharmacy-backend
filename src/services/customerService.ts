@@ -1,5 +1,5 @@
 import { Customer } from '../entity/Customer'
-import { AppDataSource } from '../dataSource' 
+import { AppDataSource } from '../dataSource'
 import { DataResponse } from '../global/interfaces/DataResponse';
 import { validate } from "class-validator"
 import { CustomerData } from '../global/interfaces/CustomerData';
@@ -26,17 +26,17 @@ const getCustomers = (queryParams: QueryParam | undefined): Promise<DataResponse
                     }
                     return object
                 })
-                
+
                 const order: any = {}
                 order[queryParams.orderBy] = queryParams.orderDirection
 
                 const result: DataAndCount = await getDataAndCount(queryParams, customerRepository, search, order);
-        
+
                 resolve({
                     message: 'Lấy thông tin khách hàng thành công.',
                     data: result.data,
                     meta: await getMetaData(queryParams, result.total)
-                })    
+                })
             }
             else {
                 const data: Customer[] = await customerRepository.find();
@@ -44,7 +44,7 @@ const getCustomers = (queryParams: QueryParam | undefined): Promise<DataResponse
                 resolve({
                     message: 'Lấy thông tin khách hàng thành công.',
                     data
-                })  
+                })
             }
         } catch (error) {
             reject(error);
@@ -55,7 +55,7 @@ const getCustomers = (queryParams: QueryParam | undefined): Promise<DataResponse
 const getCustomerByPhoneNumber = (phoneNumber: string): Promise<GetDataResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const result: Customer|null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
+            const result: Customer | null = await customerRepository.findOneBy({ phoneNumber: phoneNumber });
             if (result) {
                 resolve({
                     message: 'Lấy thông tin khách hàng thành công.',
@@ -64,7 +64,7 @@ const getCustomerByPhoneNumber = (phoneNumber: string): Promise<GetDataResponse<
             }
             else {
                 reject({
-                    errorMessage: 'Không tìm thấy thông tin nhân viên.'
+                    errorMessage: 'Không tìm thấy thông tin khách hàng.'
                 });
             }
         } catch (error) {
@@ -76,7 +76,7 @@ const getCustomerByPhoneNumber = (phoneNumber: string): Promise<GetDataResponse<
 const getCustomer = (customerId: number): Promise<GetDataResponse<Customer>> => {
     return new Promise(async (resolve, reject) => {
         try {
-            const result: Customer|null = await customerRepository.findOneBy({ id: customerId });
+            const result: Customer | null = await customerRepository.findOneBy({ id: customerId });
             if (result) {
                 resolve({
                     message: 'Lấy thông tin khách hàng thành công.',
@@ -106,15 +106,15 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             newCustomer.address = data.address
 
             const errors = await validate(newCustomer)
-            
+
             if (errors.length > 0) {
-                return reject({validateError: errors})
+                return reject({ validateError: errors })
             }
 
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueCreate(customerRepository, 'phone_number', [newCustomer.phoneNumber])
-            
+
             if (existsPhoneNumber) {
                 errorResponse.push({
                     key: 'phoneNumber',
@@ -124,7 +124,7 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
 
             const [{ exists: existsEmail }] = await
                 checkExistUniqueCreate(customerRepository, 'email', [newCustomer.email])
-            
+
             if (existsEmail) {
                 errorResponse.push({
                     key: 'email',
@@ -133,7 +133,7 @@ const storeCustomer = (data: CustomerData): Promise<DataOptionResponse<Customer>
             }
 
             if (errorResponse.length > 0) {
-                return reject({validateError: errorResponse})
+                return reject({ validateError: errorResponse })
             }
 
             await customerRepository.save(newCustomer)
@@ -161,17 +161,17 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
             const errorResponse = []
             const [{ exists: existsPhoneNumber }] = await
                 checkExistUniqueUpdate(customerRepository, 'phone_number', [customer.phoneNumber, customer.id])
-            
+
             const [{ exists: existsEmail }] = await
                 checkExistUniqueUpdate(customerRepository, 'email', [customer.email, customer.id])
-            
+
             if (existsEmail) {
                 errorResponse.push({
                     key: 'email',
                     value: ['Email đã tồn tại.']
                 })
             }
-            
+
             if (existsPhoneNumber) {
                 errorResponse.push({
                     key: 'phoneNumber',
@@ -179,7 +179,7 @@ const updateCustomer = (customerId: number, data: CustomerData): Promise<DataOpt
                 })
             }
             if (errorResponse.length > 0) {
-                return reject({validateError: errorResponse})
+                return reject({ validateError: errorResponse })
             }
 
             await customerRepository.save(customer)
@@ -205,7 +205,7 @@ const deleteCustomer = (customerId: number): Promise<DataOptionResponse<Customer
                 data: customer
             })
         } catch (error) {
-            reject({errorMessage: 'Khách hàng đã mua thuốc tại nhà thuốc. Không thể xóa thông tin khách hàng.'});
+            reject({ errorMessage: 'Khách hàng đã mua thuốc tại nhà thuốc. Không thể xóa thông tin khách hàng.' });
         }
     })
 }

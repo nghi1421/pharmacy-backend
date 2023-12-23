@@ -78,6 +78,7 @@ const getExport = (exportId: number) => {
                         ...exportDetail,
                         price,
                         priceWithVat,
+                        totalPrice: price,
                     })
 
                     totalPrice += price
@@ -135,12 +136,13 @@ const getTodaySalesCreatedByStaff = (staffId: number) => {
 
                     resultDetailData.push({
                         ...exportDetail,
+                        totalPrice: price,
                     })
 
                     totalPrice += price
                     totalPriceWithVat += priceWithVat
                 }
-                handleExport.push({ ...exportData, total: totalPriceWithVat })
+                handleExport.push({ ...exportData, total: totalPriceWithVat, totalPriceWithVat, totalPrice: totalPrice })
             }
 
             resolve({

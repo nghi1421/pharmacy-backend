@@ -109,7 +109,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                         }
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
-                        customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        customerPurchases.push(exportDetails[indexExportDetail].export.id)
                         if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
@@ -127,7 +127,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(customerPurchases.length)
+                    customerPurchasesList.push(new Set(customerPurchases).size)
                     date = date.add(1, 'hour')
                 }
             }
@@ -146,7 +146,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                         }
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
-                        customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        customerPurchases.push(exportDetails[indexExportDetail].export.id)
                         if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
@@ -164,7 +164,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(customerPurchases.length)
+                    customerPurchasesList.push(new Set(customerPurchases).size)
 
                     date = date.add(1, 'day')
                 }
@@ -184,7 +184,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                         }
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
-                        customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        customerPurchases.push(exportDetails[indexExportDetail].export.id)
                         if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
@@ -202,7 +202,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(customerPurchases.length)
+                    customerPurchasesList.push(new Set(customerPurchases).size)
 
                     date = date.add(1, 'month')
                 }
@@ -222,7 +222,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                         }
                         salesCount += exportDetails[indexExportDetail].quantity;
                         salesEarnings += exportDetails[indexExportDetail].quantity * exportDetails[indexExportDetail].unitPrice;
-                        customerPurchases.push(exportDetails[indexExportDetail].export.customer.id)
+                        customerPurchases.push(exportDetails[indexExportDetail].export.id)
                         if (topSales.find(sale => sale.id === exportDetails[indexExportDetail].drug.id)) {
                             topSales.map((sale) => sale.id === exportDetails[indexExportDetail].drug.id
                                 ? { ...sale, sales: sale.sales + exportDetails[indexExportDetail].quantity }
@@ -240,7 +240,7 @@ const getStatistics = (startDate: string, endDate: string) => {
                     }
                     salesCountList.push(salesCount)
                     salesEarningsList.push(salesEarnings)
-                    customerPurchasesList.push(customerPurchases.length)
+                    customerPurchasesList.push(new Set(customerPurchases).size)
 
                     date = date.add(1, 'year')
                 }

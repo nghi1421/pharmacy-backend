@@ -25,7 +25,7 @@ app.use(bodyParser.json());
 
 const io = new Server(httpServer, {
   cors: {
-    origin: '*'
+    origin: 'http://localhost'
   }
 });
 

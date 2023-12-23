@@ -148,6 +148,7 @@ const forgotPassword = async (req: Request, res: Response) => {
     try {
         const email = req.body.email
         const isCustomer = req.query.isCustomer
+        console.log(isCustomer);
         const result = await authenticateService.forgotPassword(email, isCustomer ? true : false)
         res.json(result)
     } catch (error) {

@@ -15,7 +15,8 @@ const getHistory = (phoneNumber: string) => {
                 where: {
                     customer: {
                         phoneNumber: phoneNumber
-                    }
+                    },
+                    type: 1,
                 },
                 order: {
                     exportDate: 'ASC'
